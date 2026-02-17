@@ -13,7 +13,7 @@
 | **Find a specific rule** | `index.mdc` (complete catalog with keyword routing) |
 | **Auto-detect intent** | `ROUTER.mdc` (always loaded, routes by keywords) |
 | **Style guide for rules** | `meta/cursor-rules-style-guide.mdc` |
-| **MCP configuration** | `docs/mcp/example-config.json` |
+| **MCP configuration** | `mcp/example-config.json` |
 
 ## Structure Overview
 

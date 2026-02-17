@@ -1,6 +1,6 @@
 ---
 name: prd-generation
-description: "Generates Product Requirements Documents through structured conversation by asking clarifying questions about goals, user needs, requirements, and technical constraints. Creates comprehensive PRD documents with goals, user stories, functional requirements, non-functional requirements, technical considerations, and acceptance criteria. Use when starting new features, planning major changes, clarifying requirements, or documenting feature specs. Produces well-structured PRD documents ready for review and implementation planning."
+description: "Generates PRDs through structured conversation. Use when starting features, planning changes, or documenting specs. Produces PRDs ready for implementation planning."
 version: "1.0.0"
 last_updated: "2026-01-25"
 tags: ["planning", "documentation", "requirements", "universal"]

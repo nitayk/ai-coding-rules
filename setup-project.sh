@@ -94,8 +94,16 @@ if [ "$SETUP_CURSOR" = true ]; then
 
   for file in ROUTER.mdc index.mdc; do
     if [ -f "$SCRIPT_DIR/$file" ]; then
-      cp "$SCRIPT_DIR/$file" "$CURSOR_DIR/rules/$file"
-      log_ok "  $file"
+      # Rewrite paths: setup-project copies rules directly into .cursor/rules/
+      # (not .cursor/rules/shared/), so strip the shared/ prefix from all paths.
+      sed \
+        -e 's|\.cursor/rules/shared/|.cursor/rules/|g' \
+        -e 's|`shared/|`|g' \
+        -e 's| shared/| |g' \
+        -e 's|-> *`\{0,1\}shared/|-> `|g' \
+        -e 's|(shared/|(|g' \
+        "$SCRIPT_DIR/$file" > "$CURSOR_DIR/rules/$file"
+      log_ok "  $file (paths rewritten for direct install)"
       ((stats+=1))
     fi
   done

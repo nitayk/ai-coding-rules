@@ -1,6 +1,6 @@
 ---
 name: best-practices-enforcement
-description: "Systematically validates code against universal best practices and language-specific patterns. Enforces code quality (SOLID, DRY, KISS, YAGNI), security (input validation, least privilege), testing (AAA pattern, behavior over implementation), performance (measure first, optimize bottlenecks), architecture (separation of concerns, dependency injection), and error handling (fail fast, explicit errors). Automatically detects language from file extensions and loads both generic rules (@shared/generic/) and language-specific rules (Scala/Python/Go/Java/JS/TS/Swift/Kotlin/Objective-C). Use when reviewing code before commit or PR, ensuring code quality standards, validating security practices, checking test coverage, performance optimization review, architecture compliance validation, or onboarding new code. Skip when only reading code, code already reviewed, or quick syntax fixes. Produces structured best practices audit report in chat (not file)."
+description: "Validates code against universal best practices and language-specific patterns (SOLID, DRY, security, testing, performance). Use when reviewing before commit/PR, ensuring code quality, or validating security. Skip when only reading code or quick fixes. Produces audit report in chat."
 version: "1.2.0"
 last_updated: "2026-01-25"
 tags: ["best-practices", "code-quality", "security", "testing", "code-review", "enforcement"]

@@ -1,6 +1,6 @@
 ---
 name: pr-workflow
-description: "Manages complete PR lifecycle from creation through merge with pre-PR validation, autonomous status monitoring, bot feedback handling, and merge coordination. Performs pre-PR checks (tests, linting, build), monitors PR status continuously, addresses bot feedback automatically, and merges only when all checks pass. Use when creating pull requests, monitoring PR status, addressing bot feedback, or merging PRs. More comprehensive than /create-pr command - includes full lifecycle management with automated monitoring and merge coordination."
+description: "Manages complete PR lifecycle: pre-validation, status monitoring, bot feedback, merge. Use when creating PRs, monitoring status, or merging. More comprehensive than /create-pr."
 version: "1.0.0"
 last_updated: "2026-01-25"
 tags: ["git", "pr", "workflow", "ci-cd", "universal"]

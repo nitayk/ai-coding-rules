@@ -205,51 +205,68 @@ alwaysApply: false
 ## Cursor 2.4+ Features
 
 ### Commands (`shared/commands/`)
-**Universal development commands that work across any project.**
+**Slash commands for common workflows.**
 
 | Command | Purpose | Usage |
 |---------|---------|-------|
-| `create-pr.md` | Create pull request | `/pr [message]` |
-| `code-review.md` | Comprehensive code review | `/review` |
-| `fix-github-issue.md` | Fix GitHub issue by number | `/fix-issue <number>` |
-| `test-until-pass.md` | Test & fix loop | `/test-until-pass` |
-| `generate-changelog.md` | Generate changelog | `/changelog` |
-| `generate-docs.md` | Generate documentation | `/docs` |
-| `security-audit.md` | Security audit | `/security-audit` |
-| `onboard-developer.md` | Developer onboarding | `/onboard` |
-| `council.md` | Multi-agent codebase exploration | `/council [n=10] <area>` |
+| `brainstorm.md` | Explore intent and design before implementation | `/brainstorm` |
+| `execute-plan.md` | Execute an implementation plan | `/execute-plan` |
+| `write-plan.md` | Create an implementation plan | `/write-plan` |
 
 ### Skills (`shared/skills/`)
 **Procedural workflows for complex, multi-step development tasks.**
 
-**Universal Skills** (work with any language):
-- `tdd-workflow/` - Test-Driven Development (Red-Green-Refactor)
-- `pr-workflow/` - Comprehensive PR lifecycle management
+**Planning & Design**:
+- `brainstorming/` - Explore intent, requirements, and design before implementation
+- `writing-plans/` - Create implementation plans before coding
+- `executing-plans/` - Execute plans with review checkpoints
 - `prd-generation/` - Product Requirements Document generation
 - `task-breakdown/` - Break features into actionable tasks
-- `multi-agent-branching/` - Prevent concurrent agent conflicts
-- `setup-local-dev/` - Persistent local dev server setup
 
-**Domain-Specific Skills**:
-- `service-breakdown/` - Complete service analysis
-- `service-migration/` - Migrate services between repos
-- `service-refactoring/` - Safe refactoring process
-- `git-workflow/` - Advanced git operations
-- `best-practices-enforcement/` - Code quality enforcement
+**Development Workflows**:
+- `tdd-workflow/` - Test-Driven Development (Red-Green-Refactor)
+- `test-driven-development/` - TDD before implementation code
+- `git-workflow/` - Git workflow for complex tasks
+- `pr-workflow/` - Full PR lifecycle (create, monitor, merge)
+- `finishing-a-development-branch/` - Integration options after dev complete
+- `setup-local-dev/` - Persistent local dev server via pm2
+
+**Code Quality**:
+- `best-practices-enforcement/` - Enforce code quality standards
+- `code-cleanup/` - Detect AI slop, dead code, anti-patterns
+- `requesting-code-review/` - Verify work before merging
+- `receiving-code-review/` - Handle review feedback with rigor
+- `verification-before-completion/` - Verify before claiming done
+
+**Debugging & Testing**:
+- `systematic-debugging/` - Structured debugging methodology
+- `debug-workflow/` - Debug investigation workflow
+- `webapp-testing/` - Browser testing with Playwright
+
+**Multi-Agent & Parallel**:
+- `dispatching-parallel-agents/` - Run independent tasks concurrently
+- `subagent-driven-development/` - Execute plans with subagents
+- `multi-agent-branching/` - Prevent concurrent agent conflicts
+- `using-git-worktrees/` - Isolated feature work via worktrees
+
+**Frontend & Documents**:
+- `frontend-design/` - Production-grade frontend interfaces
+- `web-artifacts-builder/` - Multi-component HTML artifacts
+- `pdf/` `docx/` `pptx/` `xlsx/` - Document format skills
+
+**Meta & Tools**:
+- `skill-creator/` - Create new skills
+- `writing-skills/` - Write and verify skills
+- `mcp-builder/` - Build MCP servers
+- `session-memory/` - Persist context across sessions
+- `using-superpowers/` - Skill discovery and invocation
 
 ### Subagents (`shared/agents/`)
 **Specialized AI assistants for parallel task execution.**
 
-**Universal Subagents** (work with any language):
-- `test-runner.md` - Test execution and failure analysis
-- `documentation-writer.md` - Documentation generation
-- `verifier.md` - Skeptical validation of completed work
-
-**Domain-Specific Subagents**:
-- `service-breakdown-coordinator.md` - Service analysis orchestrator
-- `service-migration-specialist.md` - Service migration expert
-- `service-refactoring-specialist.md` - Refactoring expert
-- `git-workflow-specialist.md` - Git workflow expert
+| Agent | Purpose |
+|-------|---------|
+| `code-reviewer.md` | Comprehensive code review |
 
 ---
 

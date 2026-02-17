@@ -1,6 +1,6 @@
 ---
 name: task-breakdown
-description: "Breaks PRDs or feature descriptions into structured, actionable task lists through two-phase process. First identifies parent tasks as high-level work items, then decomposes each parent into specific sub-tasks with clear deliverables. Creates development roadmap with dependencies, priorities, and estimated complexity. Use when PRD is approved and ready for implementation planning, breaking down features into tasks, creating development roadmap, or organizing work for development tracking. Produces organized task breakdown with parent tasks and sub-tasks ready for development tracking."
+description: "Breaks PRDs into actionable task lists. Two-phase: parent tasks then sub-tasks. Use when PRD is approved and ready for implementation planning."
 version: "1.0.0"
 last_updated: "2026-01-25"
 tags: ["planning", "tasks", "workflow", "universal"]

@@ -1,3 +1,8 @@
+---
+name: session-memory
+description: "Manages persistent context across chat sessions using a local memory file. Use when resuming work, storing decisions, or maintaining continuity across long-running tasks."
+---
+
 # Session Memory
 
 Manages persistent context across chat sessions using a local file.

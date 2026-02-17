@@ -1,6 +1,6 @@
 ---
 name: code-cleanup
-description: "Three-phase code cleanup with certainty-graded findings. Detects AI slop (debug statements, TODOs, placeholder text), dead code, excessive comments, and common anti-patterns. Phase 1: regex patterns (HIGH certainty), Phase 2: heuristic analyzers (MEDIUM certainty), Phase 3: optional CLI tools (LOW certainty). Use when cleaning up code before commit or PR, after AI-generated code, removing debug artifacts, or reducing code noise. Do NOT use for feature implementation, code review (use code-reviewer agent), or refactoring logic (use /service-refactoring)."
+description: "Three-phase cleanup with certainty-graded findings. Detects AI slop, dead code, debug artifacts. Use when cleaning before commit/PR or after AI-generated code. Skip for feature implementation or refactoring."
 ---
 
 # Code Cleanup

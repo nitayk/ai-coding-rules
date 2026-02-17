@@ -1,3 +1,8 @@
+---
+name: debug-workflow
+description: "Enforce a strict Log-Reproduce-Fix cycle for debugging. Use when fixing bugs, investigating errors, or troubleshooting failures."
+---
+
 # Debug Workflow
 
 **Purpose**: Enforce a strict "Log -> Reproduce -> Fix" cycle for debugging.

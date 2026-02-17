@@ -1,6 +1,6 @@
 ---
 name: multi-agent-branching
-description: "Prevents concurrent AI agents from overwriting each other's work by enforcing feature branch isolation. Checks current git branch before any file edits, creates unique timestamped feature branches if on main/master, and ensures all commits go to feature branches. Use when multiple agents work simultaneously, during autonomous agent workflows, or when preventing merge conflicts. Agents detect from description and apply branch verification pattern at session start - check branch before first edit, create feature branch if needed, commit only to feature branches."
+description: "Prevents agent conflicts by enforcing feature branch isolation. Use when multiple agents work simultaneously or when preventing merge conflicts."
 version: "1.0.0"
 last_updated: "2026-01-25"
 tags: ["git", "workflow", "agents", "branching", "universal"]
