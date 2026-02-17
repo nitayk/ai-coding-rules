@@ -1,0 +1,289 @@
+---
+description: "Proto/Avro schema generation and schema registry patterns for Kafka and data pipelines. Use when: (1) Generating Proto/Avro schemas, (2) Working with Schema Registry, (3) Kafka serialization/deserialization, (4) Schema evolution and compatibility, (5) Data contract management. Covers schema generation, registry integration, and versioning strategies."
+globs: []
+alwaysApply: false
+---
+
+# Proto/Avro Schema Generation and Schema Registry
+
+## Core Principles
+- **Generated code is NOT committed** - Proto/Avro classes are generated at build time
+- **Schema registry integration** - Avro schemas are registered during build for backward compatibility
+- **Centralized generation** - Use `generateProtocols` sbt task to generate all schemas
+- **Type safety** - Generated classes provide compile-time safety for event/message structures
+
+## Generation Commands
+
+### Generate All Protocols
+```bash
+# Main command to generate all proto/avro classes
+sbt generateProtocols
+
+# Note: IntelliJ may show a more complex Java command when running this,
+# but the simple 'sbt generateProtocols' command is all you need
+```
+
+### Generate Specific Module
+```bash
+# Generate Avro for specific module
+sbt "project bidder-api" avroScalaGenerateSpecific
+
+# Generate Protobuf for specific module  
+sbt "project plumbus" PB.generate
+```
+
+## Build Configuration Patterns
+
+### Enable Avro Generation in Module
+```scala
+// ✅ Good: Add to module settings
+lazy val `my-service` =
+  (project in file(getServicePath("my-service")))
+    .settings(
+      basicSettings ++
+        Dependencies.myService,
+      generateAvroFiles  // Enables Avro generation
+    )
+```
+
+### Register Avro Schemas with Schema Registry
+```scala
+// ✅ Good: Register schemas during build
+lazy val `my-service` =
+  (project in file(getServicePath("my-service")))
+    .settings(
+      basicSettings ++
+        Dependencies.myService,
+      generateAvroFiles,
+      AvroTasks.registerAvroSchemasTask(
+        "com.example.myservice.avroSchemaMain.MyEventRegistrationMain",
+        "com.example.myservice.avroSchemaMain.MyOtherEventRegistrationMain"
+      )
+    )
+```
+
+### Enable Protobuf Generation
+```scala
+// ✅ Good: Add protobuf generation
+lazy val `my-api` =
+  (project in file(getApiPath("my-api")))
+    .settings(
+      basicSettings ++
+        Dependencies.myApi,
+      generateProtoBufFiles  // Enables Protobuf generation
+    )
+```
+
+## Schema File Locations
+
+### Avro Schema Files
+```
+app/services/my-service/
+  └── src/main/
+      ├── avro/
+      │   ├── MyEvent.avsc          # Avro schema definition
+      │   └── MyOtherEvent.avsc
+      └── scala/
+          └── com/example/myservice/
+              └── avroSchemaMain/
+                  └── MyEventRegistrationMain.scala  # Schema registry registration
+```
+
+### Protobuf Schema Files
+```
+app/api-objects/my-api/
+  └── src/main/
+      ├── protobuf/
+      │   └── my_messages.proto     # Proto definition
+      └── scala/
+          └── com/example/myapi/
+              └── MyService.scala   # Uses generated proto classes
+```
+
+## Generated Code Usage
+
+### Using Generated Avro Classes
+```scala
+import com.example.myservice.avro.MyEvent
+
+// ✅ Good: Use generated Avro case classes
+val event = MyEvent(
+  userId = userId,
+  timestamp = System.currentTimeMillis(),
+  eventData = eventData
+)
+
+// ✅ Good: Serialize to Avro bytes
+val serializer = new ConfluentAvroSerializerSpecific[MyEvent]
+val bytes = serializer.serialize(event)
+
+// ✅ Good: Deserialize from Avro bytes
+val deserializer = new ConfluentAvroDeserializerSpecific[MyEvent]
+val decodedEvent = deserializer.deserialize(bytes)
+```
+
+### Using Generated Proto Classes
+```scala
+import com.example.myapi.proto.{MyRequest, MyResponse}
+
+// ✅ Good: Use generated proto classes
+val request = MyRequest(
+  requestId = requestId,
+  userId = userId,
+  timestamp = timestamp
+)
+
+// ✅ Good: Serialize to proto bytes
+val bytes = request.toByteArray
+
+// ✅ Good: Deserialize from proto bytes
+val decodedRequest = MyRequest.parseFrom(bytes)
+```
+
+## Schema Registry Integration
+
+### Schema Registration Main Classes
+```scala
+// ✅ Good: Create schema registration main for Avro
+package com.example.myservice.avroSchemaMain
+
+import com.example.schemaRegistry.avro.AvroSchemaRegisterUtil
+
+object MyEventRegistrationMain extends App {
+  AvroSchemaRegisterUtil.registerSchema[MyEvent](
+    subject = "my-event-value",
+    isKey = false
+  )
+}
+```
+
+### Schema Evolution Best Practices
+```scala
+// ✅ Good: Add optional fields for backward compatibility
+{
+  "type": "record",
+  "name": "MyEvent",
+  "namespace": "com.example.myservice.avro",
+  "fields": [
+    {"name": "userId", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "newField", "type": ["null", "string"], "default": null}  // Optional field
+  ]
+}
+
+// ❌ Bad: Remove required fields (breaks backward compatibility)
+{
+  "type": "record",
+  "name": "MyEvent",
+  "fields": [
+    {"name": "userId", "type": "string"}
+    // Removed "timestamp" - breaks consumers expecting it!
+  ]
+}
+```
+
+## Common Generated Code Locations
+
+### Services with Avro
+- `bidder-api` → generates bidding event classes
+- `funnel-data` → generates funnel event classes
+- `shared-raw-events` → generates shared event classes
+- `track-ad` → generates tracking event classes
+- `iab-notification-server` → generates IAB notification events
+
+### Services with Protobuf
+- `plumbus` → generates plumbus proto messages
+- `open-rtb` → generates OpenRTB proto messages
+- `funnel-data` → generates funnel proto messages
+- `unity-events-consumer` → generates Unity event protos
+
+## Migration Patterns for IAB Services
+
+### Adding Avro Generation to Migrated Service
+```scala
+// ✅ Good: Migrate IAB service with Avro generation
+lazy val `iab-notifications-gateway` =
+  (project in file(getServicePath("iab-notifications-gateway")))
+    .settings(
+      basicSettings ++
+        Dependencies.iabNotificationsGateway,
+      generateAvroFiles,  // Add if service uses Avro
+      AvroTasks.registerAvroSchemasTask(
+        "com.example.notifications.gateway.avroSchemaMain.IabNotificationEventMain"
+      )
+    )
+    .dependsOn(
+      `sonic-common`,
+      SharedLogicBuild.`notifications`,
+      UtilsBuild.`avro-util`,  // Required for Avro serialization
+      UtilsBuild.`schema-registry-client`  // Required for schema registry
+    )
+```
+
+### Using Existing Avro Schemas
+```scala
+// ✅ Good: Depend on existing Avro schema modules
+.dependsOn(
+  ApiObjectsBuild.`shared-raw-events`,  // Provides shared Avro events
+  SharedLogicBuild.`funnel-data`,       // Provides funnel Avro events
+  MobileSchemas.`l1odpSchema`           // Provides L1 ODP Avro schemas
+)
+```
+
+## Troubleshooting
+
+### Generated Classes Not Found
+```bash
+# 1. Clean and regenerate
+sbt clean
+sbt generateProtocols
+
+# 2. Verify Avro files exist
+ls app/services/my-service/src/main/avro/
+
+# 3. Check generated classes location
+ls app/services/my-service/target/scala-2.13/src_managed/main/compiled_avro/
+```
+
+### Schema Registry Errors
+```scala
+// ✅ Good: Check schema compatibility before deploying
+sbt "project my-service" avroSchemaCheck
+
+// ✅ Good: Use schema evolution safely
+// - Add optional fields with defaults
+// - Never remove required fields
+// - Never change field types
+```
+
+### IntelliJ Not Recognizing Generated Classes
+```bash
+# 1. Generate protocols first
+sbt generateProtocols
+
+# 2. Reload SBT project in IntelliJ
+# File → Reload All from Disk
+# or: Right-click build.sbt → Reload sbt Project
+
+# 3. Mark generated sources as source roots (if needed)
+# target/scala-2.13/src_managed/main/compiled_avro → Mark Directory as → Sources Root
+```
+
+## Best Practices Summary
+
+1. **Always run `generateProtocols` after schema changes** before compiling
+2. **Register Avro schemas** using `AvroTasks.registerAvroSchemasTask` for services producing Kafka messages
+3. **Use optional fields** when evolving Avro schemas for backward compatibility
+4. **Don't commit generated code** - it's regenerated on each build
+5. **Add schema dependencies** (`avro-util`, `schema-registry-client`) for services using Avro
+6. **Test schema evolution** - ensure new schemas are compatible with existing consumers
+7. **Document schema changes** - especially breaking changes that require coordinated deployments
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Scala-Specific:**
+- [JSON Serialization Patterns](json-serialization-patterns.mdc) - For Play JSON serialization
+- [Kafka Patterns](../../kafka/kafka-patterns.mdc) - For Kafka message production/consumption (if exists)

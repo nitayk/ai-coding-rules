@@ -1,0 +1,180 @@
+# Scala Dependency Conflict Detection Rule
+
+**Purpose**: Automatically detect and guide resolution of Scala dependency conflicts, especially during library upgrades.
+
+## Auto-Trigger Conditions
+
+Load `@skills/scala-dependency-hell/SKILL.md` when:
+
+### Keywords Detected
+- **"NoClassDefFoundError"** or **"ClassNotFoundException"** in error logs
+- **"dependency hell"**, **"dependency conflict"**, **"dependency issues"**
+- **"eviction"**, **"binary incompatibility"**
+- **"deduplicate"** errors from sbt-assembly
+- **"play-json"** + **"typesafe"** + **"playframework"** together
+- **"JodaWrites"** or **"JodaReads"** + **"not found"**
+- **"akka"** + **"pekko"** together (migration conflict)
+
+### File Changes Detected
+- Changes to `project/Dependencies.scala` with group ID changes
+- Changes to `project/plugins.sbt` adding new library versions
+- Updates to `build.sbt` changing major dependency versions
+- Multiple files with `excludeDependencies` or `excludeAll` modifications
+
+### Test Failures
+- Tests passing locally but failing in CI
+- Test failures mentioning class loading issues
+- Assembly build failures with "deduplicate" errors
+
+## Proactive Actions
+
+When triggers detected:
+
+1. **Immediately load the skill**: `@skills/scala-dependency-hell/SKILL.md`
+
+2. **Run diagnostic script**:
+   ```bash
+   manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+   ```
+
+3. **Check for known patterns**:
+   - Play JSON 2.x → 3.x group ID change (`com.typesafe.play` → `org.playframework`)
+   - Akka → Pekko migration (`com.typesafe.akka` → `org.apache.pekko`)
+   - Play JSON Extensions migration (`ai.x` → `com.gu`)
+
+4. **Analyze affected modules**:
+   - Run `sbt "show <module>/dependencyTree"` for suspected modules
+   - Check `sbt "show <module>/dependencyClasspath"` for duplicate group IDs
+   - If assembly exists, test with `sbt "<module>/assembly"`
+
+5. **Apply systematic fixes** following the skill patterns:
+   - Use global `excludeDependencies` for group ID changes
+   - Add explicit dependencies for new group IDs
+   - Test ALL affected modules before committing
+
+## Prevention Guidelines
+
+### Before Library Upgrades
+
+1. **Check for group ID changes**:
+   ```bash
+   # Search Maven Central or library docs for organization changes
+   # Example: Play JSON 3.x changed from com.typesafe.play to org.playframework
+   ```
+
+2. **Run conflict detection**:
+   ```bash
+   manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+   ```
+
+3. **Plan exclusions** before making changes
+
+### After Dependency Changes
+
+1. **Always test locally**:
+   ```bash
+   sbt clean
+   sbt <module>/compile
+   sbt <module>/test
+   sbt <module>/assembly  # if applicable
+   ```
+
+2. **Check runtime classpath**:
+   ```bash
+   sbt "show <module>/Runtime/fullClasspath" | grep -i "library-name"
+   ```
+
+3. **Test ALL affected modules** - not just the one you modified
+
+## Key Principles
+
+1. **Group ID changes are invisible to SBT** - handle manually with `excludeDependencies`
+2. **Compilation success ≠ runtime success** - always run tests
+3. **Check external dependencies** - they often pull in old versions
+4. **Document all exclusions** - explain WHY in comments
+5. **Test before pushing** - CI failures are expensive
+
+## Common Mistakes to Avoid
+
+❌ Excluding dependencies without understanding impact
+❌ Only testing one module when changes affect many
+❌ Using `MergeStrategy.first` without investigating root cause
+❌ Assuming `dependencyTree` shows all conflicts
+❌ Not checking if tests actually run (vs. just compile)
+
+## Tools Required
+
+Add to `project/plugins.sbt`:
+```scala
+// ⚠️ PERFORMANCE WARNING: sbt-explicit-dependencies slows compilation dramatically!
+// Keep COMMENTED OUT during normal development. Uncomment only for hygiene checks.
+// addSbtPlugin("com.github.cb372" % "sbt-explicit-dependencies" % "0.3.1")
+
+addSbtPlugin("com.github.xuwei-k" % "sbt-conflict-classes" % "0.2.0")
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+```
+
+**Critical**: `sbt-explicit-dependencies` provides `unusedDep` and `undeclaredDep` commands that prevent dependency hell by catching issues early.
+
+**⚠️ PERFORMANCE**: This plugin analyzes the entire dependency graph and can slow compilation by 2-10x! 
+
+**Best Practice**:
+1. Keep plugin **COMMENTED OUT** in version control
+2. Uncomment temporarily when running hygiene checks
+3. Comment out again immediately after
+4. Never commit with plugin uncommented
+
+## Quick Reference Commands
+
+```bash
+# Comprehensive conflict detection
+manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+
+# Dependency hygiene (PROACTIVE - run regularly!)
+sbt "<module>/undeclaredCompileDependencies"  # Deps used but not declared
+sbt "<module>/unusedCompileDependencies"      # Deps declared but not used
+
+# Specific module checks
+sbt "show <module>/dependencyTree"
+sbt "show <module>/dependencyClasspath"
+sbt "show <module>/excludeDependencies"
+
+# Assembly & conflicts
+sbt "<module>/assembly"
+sbt conflictClasses
+
+# Find which JAR contains a class
+find ~/.ivy2 ~/.cache/coursier -name "*.jar" -exec sh -c \
+  'jar tf "$1" | grep -q "package/Class" && echo "$1"' _ {} \;
+```
+
+### Recommended Workflow
+
+**Before any dependency change**:
+```bash
+sbt "<module>/undeclaredCompileDependencies"  # Baseline current state
+```
+
+**After dependency change**:
+```bash
+sbt "<module>/undeclaredCompileDependencies"  # Check for new undeclared deps
+sbt "<module>/test"                            # Verify nothing broke
+```
+
+## When NOT to Apply This Rule
+
+- Simple single-dependency additions (no version changes)
+- Internal library dependencies (no transitive conflicts)
+- Documentation-only changes
+- Configuration file updates (non-dependency)
+
+## Integration with Development Workflow
+
+1. **Pre-commit**: Run conflict detection script
+2. **PR reviews**: Check for proper exclusions and testing
+3. **CI**: Add dependency validation step
+4. **Post-merge**: Monitor for runtime issues in dev/staging
+
+---
+
+**Remember**: Dependency hell is systematic - use systematic solutions!

@@ -1,0 +1,364 @@
+---
+description: "Foundation guidelines for clean, maintainable architecture with interface-centric design and separation of concerns. Use when: (1) Designing application structure, (2) Creating service layers, (3) Managing dependencies, (4) Organizing code modules, (5) Building maintainable systems. Covers interface-centric design, dependency injection, and architectural patterns."
+globs: []
+alwaysApply: false
+---
+
+# Core Structural Guidelines
+
+These guidelines establish the foundation for clean, maintainable architecture in Scala applications, emphasizing interface-centric design and proper separation of concerns.
+
+## Core Principles
+
+### Interface-Centric Design
+Depend on interfaces (traits), not concrete implementations. This enables flexibility, testability, and maintainability.
+
+```scala
+// ✅ Good: Interface-centric design
+trait IBiddingService {
+  def submitBid(request: BidRequest): Future[BidResult]
+  def cancelBid(bidId: UUID): Future[Unit]
+}
+
+trait ITrackingService {
+  def recordEvent(event: TrackingEvent): Future[Unit]
+  def getMetrics(timeRange: TimeRange): Future[Metrics]
+}
+
+class AdTechFacade(
+  biddingService: IBiddingService,
+  trackingService: ITrackingService
+) {
+  def processAd(request: AdRequest): Future[AdResult] = {
+    // Business logic using interfaces
+    for {
+      bidResult <- biddingService.submitBid(BidRequest.from(request))
+      _ <- trackingService.recordEvent(TrackingEvent.from(bidResult))
+    } yield AdResult.from(bidResult)
+  }
+}
+
+// ❌ Bad: Concrete class dependencies
+class BadAdTechFacade(
+  biddingService: ConcreteBiddingService, // Tightly coupled
+  trackingService: ConcreteTrackingService // Hard to test
+) {
+  // Same business logic but inflexible
+}
+```
+
+### Single Responsibility Principle
+Each facade should serve one clear business purpose. Split complex facades into focused components.
+
+```scala
+// ❌ Bad: Too many responsibilities
+class AdTechAllInOneFacade(
+  biddingService: IBiddingService,
+  trackingService: ITrackingService,
+  userService: IUserService,
+  analyticsService: IAnalyticsService,
+  notificationService: INotificationService
+) {
+  def processBid(): Future[BidResult] = ???
+  def trackUser(): Future[Unit] = ???
+  def generateReport(): Future[Report] = ???
+  def sendNotifications(): Future[Unit] = ???
+  def manageUsers(): Future[Unit] = ???
+}
+
+// ✅ Good: Focused responsibilities
+class BidFacade(biddingService: IBiddingService) {
+  def processBid(request: BidRequest): Future[BidResult] = {
+    biddingService.submitBid(request)
+  }
+  
+  def cancelBid(bidId: UUID): Future[Unit] = {
+    biddingService.cancelBid(bidId)
+  }
+}
+
+class TrackingFacade(trackingService: ITrackingService) {
+  def recordEvent(event: TrackingEvent): Future[Unit] = {
+    trackingService.recordEvent(event)
+  }
+  
+  def getMetrics(timeRange: TimeRange): Future[Metrics] = {
+    trackingService.getMetrics(timeRange)
+  }
+}
+
+class UserFacade(userService: IUserService) {
+  def createUser(userData: UserData): Future[User] = {
+    userService.create(userData)
+  }
+  
+  def updateUser(userId: UUID, updates: UserUpdates): Future[User] = {
+    userService.update(userId, updates)
+  }
+}
+```
+
+### Subsystem Encapsulation
+Hide complex subsystem initialization and configuration behind simple, clean interfaces.
+
+```scala
+// ✅ Good: Encapsulated subsystem creation
+object AdSystemFacade {
+  def apply(config: AdSystemConfig): AdSystemFacade = {
+    // Complex initialization hidden from clients
+    val logger = new AuditLogger(config.logLevel)
+    val metricCollector = new MetricCollector(config.metricsConfig)
+    val riskCalculator = new RiskCalculator(config.riskThresholds)
+    
+    val biddingService = new BiddingService(
+      logger = logger,
+      riskCalculator = riskCalculator,
+      httpClient = createHttpClient(config.httpConfig)
+    )
+    
+    new AdSystemFacade(biddingService, logger, metricCollector)
+  }
+  
+  private def createHttpClient(config: HttpConfig): HttpClient = {
+    // Complex HTTP client setup
+    new HttpClient(
+      timeout = config.timeout,
+      retryPolicy = config.retryPolicy,
+      connectionPool = config.connectionPool
+    )
+  }
+}
+
+class AdSystemFacade private (
+  biddingService: IBiddingService,
+  logger: AuditLogger,
+  metricCollector: MetricCollector
+) {
+  def processAd(request: AdRequest): Future[AdResult] = {
+    // Simple interface for complex subsystem
+    for {
+      _ <- logger.logRequest(request)
+      result <- biddingService.submitBid(BidRequest.from(request))
+      _ <- metricCollector.recordMetric("ad_processed", 1)
+    } yield AdResult.from(result)
+  }
+}
+```
+
+## Structural Patterns
+
+### Layer Organization
+Organize code into clear layers with well-defined boundaries and dependencies.
+
+```scala
+// ✅ Good: Clear layer structure
+// Domain Layer - Core business logic
+case class User(id: UUID, name: String, email: String)
+case class BidRequest(userId: UUID, amount: BigDecimal, adSpace: String)
+
+// Service Layer - Business operations
+trait UserService {
+  def findUser(id: UUID): Future[Option[User]]
+  def createUser(name: String, email: String): Future[User]
+}
+
+// Infrastructure Layer - External concerns
+class DatabaseUserService(db: Database) extends UserService {
+  def findUser(id: UUID): Future[Option[User]] = {
+    db.query("SELECT * FROM users WHERE id = ?", id)
+      .map(rows => rows.headOption.map(User.fromRow))
+  }
+  
+  def createUser(name: String, email: String): Future[User] = {
+    val user = User(UUID.randomUUID(), name, email)
+    db.insert("users", user.toRow).map(_ => user)
+  }
+}
+
+// Facade Layer - Clean API
+class UserFacade(userService: UserService) {
+  def getUserProfile(id: UUID): Future[Either[UserError, UserProfile]] = {
+    userService.findUser(id).map {
+      case Some(user) => Right(UserProfile.from(user))
+      case None => Left(UserError.NotFound(id))
+    }
+  }
+}
+```
+
+### Dependency Injection Patterns
+Use constructor injection for clear dependencies and easier testing.
+
+```scala
+// ✅ Good: Constructor injection with clear dependencies
+class OrderProcessingFacade(
+  orderService: IOrderService,
+  paymentService: IPaymentService,
+  inventoryService: IInventoryService,
+  notificationService: INotificationService
+) {
+  def processOrder(orderData: OrderData): Future[OrderResult] = {
+    for {
+      order <- orderService.createOrder(orderData)
+      _ <- inventoryService.reserveItems(order.items)
+      payment <- paymentService.processPayment(order.payment)
+      _ <- notificationService.sendConfirmation(order.customer.email)
+    } yield OrderResult.success(order, payment)
+  }
+}
+
+// ✅ Good: Factory pattern for complex creation
+trait OrderProcessingFacadeFactory {
+  def create(config: OrderConfig): OrderProcessingFacade
+}
+
+class DefaultOrderProcessingFacadeFactory extends OrderProcessingFacadeFactory {
+  def create(config: OrderConfig): OrderProcessingFacade = {
+    val orderService = new DatabaseOrderService(config.database)
+    val paymentService = new StripePaymentService(config.stripeConfig)
+    val inventoryService = new RedisInventoryService(config.redis)
+    val notificationService = new EmailNotificationService(config.email)
+    
+    new OrderProcessingFacade(
+      orderService,
+      paymentService,
+      inventoryService,
+      notificationService
+    )
+  }
+}
+```
+
+## Error Handling Architecture
+
+### Consistent Error Handling
+Establish consistent error handling patterns across all facades.
+
+```scala
+// ✅ Good: Consistent error handling
+sealed trait DomainError {
+  def message: String
+}
+
+case class ValidationError(field: String, message: String) extends DomainError
+case class NotFoundError(resource: String, id: String) extends DomainError
+case class BusinessRuleError(rule: String, message: String) extends DomainError
+
+trait ServiceResult[T] {
+  def map[U](f: T => U): ServiceResult[U]
+  def flatMap[U](f: T => ServiceResult[U]): ServiceResult[U]
+}
+
+case class Success[T](value: T) extends ServiceResult[T]
+case class Failure[T](error: DomainError) extends ServiceResult[T]
+
+// Consistent facade pattern
+class UserFacade(userService: IUserService) {
+  def createUser(userData: UserData): Future[ServiceResult[User]] = {
+    validateUserData(userData) match {
+      case Some(error) => Future.successful(Failure(error))
+      case None => userService.create(userData).map(Success(_))
+    }
+  }
+  
+  def updateUser(id: UUID, updates: UserUpdates): Future[ServiceResult[User]] = {
+    for {
+      maybeUser <- userService.findById(id)
+      result <- maybeUser match {
+        case Some(user) => 
+          userService.update(user.copy(updates)).map(Success(_))
+        case None => 
+          Future.successful(Failure(NotFoundError("User", id.toString)))
+      }
+    } yield result
+  }
+}
+```
+
+## Testing Structure
+
+### Interface-Based Testing
+Structure tests to work with interfaces, enabling better test isolation.
+
+```scala
+// ✅ Good: Interface-based testing
+class UserFacadeSpec extends AnyFlatSpec with Matchers {
+  // Mock interfaces, not concrete classes
+  val mockUserService = mock[IUserService]
+  val userFacade = new UserFacade(mockUserService)
+  
+  "UserFacade" should "create user successfully" in {
+    val userData = UserData("John", "john@example.com")
+    val expectedUser = User(UUID.randomUUID(), "John", "john@example.com")
+    
+    when(mockUserService.create(userData)).thenReturn(Future.successful(expectedUser))
+    
+    val result = userFacade.createUser(userData)
+    
+    whenReady(result) { serviceResult =>
+      serviceResult shouldBe a[Success[_]]
+      serviceResult.asInstanceOf[Success[User]].value shouldBe expectedUser
+    }
+  }
+}
+```
+
+## Integration with IDP
+
+### IDP-Specific Structural Patterns
+Apply these guidelines to IDP's data processing architecture.
+
+```scala
+// ✅ IDP Example: Clean transformation architecture
+trait ITransformationService {
+  def applyTransformation(data: DataFrame, config: TransformationConfig): Future[DataFrame]
+  def validateTransformation(config: TransformationConfig): Either[ValidationError, Unit]
+}
+
+trait IDataValidator {
+  def validateSchema(data: DataFrame, schema: Schema): Either[SchemaError, Unit]
+  def validateBusinessRules(data: DataFrame, rules: BusinessRules): Either[BusinessRuleError, Unit]
+}
+
+class DataProcessingFacade(
+  transformationService: ITransformationService,
+  dataValidator: IDataValidator
+) {
+  def processData(input: DataFrame, config: ProcessingConfig): Future[Either[ProcessingError, DataFrame]] = {
+    for {
+      validationResult <- Future.fromTry(Try(dataValidator.validateSchema(input, config.schema)))
+      transformationResult <- validationResult match {
+        case Right(_) => transformationService.applyTransformation(input, config.transformation)
+        case Left(error) => Future.successful(Left(ProcessingError.ValidationFailed(error)))
+      }
+    } yield transformationResult
+  }
+}
+```
+
+## Benefits
+
+### Maintainability
+- Clear separation of concerns
+- Easy to locate and modify specific functionality
+- Reduced coupling between components
+
+### Testability
+- Easy to mock interfaces for unit testing
+- Clear test boundaries
+- Isolated component testing
+
+### Flexibility
+- Easy to swap implementations
+- Support for multiple deployment configurations
+- Extensible architecture
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection, separation of concerns)
+
+**Scala-Specific:**
+- [Functional Integration in Facade](functional-integration-in-facade.mdc)
+- [Error Handling Patterns](../language/error-handling-patterns.mdc)
+- [IDP Scala Code Style](../meta/scala-code-style.mdc)

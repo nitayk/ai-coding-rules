@@ -1,0 +1,585 @@
+---
+description: "Git CLI for version control - commits, branches, merging, history, diffs, and repository management. Use when: (1) Managing git repositories, (2) Committing changes, (3) Working with branches, (4) Merging/rebasing, (5) Viewing history/diffs. Covers git commands, version control workflows, branching strategies, and repository management."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["git", "version-control", "basics", "cli", "vcs"]
+---
+
+# Git Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to commit code, manage branches, view history, inspect diffs, or perform version control operations
+**SKIP WHEN:** Using GitHub CLI (gh) for GitHub-specific operations or Git GUI tools
+
+## Core Directive
+**Use Git for version control** - Commit changes, manage branches, inspect history, and collaborate on code from the command line.
+
+## Installation
+
+```bash
+# macOS
+brew install git
+
+# Linux (Debian/Ubuntu)
+apt-get install git
+
+# Verify installation
+git --version
+```
+
+## Configuration
+
+**Initial setup:**
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+**View configuration:**
+```bash
+git config --list
+git config --global --list
+```
+
+**Set default branch:**
+```bash
+git config --global init.defaultBranch main
+```
+
+**Set default editor:**
+```bash
+git config --global core.editor vim
+```
+
+## Basic Operations
+
+### Initialize Repository
+
+```bash
+# Create new repository
+git init
+
+# Clone existing repository
+git clone https://github.com/user/repo.git
+git clone git@github.com:user/repo.git
+git clone https://github.com/user/repo.git my-folder
+```
+
+### Status and Diff
+
+**Check status:**
+```bash
+git status
+git status -s  # Short format
+```
+
+**View changes:**
+```bash
+git diff  # Unstaged changes
+git diff --staged  # Staged changes
+git diff HEAD  # All changes
+git diff file.txt  # Specific file
+```
+
+**View diff between branches:**
+```bash
+git diff main..feature-branch
+git diff main...feature-branch  # Since divergence
+```
+
+### Staging and Committing
+
+**Stage files:**
+```bash
+git add file.txt
+git add .  # All files
+git add -p  # Interactive staging
+git add *.js  # Pattern matching
+```
+
+**Unstage files:**
+```bash
+git reset file.txt
+git reset  # Unstage all
+```
+
+**Commit:**
+```bash
+git commit -m "Commit message"
+git commit -am "Message"  # Stage and commit tracked files
+git commit --amend  # Amend last commit
+```
+
+**View last commit:**
+```bash
+git show
+git show HEAD
+git show abc123
+```
+
+### Branches
+
+**List branches:**
+```bash
+git branch
+git branch -a  # Include remote branches
+git branch -r  # Remote branches only
+```
+
+**Create branch:**
+```bash
+git branch feature-branch
+git checkout -b feature-branch  # Create and switch
+git switch -c feature-branch  # Modern syntax
+```
+
+**Switch branch:**
+```bash
+git checkout feature-branch
+git switch feature-branch  # Modern syntax
+```
+
+**Delete branch:**
+```bash
+git branch -d feature-branch  # Safe delete
+git branch -D feature-branch  # Force delete
+```
+
+**Rename branch:**
+```bash
+git branch -m old-name new-name
+```
+
+### Merging
+
+**Merge branch:**
+```bash
+git merge feature-branch
+git merge feature-branch --no-ff  # Always create merge commit
+```
+
+**Abort merge:**
+```bash
+git merge --abort
+```
+
+**Resolve conflicts:**
+```bash
+# After editing files
+git add conflicted-file.txt
+git commit
+```
+
+### Rebasing
+
+**Rebase onto another branch:**
+```bash
+git rebase main
+git rebase -i HEAD~3  # Interactive rebase last 3 commits
+```
+
+**Continue/abort rebase:**
+```bash
+git rebase --continue
+git rebase --abort
+```
+
+### Remote Repositories
+
+**List remotes:**
+```bash
+git remote
+git remote -v
+```
+
+**Add remote:**
+```bash
+# Using HTTPS
+git remote add origin https://github.com/user/repo.git
+
+# Or using SSH
+git remote add origin git@github.com:user/repo.git
+```
+
+**Fetch and pull:**
+```bash
+git fetch  # Download changes
+git fetch origin
+git pull  # Fetch and merge
+git pull origin main
+git pull --rebase  # Fetch and rebase
+```
+
+**Push:**
+```bash
+git push
+git push origin main
+git push -u origin feature-branch  # Set upstream
+git push --force  # Force push (use with caution)
+git push --force-with-lease  # Safer force push
+```
+
+## History and Inspection
+
+### Viewing History
+
+**Log:**
+```bash
+git log
+git log --oneline
+git log --graph --oneline --all
+git log -n 10  # Last 10 commits
+git log --since="2 weeks ago"
+git log --author="John"
+git log -- file.txt  # History of specific file
+```
+
+**Pretty log:**
+```bash
+git log --pretty=format:"%h - %an, %ar : %s"
+git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+```
+
+**Search commits:**
+```bash
+git log --grep="bug fix"
+git log -S "function_name"  # Search code changes
+git log -G "regex"  # Search with regex
+```
+
+### Blame and History
+
+**Who changed what:**
+```bash
+git blame file.txt
+git blame -L 10,20 file.txt  # Specific lines
+```
+
+**Show file history:**
+```bash
+git log -p file.txt
+git log --follow file.txt  # Follow renames
+```
+
+**Find when bug was introduced:**
+```bash
+git bisect start
+git bisect bad  # Current commit is bad
+git bisect good abc123  # Known good commit
+# Git will check out commits to test
+git bisect good/bad  # Mark each test
+git bisect reset  # When done
+```
+
+## Stashing
+
+**Stash changes:**
+```bash
+git stash
+git stash save "WIP: feature X"
+git stash -u  # Include untracked files
+```
+
+**List stashes:**
+```bash
+git stash list
+```
+
+**Apply stash:**
+```bash
+git stash apply
+git stash apply stash@{0}
+git stash pop  # Apply and remove
+```
+
+**Drop stash:**
+```bash
+git stash drop stash@{0}
+git stash clear  # Remove all stashes
+```
+
+## Undoing Changes
+
+### Discard Changes
+
+**Discard unstaged changes:**
+```bash
+git checkout -- file.txt
+git restore file.txt  # Modern syntax
+```
+
+**Discard all unstaged changes:**
+```bash
+git checkout -- .
+git restore .
+```
+
+### Reset Commits
+
+**Soft reset (keep changes):**
+```bash
+git reset --soft HEAD~1
+```
+
+**Mixed reset (unstage changes):**
+```bash
+git reset HEAD~1
+git reset --mixed HEAD~1
+```
+
+**Hard reset (discard changes):**
+```bash
+git reset --hard HEAD~1
+git reset --hard origin/main
+```
+
+### Revert Commits
+
+**Create revert commit:**
+```bash
+git revert abc123
+git revert HEAD
+```
+
+## Tags
+
+**List tags:**
+```bash
+git tag
+git tag -l "v1.*"
+```
+
+**Create tag:**
+```bash
+git tag v1.0.0
+git tag -a v1.0.0 -m "Version 1.0.0"  # Annotated tag
+```
+
+**Push tags:**
+```bash
+git push origin v1.0.0
+git push origin --tags  # All tags
+```
+
+**Delete tag:**
+```bash
+git tag -d v1.0.0
+git push origin --delete v1.0.0
+```
+
+## Common Patterns
+
+### Update Local Branch from Main
+
+```bash
+git checkout main
+git pull
+git checkout feature-branch
+git merge main
+# Or rebase
+git rebase main
+```
+
+### Fix Last Commit
+
+```bash
+# Fix message
+git commit --amend -m "New message"
+
+# Add forgotten files
+git add forgotten-file.txt
+git commit --amend --no-edit
+```
+
+### Cherry-Pick Commit
+
+```bash
+git cherry-pick abc123
+git cherry-pick abc123..def456
+```
+
+### View Changes in Branch
+
+```bash
+# Changes in feature-branch not in main
+git log main..feature-branch
+git diff main...feature-branch
+```
+
+### Clean Untracked Files
+
+```bash
+git clean -n  # Dry run
+git clean -f  # Remove files
+git clean -fd  # Remove files and directories
+```
+
+## Advanced Operations
+
+### Submodules
+
+```bash
+# Add submodule
+# Using HTTPS
+git submodule add https://github.com/user/repo.git path/to/submodule
+# Or using SSH
+git submodule add git@github.com:user/repo.git path/to/submodule
+
+# Initialize and update
+git submodule init
+git submodule update
+
+# Clone with submodules
+# Using HTTPS
+git clone --recursive https://github.com/user/repo.git
+# Or using SSH
+git clone --recursive git@github.com:user/repo.git
+
+# Update submodules
+git submodule update --remote
+```
+
+### Worktrees
+
+```bash
+# Create worktree
+git worktree add ../feature-worktree feature-branch
+
+# List worktrees
+git worktree list
+
+# Remove worktree
+git worktree remove ../feature-worktree
+```
+
+## Examples
+
+### ✅ Positive Pattern: Check Before Commit
+
+```bash
+# Step 1: Check status
+git status
+
+# Step 2: Review changes
+git diff
+
+# Step 3: Stage specific files
+git add file1.txt file2.txt
+
+# Step 4: Review staged changes
+git diff --staged
+
+# Step 5: Commit
+git commit -m "Descriptive commit message"
+```
+
+### ✅ Positive Pattern: Safe Branch Update
+
+```bash
+# Step 1: Save current work
+git stash
+
+# Step 2: Update main
+git checkout main
+git pull
+
+# Step 3: Return to feature branch
+git checkout feature-branch
+
+# Step 4: Merge or rebase
+git merge main
+
+# Step 5: Restore work
+git stash pop
+```
+
+### ❌ Negative Pattern: Force Push Without Checking
+
+```bash
+# ❌ BAD: Force push without checking
+git push --force
+
+# ✅ GOOD: Use force-with-lease
+git push --force-with-lease
+# This fails if remote has new commits
+```
+
+### ❌ Negative Pattern: Committing Without Review
+
+```bash
+# ❌ BAD: Stage and commit everything
+git add .
+git commit -m "Changes"
+
+# ✅ GOOD: Review changes first
+git status
+git diff
+git add specific-files
+git commit -m "Descriptive message"
+```
+
+## Troubleshooting
+
+### Merge Conflicts
+
+```bash
+# View conflicted files
+git status
+
+# View conflict markers
+git diff
+
+# After resolving
+git add resolved-file.txt
+git commit
+```
+
+### Detached HEAD
+
+```bash
+# Create branch from detached HEAD
+git checkout -b new-branch
+
+# Or return to branch
+git checkout main
+```
+
+### Undo Accidental Reset
+
+```bash
+# Find lost commit
+git reflog
+
+# Restore to commit
+git reset --hard abc123
+```
+
+### Large Files
+
+```bash
+# Remove file from history
+git filter-branch --force --index-filter \
+  'git rm --cached --ignore-unmatch path/to/file' \
+  --prune-empty --tag-name-filter cat -- --all
+```
+
+## Useful Aliases
+
+```bash
+# Add to ~/.gitconfig
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+git config --global alias.unstage 'reset HEAD --'
+git config --global alias.last 'log -1 HEAD'
+git config --global alias.lg "log --graph --oneline --all"
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/gh-cli.mdc` for GitHub-specific operations
+- See `.cursor/rules/shared/skills/git-workflow/SKILL.md` for advanced Git workflows
+- See `.cursor/rules/shared/skills/service-migration/SKILL.md` for migration workflows

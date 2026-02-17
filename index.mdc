@@ -1,0 +1,371 @@
+---
+description: "Complete catalog index of all rules, guides, and tools in the shared rules repository. Use when: (1) Finding a specific guide, (2) Understanding what's available, (3) Browsing all rules, (4) Discovering language-specific indexes, (5) Navigating the rules structure. Load manually with .cursor/rules/shared/index.mdc. Points to language-specific indexes (backend/scala/index.mdc, generic/index.mdc, etc.) and direct files. Follows Router → Index → Files/Directories chaining pattern for progressive disclosure."
+globs: []
+alwaysApply: false
+---
+
+# Complete Rules Index
+
+**Purpose**: Complete catalog router - detects keywords and routes to category indexes or specific files.
+
+**When to use this**: When you need to find a specific guide or understand what's available.
+
+**Chaining**: Router → This Index (Router) → Category Indexes → Language Indexes → Subcategory Indexes → Files
+
+**Graph Structure**: This is a Layer 3 node that routes to Layer 2 nodes (category indexes) based on keywords.
+
+**Note**: This is the root-level catalog. For keyword-based routing, use `ROUTER.mdc` which auto-loads. This index provides complete browsing.
+
+---
+
+## Keyword → Category Index Routing
+
+| Keywords/Intent | Load Category Index |
+|----------------|---------------------|
+| **backend**, go, python, scala, java, php, server-side | `.cursor/rules/shared/backend/index.mdc` |
+| **frontend**, javascript, typescript, react, vue | `.cursor/rules/shared/frontend/index.mdc` |
+| **mobile**, kotlin, swift, objective-c, android, ios | `.cursor/rules/shared/mobile/index.mdc` |
+| **generic**, universal, code quality, architecture, testing | `.cursor/rules/shared/generic/index.mdc` |
+| **tools**, cli tools, curl, jq, git, docker | `.cursor/rules/shared/tools/index.mdc` |
+| **docs**, documentation, rules guide, semantic search | `.cursor/rules/shared/docs/index.mdc` |
+
+---
+
+## Root Level Files (Load Manually When Needed)
+
+| File | Purpose | Path |
+|---|---|---|
+| **ROUTER.mdc** | Smart intent router (auto-loads, detects keywords and loads guides) | `shared/ROUTER.mdc` |
+| **index.mdc** | This file - complete catalog of all rules (load with @index.mdc) | `shared/index.mdc` |
+| **AGENTS.md** | LLM/agent guidance (how rules work, structure) | `shared/AGENTS.md` |
+| **README.md** | Human documentation (setup, contributing, usage) | `shared/README.md` |
+
+---
+
+## Scala Rules (`shared/backend/scala/`)
+
+**Load**: `.cursor/rules/shared/backend/scala/index.mdc` ← Points to specific files in `language/`, `architecture/`, `data/`, `performance/`, `testing/`, `meta/` subdirectories
+
+---
+
+## Python Rules (`shared/backend/python/`)
+
+**Load**: `.cursor/rules/shared/backend/python/index.mdc` ← Browse all Python rules
+
+### Meta & Style (`shared/backend/python/meta/`)
+| File | Purpose |
+|---|---|
+| `pep8-style-guide.mdc` | PEP 8 compliance, naming, formatting |
+
+**Planned Categories**:
+- Type hints and type checking
+- Async/await patterns
+- Architecture (module organization, API design)
+- Performance (async optimization, profiling)
+- Data handling (Pandas, validation, serialization)
+
+---
+
+## Kotlin Rules (`shared/mobile/kotlin/`)
+
+### Index & Navigation
+- **mobile/kotlin/index.mdc** - Comprehensive index of Kotlin rules for Android development
+
+**Note**: For detailed language features listings, load `.cursor/rules/shared/mobile/kotlin/language/index.mdc` which contains the complete catalog.
+
+
+### Android Development (`shared/mobile/kotlin/android/`)
+| File | Purpose |
+|---|---|
+| `android-best-practices.mdc` | **CRITICAL**: MVVM, Coroutines, Flow, and Compose patterns |
+
+
+## iOS Rules (`shared/mobile/swift/` & `shared/mobile/objective-c/`)
+
+### Swift (`shared/mobile/swift/`)
+| File | Purpose |
+|---|---|
+| `language/style-guide.mdc` | **Swift Style Guide**: Naming, formatting, and best practices |
+| `ios/ios-best-practices.mdc` | **iOS Best Practices**: MVVM, UIKit/SwiftUI, memory management |
+
+### Objective-C (`shared/mobile/objective-c/`)
+| File | Purpose |
+|---|---|
+| `language/style-guide.mdc` | **Obj-C Style Guide**: Prefixes, nullability, modern syntax |
+| `ios/ios-best-practices.mdc` | **Interop & Legacy**: Swift bridging, modernization strategies |
+
+### CocoaPods (`shared/mobile/cocoapods/`)
+| File | Purpose |
+|---|---|
+| `index.mdc` | **Dependency Management**: Podfile and podspec best practices |
+
+---
+
+## Java Rules (`shared/backend/java/`)
+
+### Index & Navigation
+- **java/index.md** - Java rules index for legacy Android code
+
+**Note**: For detailed language features listings, load `.cursor/rules/shared/backend/java/language/index.mdc` which contains the complete catalog.
+
+
+---
+
+## Gradle Rules (`shared/mobile/gradle/`)
+
+### Index & Navigation
+- **mobile/gradle/index.mdc** - Gradle build system best practices
+
+---
+
+## JavaScript & TypeScript Rules (`shared/frontend/javascript-typescript/`)
+
+### Index & Navigation
+- **`frontend/javascript-typescript/index.mdc`** ← **Load this index** to browse all JS/TS rules
+| File | Purpose | Status |
+|---|---|---|
+| `javascript-typescript-style-guide.mdc` | ESLint, Prettier, naming conventions | Planned |
+| `performance-best-practices.mdc` | Bundle size, lazy loading, optimization | Planned |
+| `security-best-practices.mdc` | XSS, CSRF, input validation | Planned |
+
+### Architecture (`shared/frontend/javascript-typescript/architecture/`)
+| File | Purpose | Status |
+|---|---|---|
+| `module-organization.mdc` | ES modules, barrel files, path aliases | Planned |
+| `component-design-patterns.mdc` | Composition, single responsibility | Planned |
+| `state-management-patterns.mdc` | Vuex, local state, reactive patterns | Planned |
+
+**Applies To**: 
+- Vue 3 + TypeScript projects
+- Mixed JS/TS projects
+- Node.js backend services
+- Browser/client-side applications
+
+---
+
+## Go Rules (`shared/backend/go/`)
+
+### Index & Navigation
+- **go/index.md** - Go rules index (Under construction)
+
+**Status**: Go best practices will be added as the codebase grows.
+
+**Planned Categories**:
+- Language features (error handling, interfaces, goroutines)
+- Architecture (package organization, clean architecture)
+- Performance (concurrency, memory management)
+- Testing (table-driven tests, mocking, benchmarking)
+- Data handling (JSON, database patterns, validation)
+
+---
+
+## Tools (`shared/tools/`)
+
+**CLI tool references** - WHAT commands exist, SYNTAX, OPTIONS.
+
+### CLI Tools
+| File | Purpose |
+|---|---|
+| `curl.mdc` | HTTP requests, REST APIs, authentication |
+| `jq.mdc` | JSON parsing, filtering, manipulation |
+| `git.mdc` | Version control commands, workflows |
+| `docker.mdc` | Container management, logs, exec |
+| `kcat.mdc` | Kafka CLI client for producing/consuming |
+| `gh-cli.mdc` | GitHub CLI for PRs, issues, repos |
+| `aws-cli.mdc` | AWS services (S3, EC2, CloudWatch, SSM) |
+| `kubectl.mdc` | Kubernetes CLI for pods, logs, exec |
+
+---
+
+## Generic Rules (`shared/generic/`)
+
+**Universal best practices that apply across all languages and platforms.**
+
+**Load**: `.cursor/rules/shared/generic/index.mdc` ← Complete catalog of all generic rules (code-quality, error-handling, testing, performance, security, debugging, architecture, communication, analysis, git)
+
+### Analysis (`shared/generic/analysis/`)
+| File | Purpose |
+|---|---|
+| `semantic-code-analysis-patterns.mdc` | Patterns for semantic code analysis (Modality, Deception) |
+
+### Git (`shared/generic/git/`)
+| File | Purpose |
+|---|---|
+| `git-staging-guidelines.mdc` | Git staging and commit best practices (always loaded for Scala files) |
+
+### Communication (`shared/generic/communication/`)
+| File | Purpose |
+|---|---|
+| `tool-communication-pattern.mdc` | **CRITICAL**: How to explain MCP tools to users when using them, including Context7 usage |
+| `business-communication-standards.mdc` | **CRITICAL**: Response standards for business logic (BLUF) |
+| `prompt-engineering-principles.mdc` | LLM prompt optimization techniques, architecture awareness, task-specific strategies |
+
+---
+
+## Cursor 2.4+ Features
+
+### Commands (`shared/commands/`)
+**Universal development commands that work across any project.**
+
+| Command | Purpose | Usage |
+|---------|---------|-------|
+| `create-pr.md` | Create pull request | `/pr [message]` |
+| `code-review.md` | Comprehensive code review | `/review` |
+| `fix-github-issue.md` | Fix GitHub issue by number | `/fix-issue <number>` |
+| `test-until-pass.md` | Test & fix loop | `/test-until-pass` |
+| `generate-changelog.md` | Generate changelog | `/changelog` |
+| `generate-docs.md` | Generate documentation | `/docs` |
+| `security-audit.md` | Security audit | `/security-audit` |
+| `onboard-developer.md` | Developer onboarding | `/onboard` |
+| `council.md` | Multi-agent codebase exploration | `/council [n=10] <area>` |
+
+### Skills (`shared/skills/`)
+**Procedural workflows for complex, multi-step development tasks.**
+
+**Universal Skills** (work with any language):
+- `tdd-workflow/` - Test-Driven Development (Red-Green-Refactor)
+- `pr-workflow/` - Comprehensive PR lifecycle management
+- `prd-generation/` - Product Requirements Document generation
+- `task-breakdown/` - Break features into actionable tasks
+- `multi-agent-branching/` - Prevent concurrent agent conflicts
+- `setup-local-dev/` - Persistent local dev server setup
+
+**Domain-Specific Skills**:
+- `service-breakdown/` - Complete service analysis
+- `service-migration/` - Migrate services between repos
+- `service-refactoring/` - Safe refactoring process
+- `git-workflow/` - Advanced git operations
+- `best-practices-enforcement/` - Code quality enforcement
+
+### Subagents (`shared/agents/`)
+**Specialized AI assistants for parallel task execution.**
+
+**Universal Subagents** (work with any language):
+- `test-runner.md` - Test execution and failure analysis
+- `documentation-writer.md` - Documentation generation
+- `verifier.md` - Skeptical validation of completed work
+
+**Domain-Specific Subagents**:
+- `service-breakdown-coordinator.md` - Service analysis orchestrator
+- `service-migration-specialist.md` - Service migration expert
+- `service-refactoring-specialist.md` - Refactoring expert
+- `git-workflow-specialist.md` - Git workflow expert
+
+---
+
+## Documentation Files (`shared/docs/`)
+
+### Cursor 2.4+ Feature Guides
+| File | Purpose |
+|---|---|
+| `rules-guide.mdc` | **Complete Rules Guide**: Project Rules, Team Rules, User Rules, AGENTS.md, best practices |
+| `semantic-search.mdc` | **Semantic Search Guide**: Finding code by meaning, indexing, privacy, configuration |
+| `mentions-guide.mdc` | **@ Mentions Guide**: File references, folder navigation, documentation integration |
+| `mcp-complete-guide.mdc` | **Complete MCP Guide**: Transport methods, OAuth, install links, extension API, debugging |
+
+### Setup & Configuration
+| File | Purpose |
+|---|---|
+| `mcp/example-config.json` | **MCP SETUP**: Example configuration for all available MCP tools |
+
+### Legacy Documentation (May be outdated)
+| File | Purpose |
+|---|---|
+| `MCP_SETUP_GUIDE.mdc` | How to set up MCP servers (Context7 and others) |
+| `AGENT_CONTEXT_LOADING.mdc` | How the context loading system works |
+| `AGENT_TEST_GUIDE.mdc` | Comprehensive test scenarios for validating MDC chaining |
+| `RULE_CATEGORIZATION.mdc` | Documentation of rule organization |
+| `TEST_PROMPT.mdc` | Test prompt for verifying agent understanding |
+| `REVIEW_INSTRUCTIONS.mdc` | Instructions for reviewing rule changes |
+| `REVIEW_REQUEST_1_ARCHITECTURE.mdc` | Architecture review questions |
+| `REVIEW_REQUEST_2_CONTENT_MCP.mdc` | Content and MCP review questions |
+
+---
+
+## Quick Access Patterns
+
+**When you need...**
+
+### Scala
+- **Scala language patterns** → `shared/backend/scala/language/`
+- **Scala architecture guidance** → `shared/backend/scala/architecture/`
+- **Scala data handling** → `shared/backend/scala/data/`
+- **Scala performance tips** → `shared/backend/scala/performance/`
+- **Scala testing strategies** → `shared/backend/scala/testing/`
+- **Scala code style** → `shared/backend/scala/meta/`
+- **Complete Scala overview** → `shared/backend/scala/index.mdc`
+
+### Python & Go
+- **Python patterns** → `shared/backend/python/index.mdc` (Under construction)
+- **Go patterns** → `shared/backend/go/index.mdc` (Under construction)
+
+### Mobile (Android)
+- **Kotlin patterns** → `shared/mobile/kotlin/index.mdc`
+- **Java patterns** → `shared/backend/java/index.mdc`
+- **Gradle patterns** → `shared/mobile/gradle/index.mdc`
+
+### Mobile (iOS)
+- **Swift patterns** → `shared/mobile/swift/language/style-guide.mdc`
+- **Objective-C patterns** → `shared/mobile/objective-c/language/style-guide.mdc`
+- **CocoaPods** → `shared/mobile/cocoapods/index.mdc`
+
+### Web & Frontend
+- **JS/TS patterns** → `shared/frontend/javascript-typescript/index.mdc`
+
+### General
+- **CLI tools** → `shared/tools/` (curl, jq, git, docker, kcat, etc.)
+- **Git workflow** → `shared/generic/git/`
+
+---
+
+## Tool Selection Guide
+
+| Task | Tool | Reference Guide | Usage |
+|---|---|---|---|
+| Finding string literals, config values, topic names | **Grep** | Use directly (no guide needed) | - |
+| Looking up library/API documentation | **Context7** | `generic/communication/tool-communication-pattern.mdc` | - |
+
+---
+
+## Practical Examples
+
+### Example 1: Need Error Handling Patterns
+```
+Path: shared/backend/scala/language/error-handling-patterns.mdc
+Access: Read file directly or check shared/backend/scala/index.mdc for quick reference
+```
+
+### Example 2: Need Library Documentation
+```
+Path: shared/generic/communication/tool-communication-pattern.mdc (Context7 section)
+Access: Load this file when using tools
+Tool: Use context7 MCP tools when user asks for library docs
+```
+
+### Example 3: Need Scala Architecture Patterns
+```
+Path: shared/backend/scala/architecture/core-structural-guidelines.mdc
+Alternative: Start at shared/backend/scala/index.mdc → Architecture section
+```
+
+### Example 4: Need Repository-Specific Patterns
+```
+Path: repo-rules/*.md (varies by repository)
+Access: Check what files exist in repo-rules/ directory
+```
+
+---
+
+## Repository-Specific Rules
+
+Each repository may have additional rules in `repo-rules/` directory that are specific to that codebase:
+- Domain-specific patterns
+- Legacy system handling
+- Team-specific conventions
+- Infrastructure specifics
+
+Check the `repo-rules/` directory in your current repository for these additional guides.
+
+---
+
+**Remember**: This catalog is comprehensive but you don't need to load everything at once. Use `ROUTER.mdc` (auto-loads) to detect intent and load specific guides automatically.

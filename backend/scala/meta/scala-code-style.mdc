@@ -1,0 +1,962 @@
+---
+description: "Scala coding standards and best practices covering style, formatting, and conventions. Use when: (1) Writing Scala code, (2) Following style guidelines, (3) Formatting code, (4) Code reviews, (5) Maintaining consistency. Covers naming conventions, formatting standards, and Scala style guide."
+globs: []
+alwaysApply: false
+---
+
+# Scala Code Style & Quality Guidelines
+
+## Most Important Principles (Read This First!)
+
+### 1. **Optimize for Readability, Not File Count** 🎯
+
+File count doesn't matter - **readability does!**
+
+```scala
+// ❌ BAD: Everything in one 1,500 line file
+object RVGatewayRoute {
+  // 598 lines of debug routes + 400 lines of main routes + ...
+  // = "where is what I need??"
+}
+
+// ✅ GOOD: Separate by concern (even if more files)
+routes/
+  ├── RVGatewayRoutes.scala       (150 LOC) - Main routes
+  ├── RVGatewayDebugRoutes.scala  (200 LOC) - Debug routes  
+  └── RouteParams.scala           (50 LOC)  - DTOs
+```
+
+### 2. **Hide Implementation Details in Modules** 📦
+
+Main code should read like pseudocode:
+
+```scala
+// ✅ GOOD: Clear orchestration
+def buildResponse(request: RVRequest): Future[RVResponse] = {
+  for {
+    bidData   <- bidService.buildBid(request)
+    callbacks <- callbackService.buildCallbacks(bidData)
+    skan      <- skanService.generateSignature(bidData)
+  } yield RVResponse.build(bidData, callbacks, skan)
+}
+
+// ❌ BAD: Implementation details exposed
+def buildResponse(request: RVRequest): Future[RVResponse] = {
+  val version = if (request.osVersion >= 14.6) SKANVersion.V4
+               else if (request.osVersion >= 11.3) SKANVersion.V3
+               // ... 50 more lines of SKAN logic in orchestration
+}
+```
+
+### 3. **Small Files Are OK (Even Encouraged!)** ✅
+
+One concept per file:
+
+```scala
+// ✅ GOOD: Easy to find
+SKANParams.scala       (50 LOC)
+SKANSignature.scala    (40 LOC)  
+SKANService.scala      (150 LOC)
+
+// ❌ BAD: One giant file
+SKANModule.scala (500 LOC) // DTOs + logic + enums
+```
+
+### 4. **Package Structure Mirrors Features, Not Layers** 🗂️
+
+```scala
+// ✅ GOOD: Feature-oriented
+gateway/
+  ├── skan/              // All SKAN code here
+  ├── callbacks/         // All callback code here
+  └── attribution/       // All attribution code here
+
+// ❌ BAD: Layer-oriented
+gateway/
+  ├── models/           // All models mixed
+  ├── services/         // All services mixed
+  └── utils/            // Everything else
+```
+
+---
+
+## Core Principles
+- Use idiomatic Scala that leverages the language's strengths
+- Prioritize functional programming patterns and immutability
+- Emphasize type safety and compile-time error detection
+- Write code that is readable and maintainable by the team
+- Avoid non-idiomatic control flow patterns
+
+## Variable and Value Declarations
+
+### Prefer `val` over `var`
+```scala
+// ✅ Good: Immutable by default
+val transformations = List(Cast, ToString, ToUpper)
+val result = dataFrame.transform(applyTransformations)
+
+// ❌ Bad: Unnecessary mutability
+var transformations = List(Cast, ToString, ToUpper)
+var result = dataFrame
+```
+
+### Use Case Classes for Data
+```scala
+// ✅ Good: Case classes provide immutability and structure
+case class ServiceConfig(
+  host: String,
+  port: Int,
+  timeout: FiniteDuration,
+  retries: Int = 3
+)
+
+// ❌ Bad: Mutable classes
+class ServiceConfig {
+  var host: String = _
+  var port: Int = _
+}
+```
+
+## Type Safety
+
+### Explicit Types for Public APIs
+```scala
+// ✅ Good: Explicit return types for public methods
+def processDataFrame(df: DataFrame, config: ServiceConfig): DataFrame = {
+  // implementation
+}
+
+// ✅ Good: Type annotations for complex expressions
+val mappedResults: Map[String, DataFrame] = configurations.map { config =>
+  config.name -> processConfiguration(config)
+}.toMap
+
+// ❌ Bad: Missing types in public APIs
+def processDataFrame(df, config) = {
+  // unclear what types are expected
+}
+```
+
+### Use Option Instead of Null
+```scala
+// ✅ Good: Option for optional values
+case class UserProfile(
+  id: String,
+  email: Option[String],
+  lastLogin: Option[Instant]
+)
+
+def findUser(id: String): Option[UserProfile] = {
+  // implementation
+}
+
+// ❌ Bad: Null values
+def findUser(id: String): UserProfile = {
+  if (userExists(id)) user else null
+}
+```
+
+### Use Duration Types Instead of Primitives for Time
+```scala
+import scala.concurrent.duration._
+
+// ✅ Good: Type-safe Duration for time values
+case class CustomDynamicAllocationConfig(
+  targetTriggerInterval: FiniteDuration = 1.minute,
+  scalingCheckInterval: FiniteDuration = 30.seconds,
+  cooldownPeriod: FiniteDuration = 2.minutes
+) {
+  // Utility methods for compatibility
+  def targetTriggerIntervalMs: Long = targetTriggerInterval.toMillis
+  def cooldownPeriodMs: Long = cooldownPeriod.toMillis
+}
+
+// ✅ Good: Duration literals are readable and type-safe
+val timeout = 5.seconds
+val retryDelay = 250.milliseconds
+val maxWait = 10.minutes
+
+// ❌ Bad: Raw Long values without context
+case class BadConfig(
+  targetTriggerIntervalMs: Long = 60000L,  // What unit? Hard to read
+  scalingCheckIntervalMs: Long = 30000L,   // Requires mental conversion
+  cooldownPeriodMs: Long = 120000L         // No type safety
+)
+
+// ❌ Bad: Magic numbers without clear units
+Thread.sleep(5000) // 5000 what? Milliseconds? Seconds?
+```
+
+### Duration JSON Serialization
+```scala
+// ✅ Good: Custom JSON formatting for Duration types
+implicit val durationFormat: Format[FiniteDuration] = Format[FiniteDuration](
+  // Read from string like "60s", "2m", "30000ms"
+  json => json.validate[String].map(s => Duration(s).asInstanceOf[FiniteDuration]),
+  // Write to string format
+  duration => Json.toJson(duration.toString)
+)
+
+// Usage in configuration JSON:
+// {
+//   "targetTriggerInterval": "1m",
+//   "cooldownPeriod": "2m"
+// }
+```
+
+### Duration Benefits
+```scala
+// ✅ Type Safety: Compile-time unit verification
+def scheduleTask(delay: FiniteDuration): Unit = ???
+scheduleTask(5.seconds)  // Clear and safe
+// scheduleTask(5000)    // Compilation error - prevents unit mistakes
+
+// ✅ Readability: Self-documenting code
+val cacheExpiry = 1.hour
+val rateLimitWindow = 1.minute  
+val retryBackoff = 500.milliseconds
+
+// ✅ Conversion: Easy unit conversion
+val totalMs = (5.minutes + 30.seconds).toMillis
+val totalSeconds = 2.hours.toSeconds
+val humanReadable = 90.seconds.toString  // "90 seconds"
+
+// ✅ Comparison: Natural comparison operators
+if (elapsed > 30.seconds) {
+  logger.warn("Operation took longer than expected")
+}
+```
+
+## Naming Conventions
+
+### Follow Scala Standards
+```scala
+// ✅ Good: PascalCase for classes, objects, traits
+case object JsonProcessor extends DataProcessor
+trait EventHandler
+class ConfigurationManager
+
+// ✅ Good: camelCase for methods and values
+def processDataFrame(input: DataFrame): DataFrame
+val configurationList = List(config1, config2)
+
+// ✅ Good: UPPER_SNAKE_CASE for constants
+object Constants {
+  val MAX_RETRY_ATTEMPTS = 3
+  val DEFAULT_TIMEOUT_SECONDS = 30
+}
+```
+
+### Descriptive Names
+```scala
+// ✅ Good: Names that describe purpose
+def validateServiceConfiguration(args: ServiceArgs): Either[ValidationError, ValidatedArgs]
+val filteredActiveUsers = users.filter(_.isActive)
+
+// ❌ Bad: Unclear abbreviations
+def valSvcArgs(args: ServiceArgs): Either[ValErr, ValArgs]
+val fltActUsr = users.filter(_.isActive)
+```
+
+### Semantic Naming for Case Classes vs Objects
+Use naming that accurately reflects whether you're dealing with a single item or a collection of items.
+
+```scala
+// ✅ Good: Singular case class for ONE item
+case class RecordNameInput(recordName: String, alias: Option[String])
+
+// ✅ Good: Plural object for COLLECTION operations
+object RecordNamesInputs {
+  def areAllUnnamed(inputs: Seq[RecordNameInput]): Boolean = 
+    inputs.forall(_.alias.isEmpty)
+  
+  def extractUniqueRecordNames(inputs: Seq[RecordNameInput]): Seq[String] =
+    inputs.map(_.recordName).distinct
+}
+
+// ❌ Bad: Plural case class name for singular item
+case class RecordNamesInput(recordName: String, alias: Option[String])
+
+// ❌ Bad: Singular object name for collection operations
+object RecordNameInput {
+  def areAllUnnamed(inputs: Seq[RecordNameInput]): Boolean = // Wrong place!
+}
+```
+
+### Variable Naming Clarity
+Use full descriptive names that indicate the type and purpose of variables.
+
+```scala
+// ✅ Good: Clear, descriptive variable names
+val recordNamesInputs: Seq[RecordNameInput] = parseInputs(configuration)
+val schemaIds: Map[String, Int] = extractSchemaMapping(records)
+val isValid: Boolean = validateConfiguration(config)
+
+// ❌ Bad: Unclear abbreviations
+val rns = parseInputs(configuration)
+val ids = extractSchemaMapping(records)
+val v = validateConfiguration(config)
+```
+
+### Option Type Naming
+Prefer `maybe` prefix over `Opt` suffix for Option types to improve readability.
+
+```scala
+// ✅ Good: Use maybe prefix for Option types
+val maybeTarget: Option[String] = input.alias
+val maybeConfig: Option[Configuration] = loadConfig()
+val maybeUser: Option[User] = findUser(id)
+
+// ❌ Bad: Use Opt suffix
+val targetOpt: Option[String] = input.alias
+val configOpt: Option[Configuration] = loadConfig()
+val userOpt: Option[User] = findUser(id)
+
+// ✅ Good: Consistent with IDP codebase patterns
+appConfigurations.maybeTransformations
+appConfigurations.maybeAggregation
+appConfigurations.maybePreFilters
+appConfigurations.maybePostFilters
+```
+
+### Responsibility Separation
+Separate individual item operations from collection operations using distinct objects.
+
+```scala
+// ✅ Good: Clear separation of concerns
+case class RecordNameInput(recordName: String, alias: Option[String]) {
+  // Only instance-level operations
+  def hasAlias: Boolean = alias.isDefined
+  def effectiveName: String = alias.getOrElse(recordName)
+}
+
+object RecordNamesInputs {
+  // Only collection-level operations
+  def areAllUnnamed(inputs: Seq[RecordNameInput]): Boolean = 
+    inputs.forall(!_.hasAlias)
+  
+  def build(recordNames: Seq[String]): Seq[RecordNameInput] = 
+    recordNames.map(RecordNameInput(_, None))
+}
+
+// ❌ Bad: Mixed responsibilities in same object
+object RecordNameInput {
+  def build(recordName: String): RecordNameInput = // individual construction
+  def areAllUnnamed(inputs: Seq[RecordNameInput]): Boolean = // collection operation - wrong place!
+}
+```
+
+## Functional Programming
+
+### Avoid `return` Statements
+Scala functions should use expression-based programming instead of imperative return statements:
+```scala
+// ✅ Good: Expression-based control flow
+def processData(data: List[String]): String = {
+  if (data.isEmpty) {
+    "No data to process"
+  } else {
+    data.mkString(", ")
+  }
+}
+
+// ✅ Good: Pattern matching without return
+def handleConfig(config: Option[Config]): Result = config match {
+  case Some(validConfig) => processConfig(validConfig)
+  case None => DefaultResult
+}
+
+// ❌ Bad: Using return statements (non-idiomatic)
+def processData(data: List[String]): String = {
+  if (data.isEmpty) {
+    return "No data to process"  // Avoid return
+  }
+  data.mkString(", ")
+}
+
+// ❌ Bad: Early return pattern
+def validateInput(input: String): Boolean = {
+  if (input.isEmpty) return false  // Non-idiomatic
+  if (input.length > 100) return false  // Non-idiomatic
+  true
+}
+```
+
+### Use Immutable Collections
+```scala
+// ✅ Good: Immutable collections by default
+val transformations: List[Transformation] = List(Cast, ToString, ToUpper)
+val configMap: Map[String, String] = Map("key1" -> "value1", "key2" -> "value2")
+
+// ❌ Bad: Mutable collections
+import scala.collection.mutable
+val transformations = mutable.ListBuffer[Transformation]()
+```
+
+### Functional Combinators
+```scala
+// ✅ Good: Functional transformations
+val processedConfigs = configurations
+  .filter(_.isValid)
+  .map(transformConfiguration)
+  .collect { case Success(config) => config }
+
+// ❌ Bad: Imperative loops
+val processedConfigs = mutable.ListBuffer[Config]()
+for (config <- configurations) {
+  if (config.isValid) {
+    val transformed = transformConfiguration(config)
+    if (transformed.isSuccess) {
+      processedConfigs += transformed.get
+    }
+  }
+}
+```
+
+## Refactoring Best Practices
+
+### Logic Preservation During Refactoring
+When refactoring code structure, naming, or organization, preserve exact business logic and behavior.
+
+```scala
+// ✅ Good: Preserve exact behavior during refactoring
+// Before refactoring - verify this exact behavior
+val originalResult = oldFunction(input)
+
+// After refactoring - must produce identical result  
+val refactoredResult = newFunction(input)
+assert(originalResult == refactoredResult) // Business logic unchanged
+
+// ✅ Good: Test-driven refactoring
+"refactored function preserves original behavior" in {
+  val testCases = Table(
+    ("input", "expectedOutput"),
+    (input1, expectedOutput1),
+    (input2, expectedOutput2)
+  )
+  
+  forAll(testCases) { (input, expected) =>
+    oldFunction(input) shouldBe expected
+    newFunction(input) shouldBe expected // Must match exactly
+  }
+}
+```
+
+### Compilation-First Refactoring
+Ensure all refactoring steps compile before proceeding to the next change.
+
+```scala
+// ✅ Good: Step-by-step refactoring
+// Step 1: Extract new class (compile and verify)
+case class RecordNameInput(recordName: String, alias: Option[String])
+
+// Step 2: Update all call sites (compile and verify) 
+val inputs = recordNames.map(RecordNameInput(_, None))
+
+// Step 3: Move methods to appropriate objects (compile and verify)
+object RecordNamesInputs {
+  def areAllUnnamed(inputs: Seq[RecordNameInput]): Boolean = 
+    inputs.forall(_.alias.isEmpty)
+}
+
+// ❌ Bad: Large refactoring without intermediate compilation
+// (changing multiple files simultaneously without checking compilation)
+```
+
+### Variable Locality Principle
+Define variables close to where they are used for better readability and maintainability.
+
+```scala
+// ✅ Good: Variable defined right before usage
+def processData(config: Config): DataFrame = {
+  val baseQuery = buildBaseQuery(config)
+  
+  // Complex logic here...
+  
+  val columnName = generateColumnName(config.target, config.suffix)
+  df.withColumn(columnName, transformation) // Used immediately
+}
+
+// ❌ Bad: Variable defined far from usage
+def processData(config: Config): DataFrame = {
+  val columnName = generateColumnName(config.target, config.suffix) // Defined here
+  val baseQuery = buildBaseQuery(config)
+  
+  // 20+ lines of complex logic...
+  
+  df.withColumn(columnName, transformation) // Used way down here
+}
+```
+
+**Benefits of Variable Locality**:
+- **Easier to understand**: Clear what the variable is for when you see it
+- **Reduced mental overhead**: Don't need to remember variable definitions
+- **Better maintenance**: Changes are localized near usage
+- **Improved debugging**: Related code is visually close
+
+**Apply this principle especially for**:
+- Column names and Spark expressions
+- Configuration values used in specific sections
+- Temporary calculations used immediately
+- Complex string formatting used once
+
+### Refactoring Validation Checklist
+Before completing any refactoring:
+
+```scala
+// 1. ✅ Code compiles without errors
+sbt compile
+
+// 2. ✅ All existing tests pass
+sbt test  
+
+// 3. ✅ New tests verify preserved behavior
+"preserved behavior tests" should {
+  "produce identical results for all inputs" in {
+    // Test that refactored code produces same output as original
+  }
+}
+
+// 4. ✅ No business logic changes
+// Only structure, naming, and organization should change
+// All algorithms, behavior, and business rules remain identical
+```
+
+## Error Handling
+
+### Use Either or Try for Error Handling
+```scala
+// ✅ Good: Explicit error handling with Either
+def parseConfiguration(json: String): Either[ConfigError, Configuration] = {
+  Try(Json.parse(json)) match {
+    case Success(parsed) => Right(Configuration.fromJson(parsed))
+    case Failure(ex) => Left(ConfigError.ParseError(ex.getMessage))
+  }
+}
+
+// ✅ Good: Composing error-prone operations
+for {
+  config <- parseConfiguration(jsonString)
+  validated <- validateConfiguration(config)
+  result <- processConfiguration(validated)
+} yield result
+```
+
+## Documentation
+
+### ScalaDoc for Public APIs
+```scala
+/**
+ * Applies a transformation to a DataFrame column.
+ *
+ * @param df the input DataFrame
+ * @param inputColumnName the name of the column to transform
+ * @param outputColumnName the name of the output column
+ * @param arguments transformation-specific arguments
+ * @return the DataFrame with the transformation applied
+ */
+def code(df: DataFrame,
+         inputColumnName: String,
+         outputColumnName: String,
+         arguments: TransformationArgs): DataFrame
+```
+
+### Meaningful Comments for Complex Logic
+```scala
+// Business rule: Cast transformations should handle null values gracefully
+// by returning null rather than throwing exceptions, as per data pipeline requirements
+private def safecast(value: Column, targetType: DataType): Column = {
+  when(value.isNull, lit(null)).otherwise(value.cast(targetType))
+}
+```
+
+## IDP-Specific Patterns
+
+### Transformation Implementation Pattern
+```scala
+case object MyTransformation extends MandatoryInputMandatoryOutput {
+  override val description = "Transforms X to Y using algorithm Z"
+  override val commandTemplate = "FUNCTION(${column}) AS ${alias}"
+  
+  override def buildSpecificAdditionalArgs(arguments: Array[Argument]): MyTransformationArgs =
+    MyTransformationArgs(arguments(0).value)
+  
+  override def code(df: DataFrame,
+                    inputColumnName: String,
+                    outputColumnName: String,
+                    arguments: TransformationArgs)
+                   (implicit logger: Logger): DataFrame = {
+    val args = transformToSpecificAdditionalArgs(arguments)
+    df.withColumn(outputColumnName, /* transformation logic */)
+  }
+}
+```
+
+### Test Organization
+```scala
+"MyTransformation" should {
+  val testCases = Table(
+    ("testName", "inputData", "arguments", "expectedResult"),
+    ("basic case", inputData1, args1, expected1),
+    ("edge case", inputData2, args2, expected2)
+  )
+
+  forAll(testCases) { (testName, input, args, expected) =>
+    testName in {
+      val result = MyTransformation.code(df, "input", "output", args)
+      compareDataFrames(result, expected)
+    }
+  }
+}
+```
+
+## Function and Method Design
+
+### Prefer Reduced Scope for Parameters
+When designing functions, pass only the specific fields or values needed, not entire objects. This reduces coupling and makes functions more reusable and easier to test.
+
+```scala
+// ✅ Good: Pass only the required 'name' field
+def writeConfigMap(streamName: String): Map[String, String] = {
+  // ... uses streamName ...
+}
+
+// In the calling code:
+kafkaConfigurations.writeConfigMap(runConfig.name)
+
+// ❌ Bad: Pass the entire object when only one field is needed
+def writeConfigMap(runConfigurations: RunConfigurations): Map[String, String] = {
+  // ... only uses runConfigurations.name ...
+}
+
+// In the calling code:
+kafkaConfigurations.writeConfigMap(runConfig) // Unnecessary coupling
+```
+This is especially important when a large configuration or context object is available, but a function only operates on a small subset of its data. The exception is when a function genuinely needs access to many fields of an object, in which case passing the object is acceptable.
+
+## Implicit Parameter Patterns
+
+### Pass Context Implicitly
+Use implicit parameters for cross-cutting concerns like logging, configuration contexts, and execution contexts that need to flow through multiple function calls.
+
+```scala
+// ✅ Good: Logger passed implicitly through the call chain
+def processData(df: DataFrame, config: ProcessConfig)(implicit logger: Logger): DataFrame = {
+  validateData(df)  // Logger automatically available
+    .transform(applyTransformations(_, config))
+    .transform(handleErrors)
+}
+
+def validateData(df: DataFrame)(implicit logger: Logger): DataFrame = {
+  if (df.isEmpty) {
+    LoggingUtil.logErrorAndThrowGeneralException(
+      "DataFrame cannot be empty for processing",
+      "operation" -> "data_validation"
+    )  // Logger implicitly available
+  }
+  df
+}
+
+// ❌ Bad: Explicit logger passing
+def processData(df: DataFrame, config: ProcessConfig, logger: Logger): DataFrame = {
+  validateData(df, logger)  // Must manually pass logger everywhere
+    .transform(applyTransformations(_, config, logger))
+    .transform(handleErrors(_, logger))
+}
+```
+
+### Consistent Implicit Parameter Usage
+**RULE**: Implicit parameters should ONLY be used for:
+- ✅ `Monitoring` - cross-cutting metric collection
+- ✅ `Logger` / `SonicLogger` - cross-cutting logging
+- ✅ `TimeProvider` - consistent time source
+- ✅ `ExecutionContext` - async execution
+- ✅ `SparkSession` - Spark operations
+- ✅ Genuinely global configuration contexts (e.g., `ABFeatureConfig`, `RvGatewayConfig`)
+
+**NEVER use implicit for business data or request-specific context!**
+
+```scala
+// ✅ Good: Only cross-cutting concerns implicit
+def buildClickTags(
+  rvRequest: RVRequest,                    // EXPLICIT: business data
+  rvServeData: RVServeData,                // EXPLICIT: business data
+  displayRequestID: DisplayRequestID,       // EXPLICIT: request context
+  callbackUrlData: RequestCallbackUrlData   // EXPLICIT: business data
+)(implicit 
+  monitoring: Monitoring,                   // IMPLICIT: cross-cutting
+  logger: SonicLogger,                      // IMPLICIT: cross-cutting
+  config: RvGatewayConfig                   // IMPLICIT: global config
+): Option[ClickTags]
+
+// ❌ BAD: Business data passed implicitly (REAL EXAMPLE from Gateway!)
+def build(
+  callbackUrlData: RequestCallbackUrlData,
+  gatewayExternalData: Option[GatewayExternalData],
+  // ... 10+ explicit params ...
+)(implicit 
+  requestUri: EncodedUri,              // ❌ Request data, NOT cross-cutting!
+  rvServeData: RVServeData,            // ❌ Business data, NOT cross-cutting!
+  appAugmentingData: AppAugmentingData, // ❌ Business data, NOT cross-cutting!
+  rvRequest: RVRequest,                 // ❌ Request data, NOT cross-cutting!
+  displayRequestID: DisplayRequestID,   // ❌ Request context, NOT cross-cutting!
+  displayOpportunityID: DisplayOpportunityID, // ❌ Request context!
+  platformType: PlatformType,           // ❌ Request context!
+  remoteAddressOption: Option[InetAddress], // ❌ Request data!
+  userAgent: Option[UserAgentWrapper],  // ❌ Request data!
+  translations: Map[String, String],    // ❌ Config/data!
+  // ... and 7 more implicit params ...
+): RVBidExtension
+```
+
+**Why This Is a Problem:**
+1. **Hidden Dependencies**: Can't tell what data function needs without reading full signature
+2. **Testing Nightmare**: Need to provide 21 implicit values for EVERY test
+3. **Refactoring Blocker**: Can't extract functions without bringing entire implicit context
+4. **LLM Unfriendly**: Hard for AI to understand data flow
+5. **IDE Confusion**: Type errors appear far from actual problem
+
+```scala
+// ✅ Good: Consistent implicit parameter patterns
+def readKafkaData(config: KafkaConfig)(implicit logger: Logger, spark: SparkSession): DataFrame = {
+  TimestampUtils.prepareEventTimestamp(rawData, config.timestampColumn)  // Logger flows implicitly
+}
+
+def applyTransformations(df: DataFrame, transformations: List[Transformation])
+                        (implicit logger: Logger): DataFrame = {
+  transformations.foldLeft(df) { (acc, transformation) =>
+    transformation.apply(acc)  // Logger available in each transformation
+  }
+}
+
+// ❌ Bad: Mixing implicit and explicit patterns inconsistently
+def readKafkaData(config: KafkaConfig, logger: Logger)(implicit spark: SparkSession): DataFrame = {
+  TimestampUtils.prepareEventTimestamp(rawData, config.timestampColumn, logger)  // Inconsistent
+}
+```
+
+### Error Handling with Implicit Logger
+When using `LoggingUtil.logErrorAndThrowGeneralException`, rely on implicit logger parameter:
+
+```scala
+// ✅ Good: LoggingUtil with implicit logger and Kibana-friendly tags
+def validateColumn(df: DataFrame, columnName: String)(implicit logger: Logger): DataFrame = {
+  if (!df.columnExists(columnName)) {
+    LoggingUtil.logErrorAndThrowGeneralException(
+      "Required column not found in DataFrame",  // Static message for Kibana filtering
+      "column_name" -> columnName,              // Variables only in tags
+      "operation" -> "column_validation"
+    )  // Logger implicitly available
+  }
+  df
+}
+
+// ❌ Bad: Explicit logger passing
+def validateColumn(df: DataFrame, columnName: String, logger: Logger): DataFrame = {
+  LoggingUtil.logErrorAndThrowGeneralException(
+    s"Required column '$columnName' not found",  // Variables in message (bad for Kibana)
+    logger
+  )
+}
+```
+
+### Logger and Cross-Cutting Tools Pattern
+Always pass loggers and similar cross-cutting tools (metrics, tracing, configuration contexts) implicitly rather than explicitly. This keeps function signatures clean and enables automatic propagation through call chains.
+
+```scala
+// ✅ Good: Logger and similar tools passed implicitly  
+def processData(df: DataFrame, config: Config)(implicit logger: Logger): DataFrame = {
+  validateInput(df)  // Logger flows automatically
+    .transform(applyBusinessLogic(_, config))  // Logger available in nested calls
+    .transform(auditResults)
+}
+
+def validateInput(df: DataFrame)(implicit logger: Logger): DataFrame = {
+  if (df.isEmpty) {
+    LoggingUtil.logErrorAndThrowGeneralException(
+      "DataFrame cannot be empty for processing",
+      "operation" -> "input_validation"
+    )  // Logger implicitly available for error handling
+  }
+  df
+}
+
+// ❌ Bad: Explicit logger parameter pollution
+def processData(df: DataFrame, config: Config, logger: Logger): DataFrame = {
+  validateInput(df, logger)  // Manual logger passing required everywhere
+    .transform(applyBusinessLogic(_, config, logger))
+    .transform(auditResults(_, logger))
+}
+```
+
+**Apply this pattern to:**
+- `Logger` instances for error handling and debugging
+- `SparkSession` for Spark operations  
+- `ExecutionContext` for Future/async operations
+- `RequestContext` or `SecurityContext` for request-scoped data
+- `MetricsCollector` or similar monitoring tools
+- Configuration contexts that flow through multiple layers
+
+**Benefits:**
+- **Clean signatures**: Function parameters focus on business logic, not plumbing
+- **Automatic propagation**: No need to manually thread context through every call
+- **Consistent patterns**: Same approach across the entire codebase
+- **Easy refactoring**: Adding new context doesn't require updating every function signature
+
+### Implicit Parameter Ordering
+Place implicit parameter lists at the end of method signatures:
+
+```scala
+// ✅ Good: Implicit parameters at the end
+def processTimestamp(df: DataFrame, 
+                     timestampColumn: Option[String], 
+                     mode: TimestampMode)
+                    (implicit logger: Logger): DataFrame = { ... }
+
+// ✅ Good: Multiple implicit parameter groups
+def complexOperation(data: DataFrame, config: Config)
+                    (implicit logger: Logger, spark: SparkSession, ec: ExecutionContext): Future[DataFrame] = { ... }
+
+// ❌ Bad: Implicit parameters mixed with regular parameters
+def processTimestamp(df: DataFrame, 
+                     timestampColumn: Option[String])
+                    (implicit logger: Logger)
+                    (mode: TimestampMode): DataFrame = { ... }
+```
+
+## Pattern Matching
+
+For detailed pattern matching guidelines, see the dedicated [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) rule file.
+
+### Compiler Protection Rules
+```scala
+// ✅ Good: Exhaustive pattern matching for compile-time safety
+def processReadConfig(readConfig: ReadConfigurations): String = readConfig match {
+  case kafka: KafkaReadConfigurations => s"Kafka: ${kafka.topicName}"
+  case iceberg: IcebergReadConfigurations => s"Iceberg: ${iceberg.tableIdentifier}"
+  case multiKafka: MultiClusterKafkaConfigurations => s"Multi-cluster: ${multiKafka.clusterConfigs.size} clusters"
+  case bigQuery: BigQueryReadConfigurations => s"BigQuery: ${bigQuery.tableIdentifier}"
+}
+
+// ❌ BAD: Catch-all patterns hide missing cases from compiler
+def processReadConfig(readConfig: ReadConfigurations): String = readConfig match {
+  case kafka: KafkaReadConfigurations => s"Kafka: ${kafka.topicName}"
+  case _ => "Other"  // DANGEROUS - hides MultiClusterKafkaConfigurations!
+}
+```
+
+### Pattern Matching Safety Guidelines
+- **Never use `case _ =>` as catch-all** - it hides missing cases when new types are added
+- **Use specific pattern matching** for all known cases
+- **Add explicit handling** for each case, even if it's `None` or throws an exception
+- **Use PatternMatchingUtils** for complex matches on non-sealed ADTs like `ReadConfigurations`
+- **Rely on runtime fail-fast** with meaningful error messages for non-sealed ADT protection
+- **When you must use catch-all**, document why and what cases it handles
+
+### Quick Reference
+```scala
+// ✅ Good: Bind objects and access fields
+def processTableIdentifier(tableId: TableIdentifier): String = tableId match {
+  case local: LocalTableIdentifier => s"${local.db.value}.${local.table.value}"
+  case prod: ProdTableIdentifier => s"${prod.catalog.value}.${prod.db.value}.${prod.table.value}"
+}
+
+// ❌ Bad: Excessive destructuring with underscores
+def processTableIdentifier(tableId: TableIdentifier): String = tableId match {
+  case LocalTableIdentifier(db, table) => s"${db.value}.${table.value}"
+  case ProdTableIdentifier(catalog, db, table, _) => s"${catalog.value}.${db.value}.${table.value}"
+}
+```
+
+## Type-Safe Duration Management
+
+### Use FiniteDuration Instead of Raw Types
+
+Always use `scala.concurrent.duration.FiniteDuration` for time values instead of raw `Long` milliseconds. Only convert to milliseconds at boundaries (logging, serialization, external APIs).
+
+```scala
+import scala.concurrent.duration._
+
+// ✅ GOOD: Type-safe duration with clear units
+case class TimerConfig(
+  interval: FiniteDuration = 30.seconds,
+  timeout: FiniteDuration = 5.minutes,
+  cooldown: FiniteDuration = 2.hours
+)
+
+// ❌ BAD: Raw Long values lose type information
+case class TimerConfig(
+  intervalMs: Long = 30000L,      // What unit? Unclear!
+  timeoutMs: Long = 300000L,      // Error-prone calculations
+  cooldownMs: Long = 7200000L     // Hard to understand
+)
+```
+
+### Boundary Conversion Pattern
+
+Convert `FiniteDuration` to raw types only at system boundaries:
+
+```scala
+// ✅ GOOD: Keep FiniteDuration internally, convert at logging boundary
+def processTimer(config: TimerConfig): Unit = {
+  // Internal logic uses type-safe duration
+  if (config.interval > config.timeout) {
+    throw new IllegalArgumentException("Interval cannot exceed timeout")
+  }
+  
+  // Convert only for logging/external systems
+  logger.info("Timer configuration",
+    "interval_ms" -> config.interval.toMillis.toString,
+    "timeout_ms" -> config.timeout.toMillis.toString
+  )
+}
+
+// ❌ BAD: Provide *Ms helper methods that lose type safety
+case class TimerConfig(interval: FiniteDuration) {
+  def intervalMs: Long = interval.toMillis  // Don't do this!
+}
+```
+
+### Duration Arithmetic and Comparisons
+
+```scala
+// ✅ GOOD: Natural duration arithmetic
+val total = config.interval + config.timeout
+val isWithinBounds = actualDuration < config.interval * 1.5
+val deviation = math.abs(actual.toMillis - target.toMillis) / target.toMillis
+
+// ❌ BAD: Manual millisecond calculations
+val totalMs = config.intervalMs + config.timeoutMs
+val isWithinBounds = actualMs < config.intervalMs * 1.5
+```
+
+### Benefits of FiniteDuration
+
+1. **Type Safety**: No confusion about time units (seconds vs milliseconds vs nanoseconds)
+2. **Readability**: `45.seconds` vs `45000L` - intent is clear
+3. **Arithmetic Safety**: Built-in operators handle unit conversions
+4. **IDE Support**: Auto-completion and type checking prevent unit mix-ups
+5. **Testability**: Easy to create test durations (`10.milliseconds` vs `100.hours`)
+
+### Configuration Integration
+
+```scala
+// ✅ GOOD: JSON serialization for FiniteDuration
+implicit val durationFormat: Format[FiniteDuration] = Format[FiniteDuration](
+  json => json.validate[String].map(Duration(_).asInstanceOf[FiniteDuration]),
+  duration => Json.toJson(duration.toString)
+)
+
+// Configuration accepts human-readable formats: "30 seconds", "5 minutes", "2 hours"
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal principles (meaningful names, code organization, comments, Boy Scout Rule)
+
+**Scala-Specific:**
+- [Scala Code Smells](scala-code-smells.mdc) - Scala-specific code smells and refactoring patterns
+- [Meaningful Comments Only](meaningful-comments-only.mdc) - Comment guidelines for Scala

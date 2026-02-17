@@ -1,0 +1,57 @@
+---
+description: "Scala architecture patterns index - structural guidelines, trait composition, facade patterns, and shared library development. Use when: (1) Designing Scala architecture, (2) Trait composition, (3) Facade patterns, (4) Shared library development. Points to specific architecture pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Scala Architecture Patterns Index
+
+**Purpose**: Router for Scala architecture patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **architecture**, structural guidelines, clean architecture, core structure | `core-structural-guidelines.mdc` |
+| **trait composition**, mixins, traits, trait patterns | `trait-composition-patterns.mdc` |
+| **facade**, functional integration, facade patterns | `functional-integration-in-facade.mdc` |
+| **shared library**, library development, shared libraries | `shared-library-development-patterns.mdc` |
+| **builder pattern**, functional construction, builder preferences | `builder-pattern-preferences.mdc` |
+
+---
+
+## Architecture Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Core Structural Guidelines](core-structural-guidelines.mdc) | Foundation guidelines for clean, maintainable architecture | architecture, structural guidelines, clean architecture |
+| [Trait Composition Patterns](trait-composition-patterns.mdc) | Trait composition and mixin strategies | trait composition, mixins, traits |
+| [Functional Integration in Facade](functional-integration-in-facade.mdc) | Functional integration patterns in facade design | facade, functional integration |
+| [Shared Library Development Patterns](shared-library-development-patterns.mdc) | Best practices for developing shared libraries | shared libraries, library development |
+| [Builder Pattern Preferences](builder-pattern-preferences.mdc) | Prefer functional construction over traditional builders | builder pattern, functional construction |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Architecture guidelines | `core-structural-guidelines.mdc` |
+| Trait composition | `trait-composition-patterns.mdc` |
+| Facade patterns | `functional-integration-in-facade.mdc` |
+| Shared libraries | `shared-library-development-patterns.mdc` |
+| Construction patterns | `builder-pattern-preferences.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Data**: See `../data/index.mdc` for data handling patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns

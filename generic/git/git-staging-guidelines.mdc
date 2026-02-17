@@ -1,0 +1,193 @@
+---
+description: "Git staging guidelines for new files and commit best practices. Use when: (1) Staging files, (2) Committing code, (3) Reviewing git workflow, (4) Managing git operations, (5) Following commit conventions. Covers git staging, commit best practices, and workflow guidelines."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+
+# Git Staging Guidelines
+
+## Core Principles
+- Always stage new files explicitly to avoid accidental commits
+- Review changes before staging to ensure code quality
+- Use meaningful commit messages that follow conventional commit format
+- Stage related changes together in logical commits
+
+## File Staging Patterns
+
+### Always Stage These New Files
+```bash
+# Scala source files
+git add **/*.scala
+
+# Build configuration
+git add build.sbt
+git add project/*.scala
+git add project/*.sbt
+
+# Documentation
+git add README.md
+git add **/*.md
+
+# Configuration files
+git add **/*.json
+git add **/*.yml
+git add **/*.yaml
+```
+
+### Review Before Staging
+```bash
+# Check what files are new/modified
+git status
+
+# Review changes in specific files
+git diff <filename>
+
+# Review all unstaged changes
+git diff
+
+# Review staged changes
+git diff --cached
+```
+
+### Never Auto-Stage These Files
+- `target/` directory contents (build artifacts)
+- `.bloop/` directory (build server cache)
+- `*.class` files (compiled bytecode)
+- IDE-specific files (`.idea/`, `*.iml`)
+- Log files (`*.log`)
+- Temporary files (`*~`, `*.tmp`)
+
+## Staging Workflow
+
+### For New Features
+1. **Create feature branch**: `git checkout -b feature/transformation-name`
+2. **Stage incrementally**: Add files as you complete logical units
+3. **Review before commit**: Always run `git diff --cached`
+4. **Commit with message**: Use conventional commit format
+
+### For Bug Fixes
+1. **Create fix branch**: `git checkout -b fix/issue-description`
+2. **Stage only related files**: Don't mix unrelated changes
+3. **Include tests**: Stage both implementation and test files together
+4. **Verify tests pass**: Run tests before committing
+
+### For Refactoring
+1. **Stage in small chunks**: Break large refactors into logical commits
+2. **Preserve git history**: Use `git mv` for file renames
+3. **Update documentation**: Stage doc updates with code changes
+
+## Commit Message Format
+
+Use conventional commit format:
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+### Types
+- `feat`: New feature (transformation, service, etc.)
+- `fix`: Bug fix
+- `refactor`: Code refactoring without functional changes
+- `test`: Adding or updating tests
+- `docs`: Documentation updates
+- `style`: Code style changes (formatting, etc.)
+- `perf`: Performance improvements
+- `chore`: Build process, dependency updates
+
+### Examples
+```bash
+feat(transformations): add new StringFormat transformation
+
+fix(schema-registry): handle null values in Avro decoding
+
+test(transformations): add comprehensive tests for Cast transformation
+
+docs(readme): update installation instructions
+
+refactor(spark): extract common DataFrame operations to utility
+```
+
+## Pre-Commit Checklist
+
+Before staging and committing:
+- [ ] Code compiles without errors (`sbt compile`)
+- [ ] Tests pass (`sbt test`)
+- [ ] Code follows Scala style guidelines
+- [ ] No sensitive information (passwords, keys) in files
+- [ ] Documentation updated if needed
+- [ ] Commit message follows conventional format
+
+## Useful Git Commands
+
+### Staging Commands
+```bash
+# Stage specific file
+git add path/to/file.scala
+
+# Stage all Scala files
+git add "**/*.scala"
+
+# Stage interactively (choose hunks)
+git add -p
+
+# Stage all files in directory
+git add src/main/scala/com/example/transformations/
+
+# Unstage file
+git reset HEAD <filename>
+```
+
+### Review Commands
+```bash
+# Show status
+git status
+
+# Show diff of unstaged changes
+git diff
+
+# Show diff of staged changes
+git diff --cached
+
+# Show file history
+git log --oneline <filename>
+```
+
+### Branch Management
+```bash
+# Create and switch to new branch
+git checkout -b feature/new-transformation
+
+# Switch branches
+git checkout main
+
+# List branches
+git branch -a
+
+# Delete merged branch
+git branch -d feature/completed-feature
+```
+
+## Transformation Development Guidelines
+
+### Transformation Development
+When adding new transformations:
+1. Stage transformation implementation: `git add service/api/src/main/scala/com/example/transformations/`
+2. Stage corresponding tests: `git add app/src/test/scala/com/example/transformations/`
+3. Stage documentation updates: `git add **/*.mdc`
+
+### Configuration Changes
+When updating configurations:
+1. Stage config files: `git add config/`
+2. Stage related service changes: `git add service/`
+3. Verify in staging environment before merging
+
+### UI Changes
+When updating the React UI:
+1. Stage component files: `git add ui/src/components/`
+2. Stage related tests: `git add ui/src/**/*.test.*`
+3. Stage updated dependencies: `git add ui/package*.json`

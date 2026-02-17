@@ -1,0 +1,49 @@
+---
+description: "Communication patterns index - business communication, tool communication, and prompt engineering. Use when: (1) Explaining business logic, (2) Using MCP tools, (3) Prompt engineering, (4) Communication standards. Points to communication pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Communication Patterns Index
+
+**Purpose**: Router for communication patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **business logic**, how is X calculated, business communication, BLUF | `business-communication-standards.mdc` |
+| **explain tool**, how to use MCP, tool communication, MCP tools | `tool-communication-pattern.mdc` |
+| **prompt engineering**, optimize prompts, llm techniques, prompt optimization | `prompt-engineering-principles.mdc` |
+
+---
+
+## Communication Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Business Communication Standards](business-communication-standards.mdc) | BLUF format for business logic explanations | business logic, how is X calculated, business communication |
+| [Tool Communication Pattern](tool-communication-pattern.mdc) | How to explain MCP tools to users | explain tool, how to use MCP, tool communication |
+| [Prompt Engineering Principles](prompt-engineering-principles.mdc) | LLM prompt optimization techniques | prompt engineering, optimize prompts, llm techniques |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Business logic explanation | `business-communication-standards.mdc` |
+| Tool explanation | `tool-communication-pattern.mdc` |
+| Prompt optimization | `prompt-engineering-principles.mdc` |
+
+---
+
+## Related Resources
+
+- **Generic Index**: See `../index.mdc` for all generic rules

@@ -1,0 +1,280 @@
+---
+description: "Python error handling patterns - exceptions, try/except, and error types. Use when: (1) Handling exceptions, (2) Writing try/except blocks, (3) Creating custom error types, (4) Error propagation, (5) Writing robust Python code. Covers exception handling, error types, and Python error patterns."
+globs: []
+alwaysApply: false
+---
+
+# Python Error Handling Patterns
+
+## Exception Handling Basics
+
+### Specific Exception Catching
+```python
+# ✅ GOOD: Catch specific exceptions
+try:
+    value = int(user_input)
+except ValueError as e:
+    logger.error(f"Invalid input: {e}")
+    return None
+except KeyError as e:
+    logger.error(f"Missing key: {e}")
+    return None
+
+# ❌ BAD: Bare except catches everything
+try:
+    value = int(user_input)
+except:
+    pass  # Catches KeyboardInterrupt, SystemExit, etc.
+```
+
+### Multiple Exception Handling
+```python
+# ✅ GOOD: Tuple of exceptions
+try:
+    result = process_data(data)
+except (ValueError, TypeError, KeyError) as e:
+    logger.error(f"Processing error: {e}")
+    return default_value
+
+# ✅ GOOD: Different handling for different exceptions
+try:
+    result = process_data(data)
+except ValueError as e:
+    logger.warning(f"Invalid value: {e}")
+    return default_value
+except TypeError as e:
+    logger.error(f"Type mismatch: {e}")
+    raise
+```
+
+### Finally and Else Clauses
+```python
+# ✅ GOOD: Use finally for cleanup
+file_handle = None
+try:
+    file_handle = open("data.txt")
+    data = file_handle.read()
+except IOError as e:
+    logger.error(f"Cannot read file: {e}")
+finally:
+    if file_handle:
+        file_handle.close()
+
+# ✅ GOOD: Use else for success-only code
+try:
+    result = risky_operation()
+except ValueError as e:
+    logger.error(f"Operation failed: {e}")
+else:
+    # Only runs if no exception was raised
+    logger.info("Operation successful")
+    save_result(result)
+```
+
+## Context Managers
+
+### Resource Management
+```python
+# ✅ GOOD: Use context managers for resources
+with open("data.txt") as f:
+    data = f.read()
+    process(data)
+# File automatically closed
+
+# ✅ GOOD: Multiple context managers
+with open("input.txt") as infile, open("output.txt", "w") as outfile:
+    data = infile.read()
+    outfile.write(process(data))
+
+# ❌ BAD: Manual resource management
+f = open("data.txt")
+data = f.read()
+f.close()  # Might not execute if exception occurs
+```
+
+### Custom Context Managers
+```python
+# ✅ GOOD: Create custom context manager
+from contextlib import contextmanager
+
+@contextmanager
+def database_transaction(db):
+    """Context manager for database transactions."""
+    try:
+        yield db
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Transaction failed: {e}")
+        raise
+
+# Usage
+with database_transaction(db) as tx:
+    tx.execute("INSERT INTO ...")
+```
+
+## Custom Exceptions
+
+### Exception Hierarchy
+```python
+# ✅ GOOD: Custom exception hierarchy
+class ApplicationError(Exception):
+    """Base exception for application errors."""
+    pass
+
+class ValidationError(ApplicationError):
+    """Raised when data validation fails."""
+    pass
+
+class DatabaseError(ApplicationError):
+    """Raised when database operation fails."""
+    pass
+
+# Usage
+def validate_user(user_data: dict) -> User:
+    if "email" not in user_data:
+        raise ValidationError("Email is required")
+    return User(**user_data)
+```
+
+### Exception with Context
+```python
+# ✅ GOOD: Include context in exceptions
+class ProcessingError(Exception):
+    """Exception with additional context."""
+    
+    def __init__(self, message: str, item_id: int, details: dict):
+        super().__init__(message)
+        self.item_id = item_id
+        self.details = details
+
+# Usage
+try:
+    process_item(item)
+except ValueError as e:
+    raise ProcessingError(
+        f"Failed to process item: {e}",
+        item_id=item.id,
+        details={"value": item.value}
+    ) from e  # Preserve original exception
+```
+
+## Exception Chaining
+
+### Explicit Chaining
+```python
+# ✅ GOOD: Use 'from' to chain exceptions
+def process_config(filename: str) -> dict:
+    try:
+        with open(filename) as f:
+            return json.load(f)
+    except FileNotFoundError as e:
+        raise ConfigError(f"Config file not found: {filename}") from e
+    except json.JSONDecodeError as e:
+        raise ConfigError(f"Invalid JSON in config: {filename}") from e
+```
+
+### Suppress Chaining
+```python
+# ✅ GOOD: Use 'from None' to suppress context
+def safe_operation():
+    try:
+        risky_operation()
+    except InternalError as e:
+        # Suppress internal error details from users
+        raise UserFacingError("Operation failed") from None
+```
+
+## Error Handling Patterns
+
+### EAFP (Easier to Ask for Forgiveness than Permission)
+```python
+# ✅ GOOD: EAFP - Python idiomatic
+try:
+    value = my_dict[key]
+except KeyError:
+    value = default_value
+
+# ❌ BAD: LBYL (Look Before You Leap) - less Pythonic
+if key in my_dict:
+    value = my_dict[key]
+else:
+    value = default_value
+```
+
+### Returning None vs Raising Exceptions
+```python
+# ✅ GOOD: Raise exceptions for exceptional cases
+def get_user(user_id: int) -> User:
+    """Get user by ID.
+    
+    Raises:
+        UserNotFoundError: If user doesn't exist
+    """
+    user = db.query(User).get(user_id)
+    if not user:
+        raise UserNotFoundError(f"User {user_id} not found")
+    return user
+
+# ✅ GOOD: Return None for expected missing values
+def find_user_by_email(email: str) -> Optional[User]:
+    """Find user by email, returns None if not found."""
+    return db.query(User).filter_by(email=email).first()
+```
+
+### Validation Patterns
+```python
+# ✅ GOOD: Fail fast with clear messages
+def process_order(order: dict) -> Order:
+    """Process order with validation.
+    
+    Raises:
+        ValidationError: If order data is invalid
+    """
+    if not order.get("items"):
+        raise ValidationError("Order must contain items")
+    
+    if order.get("total", 0) <= 0:
+        raise ValidationError("Order total must be positive")
+    
+    return create_order(order)
+```
+
+## Logging with Exceptions
+
+### Exception Logging
+```python
+# ✅ GOOD: Log exceptions with exc_info
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    process_data(data)
+except Exception as e:
+    logger.error("Failed to process data", exc_info=True)
+    raise
+
+# ✅ GOOD: Use exception() shorthand
+try:
+    process_data(data)
+except Exception:
+    logger.exception("Failed to process data")
+    raise
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (fail fast, explicit errors, proper propagation)
+
+**Python-Specific:**
+- This file provides Python-specific implementation (exceptions, try/except, context managers)
+
+---
+
+## References
+
+- [Python Tutorial: Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html)
+- [PEP 3134 – Exception Chaining](https://peps.python.org/pep-3134/)
+- [Built-in Exceptions](https://docs.python.org/3/library/exceptions.html)

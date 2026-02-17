@@ -1,0 +1,19 @@
+---
+description: "iOS-specific Objective-C patterns and legacy maintenance. Use when: (1) Maintaining Objective-C code, (2) Legacy iOS maintenance, (3) Objective-C patterns, (4) iOS Objective-C development, (5) Legacy code updates. Covers Objective-C iOS patterns, legacy maintenance, and Objective-C best practices."
+globs: ["**/*.m", "**/*.h"]
+alwaysApply: false
+---
+# iOS Objective-C Best Practices
+
+## 1. Interoperability
+- **Headers**: Expose only necessary methods/properties in `.h` files. Keep implementation details in `.m` extensions.
+- **Swift Bridging**:
+  - Use `NS_SWIFT_NAME` to rename Objective-C methods for cleaner Swift syntax.
+  - Use `NS_ENUM` and `NS_OPTIONS` macros for better Swift enum mapping.
+
+## 2. Legacy Maintenance
+- **Refactoring**: When touching legacy Obj-C code, consider if a partial migration to Swift is feasible.
+- **Modernization**: Use modern Objective-C syntax (literals, lightweight generics `NSArray<NSString *> *`) even in old files.
+
+## 3. Delegates
+- Always declare delegate properties as `weak` to avoid retain cycles: `@property (nonatomic, weak) id<MyDelegate> delegate;`.

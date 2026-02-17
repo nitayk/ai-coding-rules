@@ -1,0 +1,168 @@
+---
+description: "SBT build system and dependency management rules. Auto-loads on dependency-related keywords. Use when: (1) SBT configuration, (2) Dependency conflicts, (3) Build optimization, (4) Plugin management, (5) Library upgrades. Routes to specific build and dependency management guides."
+globs: ["**/build.sbt", "**/project/*.scala", "**/project/*.sbt"]
+alwaysApply: false
+---
+
+# Scala Build & Dependency Management
+
+**SBT Build System Rules**: Build configuration, dependency management, and tooling.
+
+**How It Works**:
+- Auto-loads when editing SBT build files
+- Routes to specific build topics based on keywords
+- Focuses on dependency hygiene and conflict resolution
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (specific rule files).
+
+---
+
+## Keyword → Rule File Routing
+
+| Keywords/Intent | Load Rule File |
+|---|---|
+| **dependency conflict**, **dependency hell**, **NoClassDefFoundError**, **ClassNotFoundException**, **eviction**, **binary incompatibility**, **deduplicate**, **unusedDep**, **undeclaredDep**, **group ID change**, **play-json**, **akka pekko migration** | [Dependency Conflict Detection](dependency-conflict-detection.mdc) |
+| **sbt optimization**, **build performance**, **compile time**, **slow build** | *(Coming soon)* |
+| **plugin configuration**, **sbt plugins**, **explicit deps**, **conflict classes**, **assembly** | [Dependency Conflict Detection](dependency-conflict-detection.mdc) |
+
+---
+
+## Quick Start Guides
+
+### Dependency Conflicts
+
+**When you see runtime errors despite successful compilation**:
+1. Load: [Dependency Conflict Detection](dependency-conflict-detection.mdc)
+2. Run: `scripts/detect-dependency-conflicts.sh`
+3. Follow: Systematic detection and resolution process
+4. Use: `unusedDep` and `undeclaredDep` for hygiene
+
+**Common scenarios**:
+- Library upgrade with group ID change (Play JSON 2.x → 3.x)
+- Runtime `NoClassDefFoundError` or `ClassNotFoundException`
+- Assembly deduplicate errors
+- Binary incompatibility warnings
+
+### Build Optimization
+
+*(Coming soon - build performance, incremental compilation, caching)*
+
+---
+
+## Integration with Skills
+
+Related skills for comprehensive workflows:
+- **Dependency Hell Skill**: `@skills/scala-dependency-hell/SKILL.md` - Comprehensive guide
+- **Scala Upgrade**: `@methodologies/how-to-upgrade-scala-version.mdc` - Version upgrade process
+- **Detection Script**: `scripts/detect-dependency-conflicts.sh` - Automated conflict detection
+
+---
+
+## Essential Tools
+
+Add to `project/plugins.sbt`:
+
+```scala
+// ⚠️ PERFORMANCE: sbt-explicit-dependencies slows compilation dramatically!
+// Keep COMMENTED OUT during normal development, uncomment only for hygiene checks
+// addSbtPlugin("com.github.cb372" % "sbt-explicit-dependencies" % "0.3.1")
+
+// Conflict detection (minimal performance impact)
+addSbtPlugin("com.github.xuwei-k" % "sbt-conflict-classes" % "0.2.0")
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+
+// Assembly optimization
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
+```
+
+**Reducing False Positives** - Create `project/DependenciesFilters.scala`:
+
+```scala
+import sbt._
+
+object DependenciesFilters {
+  val commonFalsePositives = Seq(
+    // Runtime/reflection deps
+    moduleFilter(organization = "org.playframework", name = "play-json-joda"),
+    // Internal facade libraries (customize for your org)
+    moduleFilter(organization = "grow-mobile-scala-libs.*"),
+    // Logging
+    moduleFilter(organization = "ch.qos.logback")
+  )
+  
+  def applyCommonFilters = Seq(
+    unusedCompileDependenciesFilter --= commonFalsePositives
+  )
+}
+```
+
+**Apply filters to modules**:
+```scala
+// In module build settings
+.settings(
+  DependenciesFilters.applyCommonFilters  // Dramatically reduces false positives!
+)
+```
+
+**When to Enable sbt-explicit-dependencies**:
+- ✅ Before library upgrades
+- ✅ Pre-release dependency cleanup
+- ✅ Weekly hygiene checks
+- ❌ NOT during normal development (too slow!)
+
+**Usage Pattern**:
+1. Configure filters ONCE (commit in `project/DependenciesFilters.scala`)
+2. Uncomment plugin → `sbt reload`
+3. Run checks (now with fewer false positives!) → `sbt unusedCompileDependencies`
+4. Comment out plugin → `sbt reload`
+5. Commit with plugin COMMENTED OUT, filters stay
+
+---
+
+## Proactive Maintenance
+
+### Before Library Upgrades
+```bash
+# 1. Enable plugin (uncomment in project/plugins.sbt + sbt reload)
+# 2. Check current state
+sbt "<module>/undeclaredCompileDependencies"
+sbt "<module>/unusedCompileDependencies"
+# 3. Disable plugin (comment out + sbt reload)
+# 4. Run full check
+scripts/detect-dependency-conflicts.sh
+```
+
+### After Library Upgrades
+```bash
+# Verify no conflicts
+scripts/detect-dependency-conflicts.sh
+sbt "<module>/test"
+sbt "<module>/assembly"  # if applicable
+```
+
+### Regular Hygiene (Weekly/Pre-release)
+```bash
+# 1. Uncomment plugin in project/plugins.sbt
+# 2. Run checks
+sbt "unusedCompileDependencies"
+sbt "undeclaredCompileDependencies"
+# 3. Comment out plugin again!
+# 4. Commit changes with plugin COMMENTED OUT
+```
+
+---
+
+## Critical Principles
+
+1. **Group ID changes require manual exclusions** - SBT won't auto-evict
+2. **Declare all direct dependencies explicitly** - don't rely on transitives
+3. **Test before removing "unused" dependencies** - may be runtime/compiler plugins
+4. **Run tests for ALL affected modules** - compilation ≠ working code
+5. **Document all exclusions** - explain WHY in comments
+
+---
+
+**See Also**:
+- [Play JSON Gotchas](../data/play-json-gotchas.mdc) - Play JSON specific issues
+- [Kafka Service Discovery](../data/kafka-service-discovery-patterns.mdc) - External dependency patterns
+- [Scala Rules Navigation](../index.mdc) - Back to Scala index

@@ -1,0 +1,159 @@
+---
+description: "Navigation guide for Scala-specific coding rules and patterns. Auto-loads when Scala files are opened (via globs). Use when: (1) Discovering Scala patterns, (2) Error handling (Option/Either/Try), (3) Sealed traits/functional programming, (4) Testing/performance/architecture patterns, (5) Data handling best practices. Points to specific rules in language/, architecture/, data/, performance/, testing/, meta/ subdirectories. Load manually with .cursor/rules/shared/backend/scala/index.mdc to browse all Scala rules."
+globs: ["**/*.scala"]
+alwaysApply: false
+---
+
+# Scala Rules Navigation Guide
+
+**Scala-Specific Rules**: Implementation details for Scala code.
+
+**How It Works**:
+- Generic rules (SOLID, DRY, KISS, correctness first) load **automatically** when you open Scala files
+- This index loads **automatically** when you open Scala files (via globs)
+- Use this to discover Scala-specific patterns (sealed traits, Option/Either/Try, functional patterns)
+
+**Key Principle**: This directory contains ONLY Scala-specific patterns. Universal principles are in `generic/` and load automatically - they're referenced from here.
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 1 nodes (subcategory indexes) based on keywords.
+
+---
+
+## Keyword → Subcategory Index Routing
+
+| Keywords/Intent | Load Subcategory Index |
+|----------------|----------------------|
+| **language**, error handling, functional programming, type safety, scala language | `.cursor/rules/shared/backend/scala/language/index.mdc` |
+| **architecture**, structural guidelines, trait composition, facade, shared library | `.cursor/rules/shared/backend/scala/architecture/index.mdc` |
+| **data**, json serialization, kafka, spark, enums, schema generation | `.cursor/rules/shared/backend/scala/data/index.mdc` |
+| **performance**, collections, memory, future optimization, FP performance | `.cursor/rules/shared/backend/scala/performance/index.mdc` |
+| **testing**, pure testing, scalatest, test patterns | `.cursor/rules/shared/backend/scala/testing/index.mdc` |
+| **meta**, code style, correctness, functional principles, code smells | `.cursor/rules/shared/backend/scala/meta/index.mdc` |
+
+---
+
+## Quick Rule Discovery
+
+### When Writing New Scala Code
+
+**Load these rules in order:**
+1. [Compiler-Friendly Types](language/compiler-friendly-types.mdc) - **Start here** - Core principle: stop lying to compiler
+2. [Error Handling Patterns](language/error-handling-patterns.mdc) - Essential error handling with Option, Either, Try
+3. [Referential Transparency](language/referential-transparency.mdc) - Pure functional programming principles
+4. [Make Illegal States Unrepresentable](language/make-illegal-states-unrepresentable.mdc) - Type-safe invariants with sealed traits
+
+### When Handling Errors
+
+**Load these rules:**
+- [Error Handling Patterns](language/error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Future Error Handling Conventions](language/future-error-handling-conventions.mdc) - Async error handling with Future[Either[E, A]]
+- [Avoid Option Blindness](language/avoid-option-blindness.mdc) - When Option loses domain semantics
+- [Make Illegal States Unrepresentable](language/make-illegal-states-unrepresentable.mdc) - Sealed traits for error types
+
+### When Writing Tests
+
+**Load these rules:**
+- [Pure Testing Patterns](testing/pure-testing-patterns.mdc) - **Start here** - Functional testing approach
+- [Scala Testing Best Practices](testing/scala-testing-best-practices.mdc) - ScalaTest patterns
+- [Correctness First](meta/correctness-first.mdc) - Make it correct, then optimize
+
+### When Optimizing Performance
+
+**Load these rules:**
+- [Correctness First](meta/correctness-first.mdc) - **Make it correct first**
+- [Performance Conscious FP](performance/performance-conscious-fp.mdc) - FP optimization patterns
+- [Scala Efficient Future Management](performance/scala-efficient-future-management.mdc) - Async optimization
+
+---
+
+## Keyword → Subcategory Index Routing
+
+| Keywords/Intent | Load Subcategory Index |
+|----------------|----------------------|
+| **language**, error handling, functional programming, type safety, scala language | `.cursor/rules/shared/backend/scala/language/index.mdc` |
+| **architecture**, structural guidelines, trait composition, facade, shared library | `.cursor/rules/shared/backend/scala/architecture/index.mdc` |
+| **data**, json serialization, kafka, spark, enums, schema generation | `.cursor/rules/shared/backend/scala/data/index.mdc` |
+| **performance**, collections, memory, future optimization, FP performance | `.cursor/rules/shared/backend/scala/performance/index.mdc` |
+| **testing**, pure testing, scalatest, test patterns | `.cursor/rules/shared/backend/scala/testing/index.mdc` |
+| **meta**, code style, correctness, functional principles, code smells | `.cursor/rules/shared/backend/scala/meta/index.mdc` |
+
+---
+
+## Rule Categories (Subcategory Indexes - Layer 1 Nodes)
+
+### 🔧 Language Features
+
+**Core Patterns:**
+- [Compiler-Friendly Types](language/compiler-friendly-types.mdc) - Stop lying to compiler
+- [Make Illegal States Unrepresentable](language/make-illegal-states-unrepresentable.mdc) - Sealed traits prevent invalid combinations
+- [Error Handling Patterns](language/error-handling-patterns.mdc) - Option, Either, Try
+- [Future Error Handling Conventions](language/future-error-handling-conventions.mdc) - Future error handling
+- [Referential Transparency](language/referential-transparency.mdc) - Pure functions
+
+**Advanced Features:**
+- [Avoid Overloading](language/avoid-overloading.mdc) - Prefer explicit naming
+- [Avoid Anonymous Function Dependencies](language/avoid-anonymous-function-dependencies.mdc) - Use named traits
+- [Prefer Case Classes Over Tuples](language/prefer-case-classes-over-tuples.mdc) - Better structured data
+- [Iterator Safety](language/iterator-safety.mdc) - Beware leaking iterators
+- [Lazy Evaluation and Productivity](language/lazy-evaluation-and-productivity.mdc) - LazyList patterns
+
+### 🏗️ Architecture
+- [Core Structural Guidelines](architecture/core-structural-guidelines.mdc) - Application structure
+- [Functional Integration in Facade](architecture/functional-integration-in-facade.mdc) - Facade patterns
+- [Trait Composition Patterns](architecture/trait-composition-patterns.mdc) - Mixin strategies
+
+### 🚀 Performance
+- [Performance Conscious FP](performance/performance-conscious-fp.mdc) - FP optimization
+- [Scala Efficient Future Management](performance/scala-efficient-future-management.mdc) - Async patterns
+- [Collections and Memory](performance/collections-and-memory.mdc) - Collection performance, memory optimization
+
+### 🧪 Testing
+- [Pure Testing Patterns](testing/pure-testing-patterns.mdc) - Functional testing
+- [Scala Testing Best Practices](testing/scala-testing-best-practices.mdc) - ScalaTest guide
+
+### 📊 Data Handling
+- [JSON Serialization Patterns](data/json-serialization-patterns.mdc) - Play JSON
+- [Scala Complex Enum Best Practices](data/scala-complex-enum-best-practices.mdc) - Sealed traits
+- [Spark DataFrame Best Practices](data/spark-dataframe-best-practices.mdc) - Spark patterns
+
+### 📝 Meta
+- [Functional Programming Principles](meta/functional-programming-principles.mdc) - Core FP patterns
+- [Correctness First](meta/correctness-first.mdc) - Make it correct, then optimize
+- [Scala Code Smells](meta/scala-code-smells.mdc) - Anti-patterns to avoid
+
+---
+
+## How to Use This Index
+
+**For LLMs:**
+- Use this file to discover which rules to load based on task context
+- Load rules using `@filename.mdc` syntax
+- Rules auto-attach when Scala files match their globs
+- Use descriptions to decide when to load agent-requested rules
+
+**Rule Loading Priority:**
+1. **Always rules** (`alwaysApply: true`) - Always loaded
+2. **Auto-attached** (via globs) - Loaded when matching files referenced
+3. **Agent-requested** (via description) - LLM decides based on context
+4. **Manual** (`@ruleName`) - Explicitly requested
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, correctness first, pure functions, make illegal states unrepresentable)
+- [Generic Architecture Principles](../../generic/architecture/core-principles.mdc) - Universal architecture principles
+- [Generic Testing Principles](../../generic/testing/core-principles.mdc) - Universal testing principles
+- [Generic Error Handling Principles](../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+- [Generic Performance Principles](../../generic/performance/core-principles.mdc) - Universal performance principles
+
+**Scala-Specific:**
+- This directory contains Scala-specific implementations and examples (sealed traits, Option/Either/Try, functional programming patterns)
+
+---
+
+## Related Files
+
+- [index.mdc](../index.mdc) - Complete catalog of all rules across languages (root index)
+- [ROUTER.mdc](../ROUTER.mdc) - Smart intent router (auto-loads)

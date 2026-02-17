@@ -1,0 +1,348 @@
+---
+description: "LLM prompt engineering principles - architecture awareness, task-specific optimization, simple-first approach. Load manually with @prompt-engineering-principles.mdc when needed. Use when: (1) Writing prompts for LLMs, (2) Optimizing AI interactions, (3) Improving retrieval accuracy, (4) Designing prompt strategies, (5) Understanding LLM limitations. Covers prompt repetition, causal architecture awareness, task-specific techniques, and cost-quality tradeoffs."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["prompt-engineering", "llm", "ai", "communication", "optimization"]
+---
+
+# Prompt Engineering Principles
+
+**📖 LOAD MANUALLY**: This rule does NOT auto-load. Reference with `@prompt-engineering-principles.mdc` or `@generic/communication/prompt-engineering-principles.mdc` when needed.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Writing prompts for LLMs, optimizing AI interactions, or designing prompt strategies.
+
+**SKIP WHEN:** Regular coding tasks, not working with LLM prompts.
+
+---
+
+## Core Directive
+
+**Understand LLM architecture limitations** - Design prompts that work with causal/autoregressive models, not against them. Use simple techniques first, optimize for specific tasks, and measure tradeoffs.
+
+---
+
+## 1. Architecture Awareness
+
+### The Causal Blind Spot
+
+**DO**:
+- Understand that most LLMs process text left-to-right (causal/autoregressive)
+- Recognize that order matters: `<CONTEXT> <QUESTION>` vs `<QUESTION> <CONTEXT>` yield different results
+- Design prompts with architecture limitations in mind
+- Structure information intentionally based on processing order
+
+**STOP**:
+- Assuming models can "look ahead" or process bidirectionally
+- Ignoring how information order affects results
+- Treating prompts as if models have perfect memory
+
+**Key Insight**: By the time a model processes token N, it has only seen tokens 1 through N-1. This creates fundamental constraints on understanding.
+
+---
+
+## 2. Simple-First Approach
+
+### Test Simple Techniques Before Complex Ones
+
+**DO**:
+- Start with simple prompt techniques (repetition, clear structure)
+- Test basic approaches before adding complexity
+- Measure effectiveness of simple vs complex techniques
+- Use Chain of Thought only when reasoning is needed
+
+**STOP**:
+- Assuming complex frameworks are always better
+- Adding unnecessary complexity without testing simple alternatives
+- Using reasoning techniques for non-reasoning tasks
+
+**Example**:
+```
+✅ Simple: Repeat prompt twice for retrieval tasks
+❌ Complex: Multi-shot prompting with examples when simple repetition works
+```
+
+**Research Finding**: Prompt repetition (doubling the input) can improve accuracy by up to 76% on non-reasoning tasks with minimal latency cost.
+
+---
+
+## 3. Task-Specific Optimization
+
+### Match Technique to Task Type
+
+**DO**:
+- Use prompt repetition for retrieval/extraction/classification tasks
+- Use Chain of Thought for reasoning tasks
+- Test which technique works for your specific use case
+- Optimize prompts based on task requirements
+
+**STOP**:
+- Using one-size-fits-all prompt strategies
+- Applying reasoning techniques to direct-answer tasks
+- Ignoring task-specific requirements
+
+**Task Categories**:
+
+| Task Type | Best Technique | Why |
+|-----------|---------------|-----|
+| **Retrieval** (find specific info) | Prompt repetition | Improves attention to details |
+| **Extraction** (extract structured data) | Prompt repetition | Better context awareness |
+| **Classification** (categorize items) | Prompt repetition | Clearer pattern recognition |
+| **Reasoning** (step-by-step logic) | Chain of Thought | Natural reasoning process |
+| **Direct Q&A** (factual answers) | Prompt repetition | Better information retrieval |
+
+**Research Finding**: Prompt repetition works best for non-reasoning tasks. For reasoning tasks, Chain of Thought is more effective (repetition becomes redundant).
+
+---
+
+## 4. Prompt Repetition Technique
+
+### When and How to Use
+
+**APPLY WHEN**:
+- Retrieval tasks (finding specific code references, extracting details)
+- Classification tasks (categorizing code, identifying patterns)
+- Direct Q&A (simple factual queries)
+- Extraction tasks (structured data extraction)
+
+**SKIP WHEN**:
+- Reasoning tasks (use Chain of Thought instead)
+- Tasks already using Chain of Thought (redundant)
+- When token cost is prohibitive
+
+**Implementation**:
+```
+Instead of:
+What is the 25th name in this list: Alice, Bob, Charlie...
+
+Do:
+What is the 25th name in this list: Alice, Bob, Charlie...
+What is the 25th name in this list: Alice, Bob, Charlie...
+```
+
+**Why It Works**:
+- Second repetition can attend to entire first copy
+- Effectively provides bidirectional attention
+- Resolves ambiguities missed in single pass
+- Minimal latency cost (only affects prefill stage)
+
+**Cost Tradeoff**:
+- ✅ Doubles input tokens (cost)
+- ✅ Minimal latency impact (prefill is parallelizable)
+- ✅ Large accuracy gains (up to 76% improvement)
+- ✅ No increase in output tokens
+
+---
+
+## 5. Cost vs Quality Tradeoffs
+
+### Measure and Optimize
+
+**DO**:
+- Measure accuracy improvements vs token cost
+- Test whether smaller models + techniques can replace larger models
+- Consider infrastructure-level optimizations
+- Balance cost, quality, and latency
+
+**STOP**:
+- Optimizing without measuring
+- Ignoring token costs
+- Upgrading models without testing prompt optimizations first
+
+**Decision Framework**:
+1. **Test prompt techniques** on current model first
+2. **Measure improvements** (accuracy, cost, latency)
+3. **Compare** to upgrading model size
+4. **Choose** based on cost-benefit analysis
+
+**Example**: Smaller model (Gemini 2.0 Flash-Lite) with prompt repetition achieved 97% accuracy vs 21% baseline - potentially avoiding need for larger, more expensive model.
+
+---
+
+## 6. Infrastructure-Level Optimization
+
+### Implement at System Level
+
+**DO**:
+- Implement prompt optimizations at orchestration/API layer
+- Make optimizations transparent to users
+- Apply conditionally based on task type
+- Automate technique selection
+
+**STOP**:
+- Requiring users to manually apply techniques
+- Applying same technique to all tasks
+- Making optimizations visible/annoying to users
+
+**Implementation Strategy**:
+- **Orchestration layer**: Automatically apply prompt repetition for non-reasoning endpoints
+- **Task detection**: Identify retrieval/extraction/classification vs reasoning tasks
+- **Conditional application**: Apply repetition only when appropriate
+- **Transparent**: Users don't need to know it's happening
+
+---
+
+## 7. Security Considerations
+
+### Prompt Techniques Affect Security
+
+**DO**:
+- Test adversarial cases (repeated jailbreak prompts)
+- Reinforce safety instructions with repetition
+- Update security testing protocols
+- Monitor for new attack vectors
+
+**STOP**:
+- Assuming techniques only help legitimate use
+- Ignoring security implications
+- Using techniques without security testing
+
+**Security Implications**:
+- **Attack**: Repeating jailbreak prompts might be more effective
+- **Defense**: Repeating safety instructions might strengthen defenses
+- **Testing**: Update red-teaming to include repeated prompts
+
+---
+
+## 8. Measurement and Benchmarking
+
+### Test on Your Data
+
+**DO**:
+- Test techniques on your specific use cases
+- Measure improvements on your benchmarks
+- Compare multiple techniques
+- Document what works for your tasks
+
+**STOP**:
+- Assuming research results apply directly to your use case
+- Using techniques without measuring effectiveness
+- Ignoring task-specific variations
+
+**Measurement Checklist**:
+- [ ] Baseline accuracy (without technique)
+- [ ] Improved accuracy (with technique)
+- [ ] Token cost increase
+- [ ] Latency impact
+- [ ] Task-specific effectiveness
+
+---
+
+## Examples
+
+### ✅ Good: Task-Appropriate Technique
+
+**Retrieval Task**:
+```
+Find all functions that call processPayment in this codebase:
+[code context]
+
+Find all functions that call processPayment in this codebase:
+[code context]
+```
+**Why**: Repetition improves retrieval accuracy for finding specific code references.
+
+### ✅ Good: Reasoning Task
+
+**Complex Logic**:
+```
+Think step by step: How does this authentication flow work?
+[code context]
+
+Step 1: User submits credentials...
+Step 2: System validates...
+```
+**Why**: Chain of Thought is more appropriate for reasoning tasks.
+
+### ❌ Bad: Wrong Technique for Task
+
+**Retrieval with Chain of Thought**:
+```
+Think step by step: What is the 25th name in this list?
+[list of 50 names]
+```
+**Why**: Overkill for simple retrieval - repetition would be more effective and faster.
+
+### ❌ Bad: Ignoring Architecture
+
+**Poor Structure**:
+```
+[50 lines of context]
+What is the 25th name?
+```
+**Why**: Question comes after context - model processes context before understanding what to find.
+
+**Better Structure**:
+```
+What is the 25th name in this list?
+[list of 50 names]
+What is the 25th name in this list?
+[list of 50 names]
+```
+**Why**: Question first, then context, then repetition for better attention.
+
+---
+
+## Related Rules
+
+- [Tool Communication Pattern](tool-communication-pattern.mdc) - How to explain tools when using them
+- [Business Communication Standards](business-communication-standards.mdc) - BLUF format for explanations
+- [Performance Principles](../performance/core-principles.mdc) - Measure first, optimize bottlenecks
+- [Code Quality Principles](../code-quality/core-principles.mdc) - Simple solutions first
+
+---
+
+## Research Sources & Further Reading
+
+### Primary Research
+
+**"Prompt Repetition Improves Non-Reasoning LLMs"** (Google Research, 2024)
+- Paper: https://arxiv.org/abs/2512.14982
+- Article: https://venturebeat.com/orchestration/this-new-dead-simple-prompt-technique-boosts-accuracy-on-llms-by-up-to-76-on
+- Key Findings: 47 wins, 0 losses on non-reasoning tasks; up to 76% accuracy improvement
+
+### Official Prompt Engineering Guides (Search these)
+
+**Recommended sources** (use Context7 MCP or web search):
+1. **Anthropic Prompt Engineering Guide** - Search: "anthropic claude prompt engineering guide"
+2. **OpenAI Prompt Engineering** - Search: "openai prompt engineering best practices"
+3. **Google AI Prompting Guide** - Search: "google ai prompting guide gemini"
+4. **Prompt Engineering Guide** (promptingguide.ai) - Comprehensive community resource
+
+### Research Areas to Explore
+
+**Use Context7 or web search** for these topics:
+- Chain of Thought (CoT) prompting
+- Few-shot learning techniques
+- ReAct (Reasoning + Acting) pattern
+- Tree of Thoughts (ToT)
+- Self-consistency prompting
+- Constitutional AI and safety prompting
+- Prompt compression techniques
+- Meta-prompting and prompt optimization
+
+### Staying Current
+
+**Search patterns** for latest research:
+- "prompt engineering arxiv 2025" (academic papers)
+- "LLM optimization techniques 2025" (practical guides)
+- "[model name] prompt engineering" (model-specific techniques)
+- "prompt engineering benchmarks" (evaluation methods)
+
+### Adding New Techniques
+
+**When new research emerges**:
+1. Use Context7 MCP to fetch documentation: `@context7_get_docs <library/topic>`
+2. Add new section to this file following existing format
+3. Include examples (✅ good, ❌ bad)
+4. Update version number and last_updated date
+5. Reference original source
+
+---
+
+**Remember**: Understand architecture limitations, test simple techniques first, optimize for specific tasks, and measure everything. Simple solutions often outperform complex ones.

@@ -1,0 +1,47 @@
+---
+description: "Python testing patterns index - pytest best practices and advanced testing patterns. Use when: (1) Writing Python tests, (2) Pytest patterns, (3) Mocking strategies, (4) Property-based testing. Points to specific testing pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Python Testing Patterns Index
+
+**Purpose**: Router for Python testing patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **pytest**, python testing, testing best practices, pytest patterns | `python-testing-best-practices.mdc` |
+| **advanced testing**, mocking, property-based testing | `advanced-testing.mdc` |
+
+---
+
+## Testing Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Python Testing Best Practices](python-testing-best-practices.mdc) | Pytest patterns, testing behavior vs structure | pytest, testing best practices |
+| [Advanced Testing](advanced-testing.mdc) | Mocking strategies and property-based testing | mocking, property-based testing |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Pytest patterns | `python-testing-best-practices.mdc` |
+| Advanced testing | `advanced-testing.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Generic**: See `.cursor/rules/shared/generic/testing/core-principles.mdc` for universal testing principles

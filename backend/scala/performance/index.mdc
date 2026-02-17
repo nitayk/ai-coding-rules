@@ -1,0 +1,51 @@
+---
+description: "Scala performance patterns index - collections, memory management, Future optimization, and performance-conscious FP. Use when: (1) Performance optimization, (2) Memory management, (3) Future optimization, (4) Collection performance. Points to specific performance pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Scala Performance Patterns Index
+
+**Purpose**: Router for Scala performance patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **collections**, memory, collection performance, memory optimization | `collections-and-memory.mdc` |
+| **FP performance**, functional optimization, performance-conscious FP | `performance-conscious-fp.mdc` |
+| **future optimization**, async performance, scala future management | `scala-efficient-future-management.mdc` |
+
+---
+
+## Performance Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Collections and Memory](collections-and-memory.mdc) | Collection performance and memory management | collections, memory, performance |
+| [Performance-Conscious FP](performance-conscious-fp.mdc) | Functional programming optimization patterns | FP performance, functional optimization |
+| [Scala Efficient Future Management](scala-efficient-future-management.mdc) | Async optimization with Future | future optimization, async performance |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Collection performance | `collections-and-memory.mdc` |
+| FP optimization | `performance-conscious-fp.mdc` |
+| Future optimization | `scala-efficient-future-management.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Meta**: See `../meta/correctness-first.mdc` - optimize only after correctness
+- **Generic**: See `.cursor/rules/shared/generic/performance/core-principles.mdc` for universal performance principles

@@ -1,0 +1,108 @@
+---
+description: "Additional Scala best practices and patterns covering various language features. Use when: (1) Writing idiomatic Scala, (2) Using advanced language features, (3) Following Scala conventions, (4) Avoiding common pitfalls, (5) Writing maintainable Scala code. Covers miscellaneous patterns, idioms, and best practices."
+globs: []
+alwaysApply: false
+---
+
+# Scala More Best Practices
+
+- Use **property-based testing** (`ScalaCheck`, `Arbitrary`) instead of relying solely on example-based tests.  
+- Prefer `forAll` with automatic shrinking to improve coverage and catch edge cases.  
+- Tag slow-running properties with annotations like `@Slow` for CI filtering.  
+- Example:
+  ```scala
+  import org.scalacheck.Prop.forAll
+
+  property("reverse twice is identity") = forAll { (xs: List[Int]) =>
+    xs.reverse.reverse == xs
+  }
+  ```
+- Use implicits only for:  
+  - Type classes (`Ordering[Int]`, `Encoder[User]`)  
+  - Contextual abstractions (`Clock`, `Logger`, `RequestId`)  
+- **Avoid implicits for primitive types** (`String`, `Int`) unless wrapped in a value or case class.  
+- Prevent ambiguous implicits and avoid using implicits for global mutable state.  
+
+- Good:
+  ```scala
+  case class RequestId(value: String)
+
+  def log(msg: String)(implicit reqId: RequestId): Unit =
+    println(s"[$reqId] $msg")
+  ```
+
+- Bad:
+  ```scala
+  implicit val defaultString: String = "danger" // Avoid
+
+
+- Use **2-space indentation** consistently.  
+- Avoid mixing **tabs and spaces**.  
+- Maximum line length: **120 characters**.  
+- Use tools like `scalafmt` or `scapegoat` to auto-enforce formatting.  
+
+- Example:
+  ```scala
+  def process(
+    input: String,
+    config: Config
+  ): Either[Error, Result] =
+    for
+      parsed    <- parse(input)
+      validated <- validate(parsed)
+    yield transform(validated, config)
+  ```
+
+- Audit dependencies regularly for unused or conflicting versions.  
+- Use `sbt` plugins like:  
+  - `sbt-explicit-dependencies`  
+  - `sbt-dependency-graph`  
+- Recommended routine tasks:  
+  - `sbt evicted` – detect version conflicts  
+  - `sbt unusedCompileDependencies` – find unused dependencies  
+  - `sbt dependencyTree` – visualize dependency graph  
+- Prefer `%%` to ensure Scala version alignment.  
+- Avoid overusing `dependencyOverrides`.  
+- **Prune unused dependencies weekly** to keep the build clean.
+
+- **Use typed wrappers (tiny types) instead of primitives** for domain concepts:  
+  ```scala
+  // Bad: Primitive obsession - easy to mix up IDs
+  def createUser(userId: Int, appId: Int, postId: Int): User = ???
+  
+  // Good: Typed wrappers - compiler prevents mixing up IDs
+  case class UserId(value: Int) extends AnyVal
+  case class AppId(value: Int) extends AnyVal
+  case class PostId(value: Int) extends AnyVal
+  
+  def createUser(userId: UserId, appId: AppId, postId: PostId): User = ???
+  ```
+  
+- **Add validation to typed wrappers** when appropriate:  
+  ```scala
+  case class PositiveNumber(value: Int) extends AnyVal {
+    require(value > 0, "Must be positive")
+  }
+  
+  // Or with smart constructor
+  case class AgeOver18(value: Int) extends AnyVal
+  object AgeOver18 {
+    def apply(value: Int): Option[AgeOver18] = {
+      if (value >= 18) Some(new AgeOver18(value))
+      else None
+    }
+  }
+  ```
+  
+- **See [Compiler-Friendly Types](compiler-friendly-types.mdc)** for comprehensive guidance on typed wrappers, avoiding casts, and leveraging the compiler.
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, correctness first)
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (property-based testing)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Comprehensive guidance on typed wrappers, avoiding casts

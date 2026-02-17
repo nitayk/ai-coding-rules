@@ -1,0 +1,56 @@
+---
+description: "Documentation index - guides for rules, routing system, semantic search, mentions, and MCP setup. Use when: (1) Understanding rules system, (2) Understanding routing/graph structure, (3) Semantic search setup, (4) @ mentions guide, (5) MCP configuration. Points to documentation guide files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Documentation Index
+
+**Purpose**: Router for documentation guides - detects keywords and routes to specific documentation files.
+
+**Chaining**: Router → This Index (Router) → Documentation Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (documentation files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **rules guide**, cursor rules, project rules, team rules, user rules | `rules-guide.mdc` |
+| **graph structure**, routing system, index structure, router chaining, keyword routing | `graph-structure.md` |
+| **semantic search**, code search, semantic code search | `semantic-search.mdc` |
+| **mentions**, @ mentions, file references, folder navigation | `mentions-guide.mdc` |
+| **mcp guide**, mcp setup, mcp configuration, mcp complete | `../mcp/complete-guide.mdc` |
+
+---
+
+## Documentation Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Rules Guide](rules-guide.mdc) | Complete rules guide - project rules, team rules, user rules, AGENTS.md | rules guide, cursor rules, project rules |
+| [Graph Structure](graph-structure.md) | Routing system architecture - hybrid graph structure, keyword routing, index chaining | graph structure, routing system, index structure, router chaining |
+| [Semantic Search Guide](semantic-search.mdc) | Finding code by meaning, indexing, privacy, configuration | semantic search, code search |
+| [Mentions Guide](mentions-guide.mdc) | @ mentions guide - file references, folder navigation | mentions, @ mentions, file references |
+| [MCP Complete Guide](../mcp/complete-guide.mdc) | Complete MCP guide - transport methods, OAuth, install links | mcp guide, mcp setup, mcp configuration |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Rules system | `rules-guide.mdc` |
+| Routing system architecture | `graph-structure.md` |
+| Semantic search | `semantic-search.mdc` |
+| @ mentions | `mentions-guide.mdc` |
+| MCP setup | `../mcp/complete-guide.mdc` |
+
+---
+
+## Related Resources
+
+- **Root Index**: See `../index.mdc` for complete catalog
+- **Router**: See `../ROUTER.mdc` for routing system

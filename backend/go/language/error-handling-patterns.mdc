@@ -1,0 +1,369 @@
+---
+description: "Go error handling patterns - errors, error wrapping, and custom errors. Use when: (1) Handling errors in Go, (2) Creating custom errors, (3) Wrapping errors, (4) Error propagation, (5) Writing robust Go code. Covers error types, error wrapping, and Go error handling patterns."
+globs: []
+alwaysApply: false
+---
+
+# Go Error Handling Patterns
+
+Based on [Effective Go](https://go.dev/doc/effective_go) and Go best practices.
+
+## Basic Error Handling
+
+### Always Check Errors
+```go
+// ✅ GOOD: Check error immediately
+result, err := doSomething()
+if err != nil {
+    return nil, err
+}
+// Use result safely
+
+// ❌ BAD: Ignoring errors
+result, _ := doSomething()  // Don't ignore errors!
+```
+
+### Error Return Position
+```go
+// ✅ GOOD: Error as last return value
+func Process(data []byte) (Result, error) {
+    // ...
+}
+
+func GetUser(id int) (*User, error) {
+    // ...
+}
+
+// ❌ BAD: Error not as last return
+func Process(data []byte) (error, Result) {
+    // ...
+}
+```
+
+## Error Creation
+
+### Simple Errors
+```go
+import "errors"
+
+// ✅ GOOD: Use errors.New for simple errors
+var (
+    ErrNotFound     = errors.New("not found")
+    ErrInvalidInput = errors.New("invalid input")
+    ErrUnauthorized = errors.New("unauthorized")
+)
+
+func FindUser(id int) (*User, error) {
+    if id <= 0 {
+        return nil, ErrInvalidInput
+    }
+    // ...
+    if user == nil {
+        return nil, ErrNotFound
+    }
+    return user, nil
+}
+```
+
+### Formatted Errors
+```go
+import "fmt"
+
+// ✅ GOOD: Use fmt.Errorf for formatted errors
+func ProcessFile(path string) error {
+    file, err := os.Open(path)
+    if err != nil {
+        return fmt.Errorf("failed to open file %s: %w", path, err)
+    }
+    defer file.Close()
+    // ...
+}
+```
+
+## Error Wrapping (Go 1.13+)
+
+### Wrap Errors with %w
+```go
+// ✅ GOOD: Wrap errors for context
+func ReadConfig(path string) (*Config, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, fmt.Errorf("read config file: %w", err)
+    }
+    
+    var config Config
+    if err := json.Unmarshal(data, &config); err != nil {
+        return nil, fmt.Errorf("parse config: %w", err)
+    }
+    
+    return &config, nil
+}
+```
+
+### Unwrapping Errors
+```go
+import "errors"
+
+// ✅ GOOD: Check wrapped errors
+func HandleError(err error) {
+    if errors.Is(err, os.ErrNotExist) {
+        log.Println("File does not exist")
+        return
+    }
+    
+    var pathErr *os.PathError
+    if errors.As(err, &pathErr) {
+        log.Printf("Path error: %s", pathErr.Path)
+        return
+    }
+    
+    log.Printf("Unknown error: %v", err)
+}
+```
+
+### When to Wrap vs Not Wrap
+```go
+// ✅ GOOD: Wrap when adding context
+func ProcessOrder(orderID int) error {
+    order, err := fetchOrder(orderID)
+    if err != nil {
+        return fmt.Errorf("process order %d: %w", orderID, err)
+    }
+    // ...
+}
+
+// ✅ GOOD: Don't wrap when error is clear enough
+func ValidateEmail(email string) error {
+    if !strings.Contains(email, "@") {
+        return errors.New("invalid email format")
+    }
+    return nil
+}
+```
+
+## Custom Error Types
+
+### Error with Additional Fields
+```go
+// ✅ GOOD: Custom error type
+type ValidationError struct {
+    Field   string
+    Message string
+}
+
+func (e *ValidationError) Error() string {
+    return fmt.Sprintf("validation error on field %s: %s", e.Field, e.Message)
+}
+
+// Usage
+func ValidateUser(user *User) error {
+    if user.Email == "" {
+        return &ValidationError{
+            Field:   "email",
+            Message: "email is required",
+        }
+    }
+    return nil
+}
+```
+
+### Multiple Error Types
+```go
+// ✅ GOOD: Type hierarchy with errors.Is
+type NotFoundError struct {
+    Resource string
+    ID       int
+}
+
+func (e *NotFoundError) Error() string {
+    return fmt.Sprintf("%s with ID %d not found", e.Resource, e.ID)
+}
+
+type PermissionError struct {
+    User   string
+    Action string
+}
+
+func (e *PermissionError) Error() string {
+    return fmt.Sprintf("user %s not allowed to %s", e.User, e.Action)
+}
+
+// Usage
+func GetResource(id int) (*Resource, error) {
+    resource := db.Find(id)
+    if resource == nil {
+        return nil, &NotFoundError{Resource: "Resource", ID: id}
+    }
+    return resource, nil
+}
+
+// Checking
+if err != nil {
+    var notFoundErr *NotFoundError
+    if errors.As(err, &notFoundErr) {
+        return http.StatusNotFound
+    }
+}
+```
+
+## Error Handling Patterns
+
+### Panic and Recover
+```go
+// ✅ GOOD: Use panic for unrecoverable errors
+func MustCompileRegex(pattern string) *regexp.Regexp {
+    re, err := regexp.Compile(pattern)
+    if err != nil {
+        panic(fmt.Sprintf("invalid regex pattern: %s", pattern))
+    }
+    return re
+}
+
+// ✅ GOOD: Recover from panics in goroutines
+func SafeGoroutine(fn func()) {
+    go func() {
+        defer func() {
+            if r := recover(); r != nil {
+                log.Printf("Recovered from panic: %v", r)
+            }
+        }()
+        fn()
+    }()
+}
+
+// ❌ BAD: Don't use panic for expected errors
+func GetUser(id int) *User {
+    user := db.Find(id)
+    if user == nil {
+        panic("user not found")  // Use error return instead!
+    }
+    return user
+}
+```
+
+### Defer for Cleanup
+```go
+// ✅ GOOD: Use defer for cleanup
+func ProcessFile(path string) error {
+    file, err := os.Open(path)
+    if err != nil {
+        return err
+    }
+    defer file.Close()  // Always closes, even on error
+    
+    // Process file
+    return nil
+}
+
+// ✅ GOOD: Multiple defers (LIFO order)
+func CopyFile(src, dst string) error {
+    srcFile, err := os.Open(src)
+    if err != nil {
+        return err
+    }
+    defer srcFile.Close()
+    
+    dstFile, err := os.Create(dst)
+    if err != nil {
+        return err
+    }
+    defer dstFile.Close()  // Closes before srcFile
+    
+    _, err = io.Copy(dstFile, srcFile)
+    return err
+}
+```
+
+### Error Aggregation
+```go
+// ✅ GOOD: Collect multiple errors
+type MultiError []error
+
+func (m MultiError) Error() string {
+    var messages []string
+    for _, err := range m {
+        messages = append(messages, err.Error())
+    }
+    return strings.Join(messages, "; ")
+}
+
+func ValidateAll(items []Item) error {
+    var errors MultiError
+    for i, item := range items {
+        if err := item.Validate(); err != nil {
+            errors = append(errors, fmt.Errorf("item %d: %w", i, err))
+        }
+    }
+    if len(errors) > 0 {
+        return errors
+    }
+    return nil
+}
+```
+
+## Error Handling in HTTP Handlers
+
+### Structured Error Responses
+```go
+// ✅ GOOD: Convert errors to HTTP responses
+func HandleError(w http.ResponseWriter, err error) {
+    var statusCode int
+    var message string
+    
+    switch {
+    case errors.Is(err, ErrNotFound):
+        statusCode = http.StatusNotFound
+        message = "Resource not found"
+    case errors.Is(err, ErrUnauthorized):
+        statusCode = http.StatusUnauthorized
+        message = "Unauthorized"
+    default:
+        statusCode = http.StatusInternalServerError
+        message = "Internal server error"
+        log.Printf("Internal error: %v", err)
+    }
+    
+    w.WriteHeader(statusCode)
+    json.NewEncoder(w).Encode(map[string]string{
+        "error": message,
+    })
+}
+```
+
+## Error Logging
+
+### Log Context with Errors
+```go
+// ✅ GOOD: Log errors with context
+func ProcessRequest(ctx context.Context, req *Request) error {
+    log := logger.WithFields(map[string]interface{}{
+        "request_id": ctx.Value("request_id"),
+        "user_id":    req.UserID,
+    })
+    
+    if err := validateRequest(req); err != nil {
+        log.WithError(err).Error("Request validation failed")
+        return fmt.Errorf("validation failed: %w", err)
+    }
+    
+    // ...
+    return nil
+}
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (fail fast, explicit errors, proper propagation)
+
+**Go-Specific:**
+- This file provides Go-specific implementation (explicit error returns, error wrapping, errors.Is/As)
+
+---
+
+## References
+
+- [Effective Go: Errors](https://go.dev/doc/effective_go#errors)
+- [Go Blog: Error Handling and Go](https://go.dev/blog/error-handling-and-go)
+- [Go Blog: Working with Errors in Go 1.13](https://go.dev/blog/go1.13-errors)
+- [errors package](https://pkg.go.dev/errors)

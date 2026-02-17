@@ -1,0 +1,50 @@
+---
+description: "Kotlin language patterns index - style guide, coroutines, and sealed classes. Use when: (1) Kotlin language features, (2) Coroutines, (3) Sealed classes, (4) Kotlin style. Points to language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Kotlin Language Patterns Index
+
+**Purpose**: Router for Kotlin language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **kotlin style**, kotlin formatting, kotlin naming, style guide | `style-guide.mdc` |
+| **kotlin coroutines**, coroutines, structured concurrency, dispatchers, flow | `coroutines-patterns.mdc` |
+| **kotlin sealed**, sealed classes, sealed interfaces, exhaustive when | `sealed-classes-patterns.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Style Guide](style-guide.mdc) | Kotlin naming conventions, formatting, code organization | kotlin style, kotlin formatting, kotlin naming |
+| [Coroutines Patterns](coroutines-patterns.mdc) | Structured concurrency, dispatchers, error handling, Flow | kotlin coroutines, coroutines, structured concurrency |
+| [Sealed Classes Patterns](sealed-classes-patterns.mdc) | Closed hierarchies, exhaustive when expressions | kotlin sealed, sealed classes, sealed interfaces |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Style guide | `style-guide.mdc` |
+| Coroutines | `coroutines-patterns.mdc` |
+| Sealed classes | `sealed-classes-patterns.mdc` |
+
+---
+
+## Related Resources
+
+- **Android**: See `../android/index.mdc` for Android patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns (if exists)

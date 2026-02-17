@@ -1,0 +1,263 @@
+---
+description: "Core functional programming principles - write pure functions, use immutable data, encode errors in types. Use when: (1) Applying FP principles, (2) Writing pure functions, (3) Using immutable data, (4) Encoding errors in types, (5) Writing functional Scala code. Covers FP fundamentals, pure functions, immutability, and functional error handling."
+globs: []
+alwaysApply: false
+---
+
+# Functional Programming Principles
+
+Apply these functional programming principles when writing Scala code to make it more correct, testable, and maintainable.
+
+---
+
+## Write Pure Functions
+
+**Write referentially transparent functions** - same input always produces same output, no side effects.
+
+```scala
+// ✅ Good: Pure function - no side effects
+def calculateTotal(items: List[Item]): BigDecimal = {
+  items.map(_.price).sum
+}
+
+// ❌ Bad: Side effect breaks referential transparency
+def calculateTotal(items: List[Item]): BigDecimal = {
+  println(s"Calculating total for ${items.size} items")  // Side effect!
+  items.map(_.price).sum
+}
+```
+
+**Benefits:**
+- Easier to reason about and test
+- Safe to refactor
+- Enables parallelism and memoization
+
+---
+
+## Use Immutable Data
+
+**Favor immutable data structures** - use `val` over `var`, immutable collections.
+
+```scala
+// ✅ Good: Immutable data
+val numbers = List(1, 2, 3)
+val doubled = numbers.map(_ * 2)  // Creates new list
+
+// ❌ Bad: Mutable data
+var numbers = mutable.ListBuffer(1, 2, 3)
+numbers += 4  // Modifies existing list
+```
+
+**Benefits:**
+- No unexpected mutations
+- Safer concurrency
+- Easier reasoning
+
+---
+
+## Encode Errors in Types
+
+**Use types to represent errors explicitly** - don't hide failures in exceptions or nulls.
+
+```scala
+// ✅ Good: Errors explicit in type
+def findUser(id: String): Either[AppError, User] = {
+  if (id.isEmpty) Left(InvalidInput("Empty ID"))
+  else database.findUser(id).map(Right(_))
+    .recover { case NonFatal(e) => Left(DatabaseError(e)) }
+}
+
+// ❌ Bad: Hidden error possibilities
+def findUser(id: String): User = {
+  if (id.isEmpty) throw new IllegalArgumentException()  // Hidden exception!
+  database.findUser(id)  // Can throw database exceptions!
+}
+```
+
+**Benefits:**
+- Compiler ensures errors are handled
+- Explicit error types show what can fail
+- No hidden exceptions or nulls
+
+**See**: [Error Handling Patterns](../language/error-handling-patterns.mdc), [Future Error Handling Conventions](../language/future-error-handling-conventions.mdc)
+
+---
+
+## Use Option Instead of Null
+
+**Use Option for potentially missing values** - never return null.
+
+```scala
+// ✅ Good: Option makes nullability explicit
+def getUser(id: String): Option[User] = {
+  if (exists(id)) Some(getUser(id))
+  else None
+}
+
+// ❌ Bad: Null hides missing value
+def getUser(id: String): User = {
+  if (exists(id)) getUser(id)
+  else null  // Compiler doesn't know this can be null!
+}
+```
+
+**Benefits:**
+- Compiler forces handling of missing values
+- Type signature shows possibility of absence
+- No NullPointerException surprises
+
+**See**: [Compiler-Friendly Types](../language/compiler-friendly-types.mdc), [Avoid Option Blindness](../language/avoid-option-blindness.mdc)
+
+---
+
+## Encode Invariants in Types
+
+**Use sealed traits to make illegal states unrepresentable** - encode domain rules in types.
+
+```scala
+// ✅ Good: Invalid states impossible
+sealed trait Policy
+case class RestrictedPolicy(
+  availabilityZones: NonEmptyList[AvailabilityZone],  // Cannot be empty!
+  maxInstances: Int
+) extends Policy
+case class UnrestrictedPolicy() extends Policy
+
+// ❌ Bad: Invalid states possible
+case class Policy(
+  isRestricted: Boolean,
+  availabilityZones: List[String]  // Can be empty even when restricted!
+  // Comment: "Must be non-empty if isRestricted" - but compiler can't enforce!
+)
+```
+
+**Benefits:**
+- Compiler prevents invalid states
+- Exhaustive pattern matching ensures all cases handled
+- Self-documenting types show valid combinations
+
+**See**: [Make Illegal States Unrepresentable](../language/make-illegal-states-unrepresentable.mdc)
+
+---
+
+## Separate Pure Logic from Side Effects
+
+**Use functional core, imperative shell pattern** - extract pure business logic from side-effecting code.
+
+```scala
+// ✅ Good: Pure business logic separated
+def calculateTotal(order: Order): BigDecimal = {
+  order.items.map(_.price).sum  // Pure function
+}
+
+def validateOrder(order: Order): Either[ValidationError, Order] = {
+  if (order.items.isEmpty) Left(EmptyOrder)
+  else Right(order)  // Pure function
+}
+
+// Side effects at boundaries
+def processOrder(order: Order): IO[OrderResult] = {
+  for {
+    validated <- IO.fromEither(validateOrder(order))
+    total = calculateTotal(validated)  // Pure function
+    result = OrderResult(validated, total)
+    _ <- saveToDatabase(result)  // Side effect
+  } yield result
+}
+
+// ❌ Bad: Mixed concerns
+def processOrder(order: Order): OrderResult = {
+  val validated = validateOrder(order)  // Side effect: logs errors
+  val enriched = enrichOrder(validated)  // Side effect: database lookup
+  val result = calculateTotal(enriched)  // Pure computation
+  saveOrder(result)  // Side effect: database write
+  sendNotification(result)  // Side effect: email
+  result
+}
+```
+
+**Benefits:**
+- Pure logic is easy to test and reason about
+- Side effects are explicit and isolated
+- Clear separation of concerns
+
+**See**: [Referential Transparency](../language/referential-transparency.mdc)
+
+---
+
+## Use Algebraic Data Types
+
+**Use sealed traits and case classes** to model domain concepts with type safety.
+
+```scala
+// ✅ Good: Sealed trait with case classes
+sealed trait Result[A]
+case class Success[A](value: A) extends Result[A]
+case class Failure[A](error: String) extends Result[A]
+
+// Exhaustive pattern matching
+def handleResult[A](result: Result[A]): String = result match {
+  case Success(value) => s"Success: $value"
+  case Failure(error) => s"Failure: $error"
+  // Compiler ensures all cases handled!
+}
+
+// ❌ Bad: Using exceptions or strings
+def handleResult(value: Any, error: String): String = {
+  if (error != null) s"Failure: $error"
+  else s"Success: $value"  // No type safety!
+}
+```
+
+**Benefits:**
+- Type-safe modeling of domain concepts
+- Exhaustive pattern matching
+- Self-documenting code
+
+---
+
+## Compose Small Functions
+
+**Build complex behavior from simple, composable functions.**
+
+```scala
+// ✅ Good: Composable functions
+def validateEmail(email: String): Either[ValidationError, Email] = ???
+def validateAge(age: Int): Either[ValidationError, Age] = ???
+def createUser(email: Email, age: Age): User = ???
+
+// Compose small pieces
+def registerUser(emailStr: String, ageInt: Int): Either[ValidationError, User] = {
+  for {
+    email <- validateEmail(emailStr)
+    age <- validateAge(ageInt)
+  } yield createUser(email, age)
+}
+
+// ❌ Bad: Monolithic function
+def registerUser(emailStr: String, ageInt: Int): User = {
+  if (!emailStr.contains("@")) throw new Exception("Invalid email")
+  if (ageInt < 0 || ageInt > 150) throw new Exception("Invalid age")
+  User(emailStr, ageInt)  // No composition, hard to test
+}
+```
+
+**Benefits:**
+- Reusable components
+- Testable pieces
+- Modular code
+
+**See**: [Functional Composition and HOF](../language/functional-composition-and-hof.mdc)
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal pure functions and referential transparency principles (this file provides Scala-specific implementation)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Stop lying to compiler
+- [Referential Transparency](../language/referential-transparency.mdc) - Pure functions and immutability
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Make Illegal States Unrepresentable](../language/make-illegal-states-unrepresentable.mdc) - Type-safe invariants

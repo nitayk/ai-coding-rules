@@ -1,0 +1,25 @@
+---
+description: "Smart gates for common intent patterns. Enforces clarification before build/refactor/migrate, session memory for multi-step tasks, and debug protocol for fix/error scenarios. Do NOT use for simple questions or single-file edits."
+globs: []
+alwaysApply: false
+---
+
+# Smart Gates
+
+## 1. Clarification Gate (Build/Refactor/Migrate)
+
+- **Trigger**: "build", "refactor", "migrate", "implement", "add feature", "create"
+- **Action**: STOP and ask 3-4 clarifying questions (Language? Framework? Edge Cases? Tests?)
+- **Exception**: If user explicitly provides a PRD, comprehensive spec, or says "skip clarification".
+
+## 2. Session Memory (Complex Tasks)
+
+- **Trigger**: Any multi-step task, "continue", "resume", "remember", "context"
+- **Action**: LOAD `.cursor/memory/active_context.md` immediately.
+- **Rule**: Read `.cursor/rules/shared/skills/session-memory/SKILL.md` or `.cursor/rules/shared/generic/memory-interface.mdc`.
+
+## 3. Debug Protocol (Debug/Fix)
+
+- **Trigger**: "debug", "fix", "error", "bug", "broken", "investigate"
+- **Action**: Enforce "Log First" -> "Reproduce" -> "Fix" cycle. NEVER fix blindly.
+- **Rule**: Use `/debug-workflow` skill (if available) or `.cursor/rules/shared/generic/debugging/strategies.mdc`.

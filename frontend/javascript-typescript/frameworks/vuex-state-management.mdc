@@ -1,0 +1,49 @@
+---
+description: "Vuex state management patterns and best practices. Use when: (1) Managing Vue application state, (2) Using Vuex store, (3) State mutations/actions, (4) Vuex patterns, (5) State management best practices. Covers Vuex store design, mutations, actions, getters, and state management patterns."
+globs: ["**/*.ts", "**/*.js", "**/*.vue"]
+alwaysApply: false
+---
+# Vuex State Management
+
+## 1. Structure
+- **Modules**: Split state into modules by domain (e.g., `user`, `cart`, `products`).
+- **Namespacing**: Always use `namespaced: true` for modules to avoid naming collisions.
+
+## 2. Typing (TypeScript)
+- Define interfaces for `State` in each module.
+- Define a `RootState` interface that combines all module states.
+- Use `InjectionKey` to provide a typed `useStore()` hook.
+
+```typescript
+// store/types.ts
+export interface UserState {
+  profile: User | null;
+  isAuthenticated: boolean;
+}
+
+export interface RootState {
+  user: UserState;
+  // other modules...
+}
+```
+
+## 3. Best Practices
+- **Mutations**: Must be synchronous. Use constants for mutation types.
+- **Actions**: Can be asynchronous. Use for API calls and complex logic. Commit mutations to change state.
+- **Getters**: Use for derived state (like `computed` properties).
+
+## 4. Usage in Components
+- Use `computed` for accessing state and getters.
+- Use `dispatch` for actions.
+- Avoid committing mutations directly from components; use actions instead.
+
+```typescript
+// Component
+const store = useStore();
+const user = computed(() => store.state.user.profile);
+const isLoggedIn = computed(() => store.getters['user/isAuthenticated']);
+
+function login() {
+  store.dispatch('user/login', { ... });
+}
+```

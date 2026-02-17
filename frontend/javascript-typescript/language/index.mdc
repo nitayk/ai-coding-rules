@@ -1,0 +1,47 @@
+---
+description: "JavaScript/TypeScript language patterns index - type safety, API defensive programming, and language best practices. Use when: (1) TypeScript type safety, (2) API defensive programming, (3) JavaScript/TypeScript patterns. Points to language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# JavaScript/TypeScript Language Patterns Index
+
+**Purpose**: Router for JS/TS language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **typescript strict**, ts strict, strict type safety, type guards, avoid any | `typescript-strict-type-safety.mdc` |
+| **api defensive**, safe property access, schema change resilience | `api-defensive-programming.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [TypeScript Strict Type Safety](typescript-strict-type-safety.mdc) | Strict mode, avoid any, use unknown, type guards | typescript strict, ts strict, strict type safety |
+| [API Defensive Programming](api-defensive-programming.mdc) | Safe property access, schema change resilience | api defensive, safe property access |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| TypeScript strict | `typescript-strict-type-safety.mdc` |
+| API safety | `api-defensive-programming.mdc` |
+
+---
+
+## Related Resources
+
+- **Frameworks**: See `../frameworks/index.mdc` for React/Vue patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns

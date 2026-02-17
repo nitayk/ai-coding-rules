@@ -1,0 +1,419 @@
+---
+description: "Principles for writing code that leverages the compiler as a tool for correctness and safety. Use when: (1) Writing type-safe code, (2) Avoiding null/unsafe patterns, (3) Using Option/Either instead of exceptions, (4) Leveraging type system for correctness, (5) Making illegal states unrepresentable. Covers avoiding null, type-safe error handling, and compiler-assisted correctness."
+globs: []
+alwaysApply: false
+---
+
+# Compiler-Friendly Types: Stop Lying to the Compiler
+
+This guide is based on the principle that **the compiler is your best friend** - when you stop lying to it, it can help prevent bugs, enable safer refactoring, and catch errors at compile-time rather than runtime.
+
+## Core Principle
+
+**Don't lie to the compiler.** The more facts you can truthfully state at compile-time, the more useful the compiler becomes. Every lie (null, unchecked exceptions, casts, hidden side-effects) reduces the compiler's ability to help you.
+
+---
+
+## 1. Never Use Null
+
+### ❌ The Lie
+```scala
+// ❌ Bad: Nullable return type
+def findUser(id: String): User = {
+  if (exists(id)) getUser(id)
+  else null  // Compiler can't track this!
+}
+
+// Later in code...
+val user = findUser("123")
+user.getName()  // NullPointerException at runtime!
+```
+
+### ✅ The Truth
+```scala
+// ✅ Good: Option makes nullability explicit
+def findUser(id: String): Option[User] = {
+  if (exists(id)) Some(getUser(id))
+  else None
+}
+
+// Compiler forces you to handle the None case
+val user = findUser("123")
+user match {
+  case Some(u) => u.getName()
+  case None => handleMissingUser()
+}
+```
+
+### Benefits
+- **Compile-time safety**: Cannot call methods on `None`
+- **Explicit intent**: Type signature shows possibility of missing value
+- **Forced handling**: Compiler errors guide you to handle all cases
+- **Refactoring safety**: Changing `User` to `Option[User]` shows all affected code
+
+---
+
+## 2. Make Exceptions Explicit
+
+### ❌ The Lie
+```scala
+// ❌ Bad: Hidden exception possibility
+def parseConfig(json: String): Config = {
+  Json.parse(json).as[Config]  // Can throw exception!
+}
+
+// Caller doesn't know exceptions are possible
+val config = parseConfig(jsonString)  // Surprise exception!
+```
+
+### ✅ The Truth
+```scala
+// ✅ Good: Explicit error type
+def parseConfig(json: String): Either[ParseError, Config] = {
+  Try(Json.parse(json).as[Config])
+    .toEither
+    .left.map(e => ParseError(e.getMessage))
+}
+
+// Or with Try
+def parseConfig(json: String): Try[Config] = {
+  Try(Json.parse(json).as[Config])
+}
+
+// Compiler forces error handling
+parseConfig(jsonString) match {
+  case Right(config) => useConfig(config)
+  case Left(error) => handleError(error)
+}
+```
+
+### Benefits
+- **Explicit error handling**: Type signature shows possible failures
+- **Compile-time tracking**: Compiler ensures errors are handled
+- **Refactoring safety**: Adding error cases shows all affected code
+- **Better error messages**: Custom error types provide context
+
+---
+
+## 3. Avoid Type Casts
+
+### ❌ The Lie
+```scala
+// ❌ Bad: Type cast hides design issues
+def processAnimal(animal: Animal): String = {
+  val dog = animal.asInstanceOf[Dog]  // "I know better than the compiler"
+  dog.bark()
+}
+
+// Later: Someone passes a Cat, code crashes!
+```
+
+### ✅ The Truth: Use Sealed Types
+```scala
+// ✅ Good: Sealed types with exhaustive matching
+sealed trait Animal
+case class Dog(name: String) extends Animal {
+  def bark(): String = s"$name barks!"
+}
+case class Cat(name: String) extends Animal {
+  def meow(): String = s"$name meows!"
+}
+
+def processAnimal(animal: Animal): String = animal match {
+  case dog: Dog => dog.bark()
+  case cat: Cat => cat.meow()
+  // Compiler ensures all cases are handled!
+}
+
+// ✅ Good: Add methods to parent trait when possible
+sealed trait Animal {
+  def makeSound(): String
+}
+case class Dog(name: String) extends Animal {
+  def makeSound(): String = s"$name barks!"
+}
+case class Cat(name: String) extends Animal {
+  def makeSound(): String = s"$name meows!"
+}
+```
+
+### When You Need a Cast
+If you must cast (e.g., external library), document why and consider:
+1. **Why isn't the type precise enough?** Can you start with a more specific type?
+2. **Why do you need to cast here?** Can you add methods to the parent interface?
+3. **Can you use sealed types?** They provide compile-time exhaustiveness checking
+
+### Benefits
+- **Compile-time exhaustiveness**: Compiler ensures all cases handled
+- **Refactoring safety**: Adding new cases shows all places needing updates
+- **No runtime crashes**: Impossible to have unhandled cases
+- **Self-documenting**: Pattern matching shows all possible states
+
+---
+
+## 4. Separate Pure Functions from Side-Effects
+
+### ❌ The Lie
+```scala
+// ❌ Bad: Hidden side-effects, no useful return type
+def processOrder(orderId: String): Unit = {
+  val order = fetchOrder(orderId)      // Side-effect: DB read
+  val total = calculateTotal(order)    // Pure computation
+  val validated = validateOrder(order) // Pure computation
+  saveOrder(validated)                 // Side-effect: DB write
+  sendEmail(order)                     // Side-effect: Email
+  // What does this function do? Who knows!
+}
+```
+
+### ✅ The Truth: Functional Core, Imperative Shell
+```scala
+// ✅ Good: Separate pure computation from side-effects
+def calculateTotal(order: Order): BigDecimal = {
+  order.items.map(_.price).sum
+}
+
+def validateOrder(order: Order): Either[ValidationError, ValidOrder] = {
+  if (order.items.isEmpty) Left(ValidationError("Empty order"))
+  else if (order.total < 0) Left(ValidationError("Negative total"))
+  else Right(ValidOrder(order))
+}
+
+// Side-effects at the boundary
+def processOrder(orderId: String): IO[Either[ProcessingError, OrderResult]] = {
+  for {
+    order <- fetchOrder(orderId)                    // IO effect
+    validated <- IO.pure(validateOrder(order))      // Pure, lifted to IO
+    total <- IO.pure(calculateTotal(order))         // Pure, lifted to IO
+    _ <- saveOrder(validated)                       // IO effect
+    _ <- sendEmail(order)                           // IO effect
+  } yield OrderResult(orderId, total)
+}
+```
+
+### Benefits
+- **Testability**: Pure functions are easy to test
+- **Reasoning**: Can understand pure functions without side-effect knowledge
+- **Reusability**: Pure functions can be reused in different contexts
+- **Compiler help**: Types show inputs/outputs clearly
+
+---
+
+## 5. Use Typed Wrappers (Tiny Types)
+
+### ❌ The Lie
+```scala
+// ❌ Bad: Primitive obsession
+def createUser(userId: Int, appId: Int, postId: Int): User = {
+  // Which Int is which? Easy to mix up!
+  User(userId, appId, postId)
+}
+
+// Later: Bug!
+val user = createUser(appId, userId, postId)  // Wrong order!
+```
+
+### ✅ The Truth
+```scala
+// ✅ Good: Typed wrappers
+case class UserId(value: Int) extends AnyVal
+case class AppId(value: Int) extends AnyVal
+case class PostId(value: Int) extends AnyVal
+
+def createUser(userId: UserId, appId: AppId, postId: PostId): User = {
+  User(userId, appId, postId)
+}
+
+// Compiler prevents mixing up IDs
+val user = createUser(
+  userId = UserId(123),
+  appId = AppId(456),
+  postId = PostId(789)
+)
+```
+
+### Additional Benefits
+- **Refactoring**: Change `UserId` representation, compiler shows all usages
+- **Validation**: Add validation to constructor
+- **Search**: Find all `UserId` usages precisely
+- **Self-documenting**: Function signatures are clearer
+
+```scala
+// ✅ Good: Typed wrapper with validation
+case class UserId(value: Int) extends AnyVal {
+  require(value > 0, "User ID must be positive")
+}
+
+// Or with smart constructor
+object UserId {
+  def apply(value: Int): Option[UserId] = {
+    if (value > 0) Some(new UserId(value))
+    else None
+  }
+}
+```
+
+---
+
+## 6. Make Illegal States Unrepresentable
+
+**See [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) for comprehensive guidance** - This is especially important for AI-assisted development, as AI agents work locally and can't enforce global invariants unless encoded in types.
+
+### Quick Summary
+
+Use sealed traits to make invalid combinations impossible:
+
+```scala
+// ❌ Bad: Invalid combinations possible
+case class Policy(
+  isRestricted: Boolean,
+  availabilityZones: List[String],  // Must be non-empty if isRestricted
+  maxInstances: Option[Int]          // Must be Some if isRestricted
+)
+
+// ✅ Good: Sealed types make invalid states impossible
+sealed trait Policy
+case class RestrictedPolicy(
+  availabilityZones: NonEmptyList[AvailabilityZone],
+  maxInstances: Int
+) extends Policy
+case class UnrestrictedPolicy() extends Policy
+```
+
+**Key Benefits**:
+- **Impossible to represent invalid state**: Compiler prevents it
+- **AI edits stay safe**: Type system enforces invariants automatically
+- **Exhaustive matching**: Compiler ensures all cases handled
+- **Self-documenting**: Types show valid combinations
+
+---
+
+## 7. Types as Guarantees
+
+Think of types not just as "what kind of value", but as **guarantees** about what properties hold.
+
+### Examples of Type Guarantees
+
+```scala
+// ✅ Positive number guarantee
+case class PositiveNumber(value: Int) extends AnyVal {
+  require(value > 0, "Must be positive")
+}
+
+// ✅ Age over 18 guarantee
+case class AgeOver18(value: Int) extends AnyVal {
+  require(value >= 18, "Must be 18 or older")
+}
+
+// ✅ Sorted list guarantee
+case class SortedList[A: Ordering](value: List[A]) {
+  require(value == value.sorted, "List must be sorted")
+}
+
+// ✅ Non-empty string guarantee
+case class NonEmptyString(value: String) extends AnyVal {
+  require(value.nonEmpty, "String must not be empty")
+}
+```
+
+### Benefits
+- **No defensive programming**: Guarantee holds by construction
+- **No extra tests**: Type system enforces the guarantee
+- **Refactoring safety**: Changing guarantee shows all affected code
+- **Self-documenting**: Type name communicates the guarantee
+
+---
+
+## 8. Dialogue with the Compiler
+
+When refactoring, let compilation errors guide you:
+
+### Example: Making Fields Optional
+
+```scala
+// Step 1: Change type to Option
+case class Policy(
+  availabilityZones: Option[List[AvailabilityZone]]  // Changed from List
+)
+
+// Step 2: Compiler shows all affected code
+// Many compilation errors appear - this is GOOD!
+
+// Step 3: Fix errors one by one
+// As you fix, you realize: "This is too many changes..."
+
+// Step 4: Reconsider design
+// Maybe this should be a sealed type instead?
+sealed trait Policy
+case class PolicyWithZones(zones: NonEmptyList[AvailabilityZone]) extends Policy
+case class PolicyWithoutZones() extends Policy
+
+// Step 5: Compiler shows all places needing updates
+// Now you handle each case explicitly
+```
+
+### Benefits
+- **Full impact analysis**: Compiler shows all affected code
+- **Design feedback**: Many errors suggest design issues
+- **Safety**: Cannot miss a location that needs updating
+- **Documentation**: Compilation errors document the change
+
+---
+
+## Practical Guidelines
+
+### ✅ DO
+- Use `Option` instead of `null`
+- Use `Either` or `Try` for explicit error handling
+- Use sealed types instead of casts
+- Separate pure functions from side-effects
+- Use typed wrappers for domain concepts
+- Use union types to make illegal states unrepresentable
+- Think of types as guarantees
+
+### ❌ DON'T
+- Return `null` or accept nullable parameters
+- Throw unchecked exceptions without explicit types
+- Use `asInstanceOf` casts
+- Mix side-effects with pure computation
+- Use primitives for domain concepts (`Int` for `UserId`)
+- Use flags + nullable fields for alternative states
+- Ignore compilation errors
+
+---
+
+## Migration Strategy
+
+When refactoring existing code:
+
+1. **Identify lies**: Find null, casts, hidden exceptions, side-effects
+2. **Start small**: Refactor one function at a time
+3. **Let compiler guide**: Fix compilation errors systematically
+4. **Reconsider design**: Many errors may indicate design issues
+5. **Test incrementally**: Verify behavior after each change
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, pure functions, type safety, avoid type casts)
+
+**Scala-Specific:**
+- [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) - **Comprehensive guide on using sealed traits to prevent invalid combinations** - Especially important for AI-assisted development
+- [Avoid Overloading](avoid-overloading.mdc) - Prefer explicit naming over method overloading
+- [Avoid Anonymous Function Dependencies](avoid-anonymous-function-dependencies.mdc) - Use named traits instead of function types for dependencies
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - Use domain-specific types when absence has meaning
+- [Prefer Case Classes Over Tuples](prefer-case-classes-over-tuples.mdc) - Use case classes for structured data - better type safety and discoverability
+- [Error Handling Patterns](error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Validation and Safe Operations](validation-and-safe-operations.mdc) - Validation patterns
+- [Referential Transparency](referential-transparency.mdc) - Pure functions
+- [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) - Exhaustive matching
+- [Scala Complex Enum Best Practices](../data/scala-complex-enum-best-practices.mdc) - Sealed types
+- [Code Smells](../meta/scala-code-smells.mdc) - Identifying anti-patterns
+
+---
+
+## References
+
+- [The Compiler Is Your Best Friend, Stop Lying to It](https://buttondown.com/ncreep/archive/the-compiler-is-your-best-friend-stop-lying-to-it/) - Daniel Beskin's Blog

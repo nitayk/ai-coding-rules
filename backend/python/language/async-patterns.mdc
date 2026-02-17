@@ -1,0 +1,290 @@
+---
+description: "Python async/await best practices - proper async usage, avoiding blocking, structured concurrency. Use when: (1) Writing async code, (2) Using asyncio, (3) Avoiding blocking in async code, (4) Managing concurrent operations, (5) Debugging async issues. Covers async/await patterns, structured concurrency, and async best practices."
+globs: []
+alwaysApply: false
+---
+
+# Async/Await Patterns
+
+Use `async`/`await` correctly for I/O-bound operations. Keep the event loop unblocked and manage concurrency properly.
+
+---
+
+## Use Async for I/O-Bound Operations
+
+**Use `async`/`await` for network calls, file I/O, database queries:**
+
+```python
+# ✅ Good: Async I/O operations
+import aiohttp
+import asyncpg
+
+async def fetch_user_data(user_id: int) -> dict:
+    """Fetch user data from API."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"https://api.example.com/users/{user_id}") as resp:
+            return await resp.json()
+
+async def get_user_from_db(user_id: int) -> User:
+    """Fetch user from database."""
+    conn = await asyncpg.connect("postgresql://...")
+    try:
+        row = await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
+        return User(**row)
+    finally:
+        await conn.close()
+
+# ❌ Bad: Blocking I/O in async function
+async def fetch_user_data(user_id: int) -> dict:
+    """Blocking I/O defeats async benefits."""
+    import requests
+    resp = requests.get(f"https://api.example.com/users/{user_id}")  # Blocks!
+    return resp.json()
+```
+
+---
+
+## Always Await Coroutines
+
+**Never forget to `await` coroutine calls:**
+
+```python
+# ✅ Good: Properly await coroutines
+async def process_users(user_ids: list[int]) -> list[User]:
+    users = []
+    for user_id in user_ids:
+        user = await fetch_user(user_id)  # await is required!
+        users.append(user)
+    return users
+
+# ❌ Bad: Forgetting await
+async def process_users(user_ids: list[int]) -> list[User]:
+    users = []
+    for user_id in user_ids:
+        user = fetch_user(user_id)  # Returns coroutine, not User!
+        users.append(user)  # Wrong type!
+    return users
+```
+
+---
+
+## Use Async Context Managers
+
+**Use `async with` for async resources:**
+
+```python
+# ✅ Good: Async context manager
+async def download_file(url: str) -> bytes:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.read()
+
+# ✅ Good: Multiple async context managers
+async def copy_file(src: str, dst: str) -> None:
+    async with aiofiles.open(src, 'rb') as src_file, \
+              aiofiles.open(dst, 'wb') as dst_file:
+        content = await src_file.read()
+        await dst_file.write(content)
+
+# ❌ Bad: Not using async context manager
+async def download_file(url: str) -> bytes:
+    session = aiohttp.ClientSession()  # Not properly closed!
+    response = await session.get(url)
+    return await response.read()
+```
+
+---
+
+## Avoid Blocking the Event Loop
+
+**Don't use blocking operations in async code:**
+
+```python
+# ✅ Good: Use async sleep
+async def wait_and_process():
+    await asyncio.sleep(1)  # Non-blocking
+    process_data()
+
+# ❌ Bad: Blocking sleep
+async def wait_and_process():
+    time.sleep(1)  # Blocks entire event loop!
+    process_data()
+
+# ✅ Good: Offload CPU-bound work
+async def process_large_dataset(data: list[int]) -> list[int]:
+    """Offload CPU-bound work to thread pool."""
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, cpu_intensive_function, data)
+    return result
+
+# ❌ Bad: CPU-bound work in async function
+async def process_large_dataset(data: list[int]) -> list[int]:
+    """CPU-bound work blocks event loop."""
+    return cpu_intensive_function(data)  # Blocks!
+```
+
+---
+
+## Use TaskGroup for Structured Concurrency
+
+**Use `asyncio.TaskGroup` (Python 3.11+) to manage related tasks:**
+
+```python
+# ✅ Good: TaskGroup for structured concurrency
+async def fetch_multiple_users(user_ids: list[int]) -> list[User]:
+    """Fetch multiple users concurrently with proper cleanup."""
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(fetch_user(uid)) for uid in user_ids]
+    
+    # All tasks complete or one fails (cancels others)
+    return [task.result() for task in tasks]
+
+# ✅ Good: Error handling with TaskGroup
+async def fetch_multiple_users(user_ids: list[int]) -> list[User]:
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(fetch_user(uid)) for uid in user_ids]
+        return [task.result() for task in tasks]
+    except* Exception as eg:  # ExceptionGroup (Python 3.11+)
+        logger.error(f"Failed to fetch some users: {eg}")
+        return []
+
+# ❌ Bad: Unmanaged tasks (can leak)
+async def fetch_multiple_users(user_ids: list[int]) -> list[User]:
+    tasks = [asyncio.create_task(fetch_user(uid)) for uid in user_ids]
+    return await asyncio.gather(*tasks)  # No cleanup if cancelled
+```
+
+---
+
+## Limit Concurrency with Semaphores
+
+**Use semaphores to prevent too many concurrent operations:**
+
+```python
+# ✅ Good: Limit concurrent requests
+async def fetch_many_urls(urls: list[str], max_concurrent: int = 10) -> list[dict]:
+    """Fetch URLs with concurrency limit."""
+    semaphore = asyncio.Semaphore(max_concurrent)
+    
+    async def fetch_with_limit(url: str) -> dict:
+        async with semaphore:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    return await resp.json()
+    
+    tasks = [fetch_with_limit(url) for url in urls]
+    return await asyncio.gather(*tasks)
+
+# ❌ Bad: Unbounded concurrency
+async def fetch_many_urls(urls: list[str]) -> list[dict]:
+    """Can spawn thousands of concurrent requests."""
+    tasks = [fetch_url(url) for url in urls]  # No limit!
+    return await asyncio.gather(*tasks)
+```
+
+---
+
+## Use Timeouts for External Calls
+
+**Always set timeouts for external I/O:**
+
+```python
+# ✅ Good: Timeout for external calls
+async def fetch_with_timeout(url: str, timeout: float = 5.0) -> dict:
+    """Fetch with timeout protection."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with asyncio.timeout(timeout):
+                async with session.get(url) as resp:
+                    return await resp.json()
+    except TimeoutError:
+        logger.warning(f"Request to {url} timed out")
+        raise
+
+# ✅ Good: Using wait_for (older Python versions)
+async def fetch_with_timeout(url: str, timeout: float = 5.0) -> dict:
+    """Fetch with timeout using wait_for."""
+    try:
+        return await asyncio.wait_for(fetch_url(url), timeout=timeout)
+    except asyncio.TimeoutError:
+        logger.warning(f"Request to {url} timed out")
+        raise
+
+# ❌ Bad: No timeout - can hang indefinitely
+async def fetch_without_timeout(url: str) -> dict:
+    """No timeout - can hang forever."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:  # No timeout!
+            return await resp.json()
+```
+
+---
+
+## Use asyncio.run() as Entry Point
+
+**Use `asyncio.run()` instead of managing event loops manually:**
+
+```python
+# ✅ Good: asyncio.run() as entry point
+async def main():
+    users = await fetch_multiple_users([1, 2, 3])
+    print(f"Fetched {len(users)} users")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+# ❌ Bad: Manual event loop management
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main())
+    finally:
+        loop.close()
+```
+
+---
+
+## Handle Errors in Tasks
+
+**Properly handle exceptions in concurrent tasks:**
+
+```python
+# ✅ Good: Handle errors in gather
+async def fetch_users_safely(user_ids: list[int]) -> list[User]:
+    """Fetch users, handling individual failures."""
+    tasks = [fetch_user(uid) for uid in user_ids]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    users = []
+    for result in results:
+        if isinstance(result, Exception):
+            logger.error(f"Failed to fetch user: {result}")
+        else:
+            users.append(result)
+    return users
+
+# ❌ Bad: One failure cancels all
+async def fetch_users(user_ids: list[int]) -> list[User]:
+    """One failure cancels all tasks."""
+    tasks = [fetch_user(uid) for uid in user_ids]
+    return await asyncio.gather(*tasks)  # Raises on first error
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (resource management, batching)
+
+**Python-Specific:**
+- [Pythonic Patterns](pythonic-patterns.mdc) - General Python best practices
+- [Error Handling Patterns](error-handling-patterns.mdc) - Exception handling
+
+---
+
+## References
+
+- [Python asyncio Documentation](https://docs.python.org/3/library/asyncio.html)
+- [Real Python: Async IO in Python](https://realpython.com/async-io-python/)

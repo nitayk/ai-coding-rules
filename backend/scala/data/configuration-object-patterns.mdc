@@ -1,0 +1,94 @@
+---
+description: "Patterns for creating and managing configuration objects in Scala with type safety and immutability. Use when: (1) Creating configuration case classes, (2) Handling optional config fields, (3) Providing default values, (4) Managing nested configurations, (5) Type-safe config access. Covers case classes, Option types, getter methods with defaults, and immutable config patterns."
+globs: []
+alwaysApply: false
+---
+
+- **Use case classes for all configuration objects**:  
+  ```scala
+  case class SparkLoggerParameters(rootLoggerLevel: LogLevel, 
+                                   loggers: Option[Seq[SparkLog4j2LoggerConfig]])
+  case class KafkaMetadataConfigurations(metadataColumns: Option[Set[KafkaMetadataColumn]],
+                                         metadataColumnPrefix: Option[String])
+  ```
+
+- **Use Option types for optional configuration fields**:  
+  ```scala
+  case class OutStreamConfig(writeConfigurations: WriteConfigurations,
+                             checkpointLocation: Option[String] = None,
+                             triggerInterval: Option[String] = None)
+  ```
+
+- **Provide `getXxx` methods that return defaults for optional fields**:  
+  Make the field private and force all access through the getter to ensure consistent defaults:
+  ```scala
+  case class OutStreamConfig(writeConfigurations: WriteConfigurations,
+                             checkpointLocation: Option[String] = None,
+                             private val triggerInterval: Option[String] = None) {
+    def getTriggerInterval: String = triggerInterval.getOrElse(OutStreamConfig.triggerIntervalDefault)
+  }
+  
+  object OutStreamConfig {
+    private val triggerIntervalDefault = "60 seconds"
+  }
+  
+  // ✅ Good: All usages go through the getter
+  val config = OutStreamConfig(...)
+  val interval = config.getTriggerInterval  // Always gets default if None
+  
+  // ❌ Bad: Direct field access bypasses default logic
+  val badInterval = config.triggerInterval  // Returns Option, no default
+  ```
+
+- **Always include implicit JSON formatters** in companion objects:  
+  ```scala
+  object SparkExecutorParameters {
+    implicit val fmt: Format[SparkExecutorParameters] = Json.format
+    val empty: SparkExecutorParameters = SparkExecutorParameters(0, None, "", "")
+  }
+  ```
+
+- **Use factory methods for different initialization scenarios**:  
+  ```scala
+  object SparkDriverParameters {
+    val empty: SparkDriverParameters = SparkDriverParameters(0, None, "", "", "")
+    
+    def base(memory: String): SparkDriverParameters =
+      SparkDriverParameters(
+        cores = 4,
+        extraJavaOptions = None,
+        maxResultSize = "5g",
+        memory = memory,
+        requestCores = "3600m"
+      )
+  }
+  ```
+
+- **Support multiple parsing formats** for flexible configuration:  
+  ```scala
+  object TableConfigurations {
+    /** Parses string like "catalog.db.table" or "db.table" */
+    def apply(tableIdentifier: String): TableConfigurations = {
+      val parts = tableIdentifier.split("\\.").toList
+      buildFromList(parts)
+    }
+    
+    /** Custom Reads supporting both JSON and String deserialization */
+    implicit val reads: Reads[TableConfigurations] = new Reads[TableConfigurations] {
+      def reads(json: JsValue): JsResult[TableConfigurations] = json match {
+        case JsString(str) => JsSuccess(TableConfigurations(str))
+        case obj: JsObject => // parse as JSON object
+      }
+    }
+  }
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety, immutability)
+
+**Scala-Specific:**
+- This file provides Scala-specific configuration object patterns (case classes, Option types, factory methods, JSON formatters)

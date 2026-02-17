@@ -1,0 +1,341 @@
+---
+description: "Format standards for writing Scala-specific MDC rules - Scala patterns, types, and idioms. Use when: (1) Creating new Scala rules, (2) Writing MDC documentation, (3) Documenting Scala patterns, (4) Following rule format standards, (5) Contributing rules. Covers MDC format, Scala-specific documentation, and rule structure."
+globs: []
+alwaysApply: false
+---
+
+# Scala MDC Rules Format Guide
+
+When writing Scala MDC rules, use Scala-specific patterns, types, and idioms to give LLMs clear, actionable instructions for Scala code generation.
+
+---
+
+## Required Frontmatter
+
+**Always include frontmatter with Scala-specific globs:**
+
+```yaml
+---
+description: Brief description of when this Scala rule applies
+globs: []  # Always target Scala files
+alwaysApply: false     # Set to true only for global Scala rules
+---
+```
+
+**✅ Good**: Clear description with Scala context
+```yaml
+---
+description: Error handling patterns using Option, Either, and Try
+globs: []
+alwaysApply: false
+---
+```
+
+**❌ Bad**: Generic description without Scala context
+```yaml
+---
+description: Error handling
+globs: []  # Too broad, not Scala-specific
+alwaysApply: false
+---
+```
+
+---
+
+## Scala-Specific Action Patterns
+
+**Use Scala types and idioms in examples:**
+
+### Pattern 1: Option/Either/Try Patterns
+
+```markdown
+- **Use Option for potentially missing values**, never null:
+  ```scala
+  // ✅ Good: Option makes nullability explicit
+  def findUser(id: String): Option[User] = {
+    if (exists(id)) Some(getUser(id))
+    else None
+  }
+  
+  // ❌ Bad: Nullable return - compiler can't track this!
+  def findUser(id: String): User = null
+  ```
+
+- **Use Either for explicit error handling**:
+  ```scala
+  // ✅ Good: Errors explicit in type
+  def parseConfig(json: String): Either[ParseError, Config] = {
+    Try(Json.parse(json).as[Config])
+      .toEither
+      .left.map(e => ParseError(e.getMessage))
+  }
+  
+  // ❌ Bad: Hidden exception possibility
+  def parseConfig(json: String): Config = {
+    Json.parse(json).as[Config]  // Can throw!
+  }
+  ```
+```
+
+**✅ Good**: Uses Scala-specific types (`Option`, `Either`, `Try`)
+**❌ Bad**: Generic examples without Scala types
+
+---
+
+### Pattern 2: Sealed Traits and Pattern Matching
+
+```markdown
+- **Use sealed traits for type-safe variants**:
+  ```scala
+  // ✅ Good: Sealed trait with exhaustive matching
+  sealed trait Result[A]
+  case class Success[A](value: A) extends Result[A]
+  case class Failure[A](error: String) extends Result[A]
+  
+  def handleResult[A](result: Result[A]): String = result match {
+    case Success(value) => s"Success: $value"
+    case Failure(error) => s"Failure: $error"
+    // Compiler ensures all cases handled!
+  }
+  
+  // ❌ Bad: Using strings or exceptions
+  def handleResult(value: Any, error: String): String = {
+    if (error != null) s"Failure: $error"
+    else s"Success: $value"  // No type safety!
+  }
+  ```
+```
+
+**✅ Good**: Shows Scala sealed traits and exhaustive pattern matching
+**❌ Bad**: Generic examples without Scala idioms
+
+---
+
+### Pattern 3: Case Classes and Immutability
+
+```markdown
+- **Use case classes for immutable data**:
+  ```scala
+  // ✅ Good: Immutable case class
+  case class UserConfig(
+    name: String,
+    email: String,
+    preferences: Map[String, String] = Map.empty
+  )
+  
+  // ❌ Bad: Mutable class
+  class UserConfig {
+    var name: String = _
+    var email: String = _
+  }
+  ```
+```
+
+**✅ Good**: Shows Scala case classes with defaults
+**❌ Bad**: Generic classes without Scala features
+
+---
+
+### Pattern 4: For-Comprehensions and Functional Composition
+
+```markdown
+- **Use for-comprehensions for sequential operations**:
+  ```scala
+  // ✅ Good: For-comprehension with Either
+  def processOrder(order: Order): Either[Error, OrderResult] = {
+    for {
+      validated <- validateOrder(order)
+      enriched <- enrichOrder(validated)
+      result <- calculateTotal(enriched)
+    } yield OrderResult(enriched, result)
+  }
+  
+  // ❌ Bad: Nested flatMap calls
+  def processOrder(order: Order): Either[Error, OrderResult] = {
+    validateOrder(order).flatMap { validated =>
+      enrichOrder(validated).flatMap { enriched =>
+        calculateTotal(enriched).map { result =>
+          OrderResult(enriched, result)
+        }
+      }
+    }
+  }
+  ```
+```
+
+**✅ Good**: Shows Scala for-comprehension syntax
+**❌ Bad**: Generic functional composition without Scala syntax
+
+---
+
+### Pattern 5: Implicit Parameters (Scala-Specific)
+
+```markdown
+- **Use implicit parameters for cross-cutting concerns**:
+  ```scala
+  // ✅ Good: Implicit Logger and Monitoring
+  def processEvent(event: Event)(implicit logger: Logger, monitoring: Monitoring): Unit = {
+    monitoring.increment("events_processed")
+    logger.info("Processing event", "event_id" -> event.id)
+  }
+  
+  // ❌ Bad: Explicit parameters everywhere
+  def processEvent(event: Event, logger: Logger, monitoring: Monitoring): Unit = {
+    monitoring.increment("events_processed")
+    logger.info("Processing event", "event_id" -> event.id)
+  }
+  ```
+```
+
+**✅ Good**: Shows Scala implicit parameter pattern
+**❌ Bad**: Generic examples without Scala features
+
+---
+
+## Scala-Specific Code Examples
+
+**Always use realistic Scala code:**
+
+### ✅ Good: Scala-Specific Examples
+
+```scala
+// ✅ Good: Uses Scala types, pattern matching, case classes
+sealed trait AppError
+case class ValidationError(field: String, reason: String) extends AppError
+case class DatabaseError(message: String) extends AppError
+
+def validateUser(email: String, age: Int): Either[AppError, User] = {
+  for {
+    validEmail <- if (email.contains("@")) Right(email) else Left(ValidationError("email", "Invalid format"))
+    validAge <- if (age >= 0 && age <= 150) Right(age) else Left(ValidationError("age", "Out of range"))
+  } yield User(validEmail, validAge)
+}
+```
+
+### ❌ Bad: Generic Examples
+
+```scala
+// ❌ Bad: Generic code without Scala idioms
+def validateUser(email: String, age: Int): User = {
+  if (email.contains("@") && age >= 0 && age <= 150) {
+    User(email, age)
+  } else {
+    throw new Exception("Invalid")
+  }
+}
+```
+
+---
+
+## Scala-Specific Patterns to Include
+
+**When writing Scala MDC rules, include:**
+
+- **Scala types**: `Option`, `Either`, `Try`, `Future`, `ZIO`
+- **Scala collections**: `List`, `Vector`, `Map`, `Set` (immutable)
+- **Scala idioms**: Pattern matching, for-comprehensions, case classes
+- **Scala libraries**: ZIO, Cats, Scalaz (when relevant)
+- **Scala features**: Sealed traits, implicit parameters, type classes
+
+**Avoid:**
+
+- Generic programming examples
+- Language-agnostic patterns
+- Examples that don't show Scala-specific features
+
+---
+
+## Scala-Specific Rule Structure
+
+**Use Scala-focused section headers:**
+
+```markdown
+## Use Option Instead of Null
+
+- **Use Option for potentially missing values**, never null:
+  ```scala
+  // ✅ Good: Option makes nullability explicit
+  def findUser(id: String): Option[User] = ???
+  
+  // ❌ Bad: Nullable return
+  def findUser(id: String): User = null
+  ```
+
+## Use Sealed Traits for Type Safety
+
+- **Use sealed traits to make illegal states unrepresentable**:
+  ```scala
+  // ✅ Good: Sealed trait prevents invalid combinations
+  sealed trait Policy
+  case class RestrictedPolicy(zones: NonEmptyList[Zone]) extends Policy
+  case class UnrestrictedPolicy() extends Policy
+  
+  // ❌ Bad: Boolean flags allow invalid states
+  case class Policy(isRestricted: Boolean, zones: List[Zone])
+  ```
+```
+
+**✅ Good**: Sections focus on Scala-specific patterns
+**❌ Bad**: Generic sections without Scala context
+
+---
+
+## Scala-Specific Benefits
+
+**When listing benefits, mention Scala-specific advantages:**
+
+```markdown
+**Benefits:**
+- **Compile-time safety**: Scala compiler ensures errors are handled
+- **Exhaustive pattern matching**: Compiler ensures all cases handled
+- **Type inference**: Scala infers types automatically
+- **Immutability**: Scala collections are immutable by default
+```
+
+**✅ Good**: Benefits mention Scala compiler and language features
+**❌ Bad**: Generic benefits without Scala context
+
+---
+
+## Related Rules Section
+
+**Link to other Scala-specific rules:**
+
+```markdown
+## Related Rules
+
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Stop lying to Scala compiler
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Make Illegal States Unrepresentable](../language/make-illegal-states-unrepresentable.mdc) - Sealed traits in Scala
+```
+
+**✅ Good**: Links reference Scala-specific rules
+**❌ Bad**: Generic links without Scala context
+
+---
+
+## Summary: Scala MDC Rule Checklist
+
+**Every Scala MDC rule should:**
+
+- ✅ **Use Scala types** - `Option`, `Either`, `Try`, sealed traits, case classes
+- ✅ **Show Scala idioms** - Pattern matching, for-comprehensions, implicit parameters
+- ✅ **Include Scala examples** - Realistic Scala code, not generic pseudocode
+- ✅ **Mention Scala compiler** - Compile-time safety, type inference, exhaustiveness
+- ✅ **Reference Scala libraries** - ZIO, Cats when relevant
+- ✅ **Action-oriented** - "Use X, not Y" with ✅/❌ examples
+- ❌ **No generic examples** - Always Scala-specific
+- ❌ **No language-agnostic patterns** - Focus on Scala features
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (meaningful names, code organization, comments)
+- [Meta Cursor Rules Style Guide](../../meta/cursor-rules-style-guide.mdc) - Universal MDC rule format guidelines
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Example of well-structured Scala MDC rule
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - Example of Scala-specific patterns
+- [Functional Programming Principles](functional-programming-principles.mdc) - Scala FP patterns

@@ -1,0 +1,84 @@
+---
+description: "Frontend development rules index - routes to JavaScript/TypeScript router/index and framework-specific files. Use when: (1) Frontend development, (2) JavaScript/TypeScript code, (3) React/Vue patterns needed. Points to language router/index which then routes to framework and subcategory files. Follows Router → Index → Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Frontend Development Rules Index
+
+**Purpose**: Router for frontend rules - detects keywords and routes to language indexes or framework files.
+
+**Chaining**: Root Router → This Index (Router) → Language Router/Index → Framework/Subcategory Index → Files
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 1 nodes (language/framework indexes) based on keywords.
+
+---
+
+## Keyword → Language/Framework Routing
+
+| Keywords/Intent | Load Language Index or Framework File |
+|----------------|--------------------------------------|
+| **javascript**, js, typescript, ts, js code, ts code, frontend code | `.cursor/rules/shared/frontend/javascript-typescript/index.mdc` |
+| **react**, react patterns, react hooks, react components | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/react-patterns.mdc` |
+| **vue**, vue.js, vue patterns, vue composition api | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vue-best-practices.mdc` |
+| **vuex**, vuex state, vuex store, vuex patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vuex-state-management.mdc` |
+| **typescript strict**, ts strict, strict type safety | `.cursor/rules/shared/frontend/javascript-typescript/language/typescript-strict-type-safety.mdc` |
+| **vitest**, vue testing, component testing | `.cursor/rules/shared/frontend/javascript-typescript/testing/vitest-best-practices.mdc` |
+
+---
+
+## Language Router/Index
+
+| Language | Router/Index | Keywords |
+|----------|-------------|----------|
+| **JavaScript/TypeScript** | `.cursor/rules/shared/frontend/javascript-typescript/index.mdc` | javascript, js, typescript, ts, js code, ts code, frontend code |
+
+---
+
+## Framework-Specific Files
+
+| Framework | File | Keywords |
+|-----------|------|----------|
+| **React** | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/react-patterns.mdc` | react, react patterns, react hooks, react components, react best practices |
+| **Vue** | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vue-best-practices.mdc` | vue, vue.js, vue patterns, vue composition api, vue best practices |
+| **Vuex** | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vuex-state-management.mdc` | vuex, vuex state, vuex store, vuex patterns, state management vue |
+
+---
+
+## Subcategory Files
+
+| Category | File | Keywords |
+|----------|------|----------|
+| **TypeScript Strict** | `.cursor/rules/shared/frontend/javascript-typescript/language/typescript-strict-type-safety.mdc` | typescript strict, ts strict, strict type safety, typescript type guards, avoid any |
+| **Vitest Testing** | `.cursor/rules/shared/frontend/javascript-typescript/testing/vitest-best-practices.mdc` | vitest, vue testing, component testing, frontend testing |
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Language Router/Index → Framework/Subcategory → Files**
+
+1. Root Router detects "frontend" or framework keyword → loads this index
+2. This index routes to language router/index or framework file
+3. Language router/index routes to subcategory indexes
+4. Subcategory indexes point to specific rule files
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| JS/TS patterns | `.cursor/rules/shared/frontend/javascript-typescript/index.mdc` |
+| React patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/react-patterns.mdc` |
+| Vue patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vue-best-practices.mdc` |
+| Vuex patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/vuex-state-management.mdc` |
+| TypeScript strict | `.cursor/rules/shared/frontend/javascript-typescript/language/typescript-strict-type-safety.mdc` |
+| Vitest testing | `.cursor/rules/shared/frontend/javascript-typescript/testing/vitest-best-practices.mdc` |
+
+---
+
+## Related Resources
+
+- **Generic Rules**: See `.cursor/rules/shared/generic/index.mdc` for universal principles
+- **Tools**: See `.cursor/rules/shared/tools/index.mdc` for CLI tools

@@ -1,0 +1,65 @@
+---
+description: "Comprehensive index of Swift development rules and best practices. Use when: (1) Writing Swift code, (2) iOS development, (3) Swift concurrency, (4) Swift style guidelines, (5) iOS best practices. Auto-loads when Swift files are opened (via globs). Points to ios/, language/ subdirectories."
+globs: ["**/*.swift"]
+alwaysApply: false
+---
+
+# Swift Development Rules
+
+This index provides comprehensive guidance for Swift development.
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **swift style**, swift formatting, swift naming, style guide | `language/style-guide.mdc` |
+| **swift concurrency**, swift async await, actors, @MainActor, structured concurrency | `language/swift-concurrency-patterns.mdc` |
+| **ios**, ios development, ios architecture, mvvm ios, swiftui, uikit | `ios/ios-best-practices.mdc` |
+| **ios performance**, ios memory management, instruments, swiftui performance | `ios/ios-performance.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Language Features (`language/`)
+- **[Style Guide](language/style-guide.mdc)** - Swift naming conventions, formatting, and code organization
+- **[Swift Concurrency Patterns](language/swift-concurrency-patterns.mdc)** - Async/await, actors, @MainActor, structured concurrency
+
+### 📱 iOS Development (`ios/`)
+- **[iOS Best Practices](ios/ios-best-practices.mdc)** - iOS-specific patterns and conventions
+- **[iOS Performance](ios/ios-performance.mdc)** - Memory management, profiling, Instruments, SwiftUI performance
+
+## Planned Categories
+
+### 🔧 Language Features (Coming Soon)
+- Value types vs reference types
+- Protocol-oriented programming
+- Generics and associated types
+- Error handling patterns
+
+### 🏗️ Architecture (Coming Soon)
+- SwiftUI patterns
+- MVVM architecture
+- Dependency injection
+- Module organization
+
+### 🚀 Performance (Coming Soon)
+- Memory management
+- Performance optimization
+- Profiling and instruments
+
+### 🧪 Testing (Coming Soon)
+- Unit testing patterns
+- SwiftUI testing
+- Mocking strategies
+
+## References
+
+- [Swift Documentation](https://docs.swift.org/)
+- [Swift by Sundell](https://www.swiftbysundell.com/)
+- [Hacking with Swift](https://www.hackingwithswift.com/)
+- [Swift Evolution](https://swift.org/evolution/)

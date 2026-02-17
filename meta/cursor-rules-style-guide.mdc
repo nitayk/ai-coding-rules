@@ -1,0 +1,1442 @@
+---
+description: "Comprehensive standards for creating, editing, and aligning Cursor MDC rules, Skills, Commands, and Agents - incorporates best practices from official docs, community guidelines, and style guides. Use when: (1) Creating MDC rules, Skills, Commands, or Agents, (2) Editing any rule file, (3) Following style standards, (4) Writing descriptions, (5) Formatting files, (6) Removing emojis. Covers MDC format, Skills format, Commands format, Agents format, frontmatter standards, emoji usage, and best practices. Auto-loads when .mdc or .md files are opened or when editing rules."
+globs: ["**/*.mdc", "**/*.md"]
+alwaysApply: false
+version: "3.1.0"
+last_updated: "2026-01-27"
+tags: ["style-guide", "formatting", "mdc", "skills", "commands", "agents", "best-practices"]
+---
+
+# Cursor Rules Style Guide
+
+## Triggers
+**APPLY WHEN:** Creating new rules, skills, commands, or agents; editing any rule file; aligning files to standards; formatting files; or removing emojis from rules.
+**SKIP WHEN:** Only reading files without modification.
+
+## File Type Overview
+
+Cursor supports four distinct file types, each with different purposes and formats:
+
+| Type | Extension | Location | Purpose | Frontmatter |
+|------|-----------|----------|---------|-------------|
+| **MDC Rules** | `.mdc` | `.cursor/rules/` | Always-on or context-triggered rules | YAML (description, globs, alwaysApply) |
+| **Skills** | `SKILL.md` | `.cursor/skills/` | Dynamic capabilities invoked via `/skill-name` | YAML (name, description) - NO globs/alwaysApply |
+| **Commands** | `.md` | `.cursor/commands/` | Custom slash commands (`/command-name`) | None (plain markdown) |
+| **Agents** | `.md` | `.cursor/agents/` | Subagents for specialized tasks | YAML (name, description, model, readonly, is_background) |
+| **Hooks** | `hooks.json` | `.cursor/hooks/` | Automated enforcement and security | JSON (version, hooks) |
+| **MCP** | `mcp.json` | `.cursor/` or `~/.cursor/` | MCP server configuration | JSON (mcpServers) |
+
+**CRITICAL**: Each file type has different requirements. Use the appropriate section below.
+
+---
+
+## 1. Core Philosophy (The "Why")
+1.  **Agent-Centric**: Write for LLMs, not humans. Use imperative commands ("DO", "MUST", "STOP").
+2.  **Context-Efficient**: Keep files short (<100 lines for MDC, longer for Skills). Remove narratives.
+3.  **Chained**: Don't duplicate instructions. Reference other rules via `@fetch_rules` or filename.
+4.  **Atomic**: One file = One specific domain.
+5.  **Fact-Based**: Instruct agents to investigate (code, web, docs) and never guess.
+6.  **Explicit Uncertainty**: Instruct agents to ASK when unsure, rather than assume.
+
+---
+
+## 2. File Type Specifications
+
+### 2.1 MDC Rules (`.mdc`)
+
+**Purpose**: Context-triggered or always-on rules that guide agent behavior.
+
+**Location**: `.cursor/rules/` or subdirectories
+
+**Frontmatter Required**: YES
+
+**Structure**:
+- YAML frontmatter with `description`, `globs`, `alwaysApply`
+- Markdown content following standard structure
+- Keep under 100 lines when possible
+
+**Example**:
+```markdown
+---
+description: Error handling patterns using Option, Either, and Try
+globs: ["**/*.scala"]
+alwaysApply: false
+version: "1.2.0"
+last_updated: "2025-01-15"
+tags: ["error-handling", "scala"]
+---
+
+# Error Handling Patterns
+[Content follows standard MDC structure]
+```
+
+### 2.2 Skills (`SKILL.md`)
+
+**Purpose**: Dynamic capabilities invoked via `/skill-name` slash command. Procedural "how-to" instructions.
+
+**Location**: `.cursor/skills/{skill-name}/SKILL.md`
+
+**Frontmatter Required**: YES
+
+**Structure**:
+- YAML frontmatter with `name` (required), `description` (required), and optional fields (`license`, `compatibility`, `metadata`, `disable-model-invocation`)
+- **CRITICAL**: Skills do NOT use `globs` or `alwaysApply` - those are rule properties
+- Longer format (can be 200+ lines for complex skills)
+- Includes: Triggers, Core Directive, Process, Examples, Output sections
+- References related skills and technologies
+
+**Key Differences from MDC**:
+- Skills are **invoked** (via `/skill-name`), not always-on
+- Skills focus on **processes** and **methodologies**
+- Skills can be longer and more detailed
+- Skills explicitly define **outputs**
+
+**Example**:
+```markdown
+---
+name: service-breakdown
+description: Complete service breakdown methodology for analyzing code structure before migrations and refactoring. Uses combined Read+Graph+Grep approach to understand service architecture, dependencies, execution flows, and external integrations. Use when creating service breakdowns, before migrating code between repositories, before refactoring services, or understanding complex service architecture. Produces investigation logs and documentation only - NO code changes.
+---
+
+# Service Breakdown Analysis
+
+## When to Use This Skill
+**APPLY WHEN:** [specific triggers]
+**SKIP WHEN:** [exclusions]
+
+## Core Directive
+[One sentence summary]
+
+## Output
+[What this skill produces]
+
+[Process, Examples, etc.]
+```
+
+**Note**: The `description` field should include all "when to use" information - this is what the agent reads to determine relevance.
+
+### 2.3 Commands (`.md`)
+
+**Purpose**: Custom slash commands (`/command-name`) for specific workflows.
+
+**Location**: `.cursor/commands/{command-name}.md`
+
+**Frontmatter Required**: NO
+
+**Structure**:
+- Plain markdown (no frontmatter)
+- Starts with H1 title (command name)
+- Includes: Usage, What it does, Examples
+- Keep concise and focused
+
+**Key Differences**:
+- **No frontmatter** - just markdown content
+- Focus on **usage** and **workflow**
+- Invoked via `/command-name` in chat
+- Typically shorter (50-100 lines)
+
+**Example**:
+```markdown
+# Code Review
+
+Run a comprehensive code review checklist on current changes.
+
+## Usage
+
+```
+/code-review
+```
+
+## What it does
+
+1. Runs all configured linters
+2. Checks for common issues
+3. Reviews test coverage
+4. Summarizes findings
+
+## Example
+
+```
+/code-review
+```
+```
+
+### 2.4 Agents (`.md`)
+
+**Purpose**: Subagents for specialized tasks, operating in isolated context windows.
+
+**Location**: `.cursor/agents/{agent-name}.md`
+
+**Frontmatter Required**: YES (different format)
+
+**Structure**:
+- YAML frontmatter with `name`, `description`, `tools`, `model`
+- Agent personality and mission
+- References to related skills
+- Tool access specifications
+
+**Key Differences**:
+- Frontmatter uses `name` and `tools` (not `description` and `globs`)
+- Defines **agent personality** and **capabilities**
+- Specifies **tool access** and **model**
+- References **skills** for methodology
+
+**Example**:
+```markdown
+---
+name: Service Migration Specialist
+description: Expert in migrating services between repositories while minimizing diffs
+tools: ["Read", "Grep", "Glob", "all"]
+model: claude-sonnet-4-5
+---
+
+# Service Migration Specialist
+
+You are an expert in migrating services...
+
+**Follow the `/service-migration` skill methodology** - See `.cursor/rules/shared/skills/service-migration/SKILL.md`
+
+## Your Mission
+[Agent-specific mission and rules]
+```
+
+---
+
+## 3. Frontmatter Schema (By File Type)
+
+### 3.1 MDC Rules Frontmatter
+
+**Required Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `description` | string | Precise summary for semantic routing (max 200 chars) | `"Error handling patterns using Option, Either, and Try"` |
+| `globs` | array[string] | Specific file patterns (avoid `**/*` unless root orchestrator) | `["**/*.scala"]` |
+| `alwaysApply` | boolean | `false` (default) unless root router | `false` |
+
+**Optional Fields** (Recommended):
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `version` | string | Semantic version (MAJOR.MINOR.PATCH) | `"1.2.0"` |
+| `last_updated` | string | ISO 8601 date (YYYY-MM-DD) | `"2025-01-15"` |
+| `tags` | array[string] | Categories for indexing/filtering | `["error-handling", "scala"]` |
+
+### 3.2 Skills Frontmatter
+
+All fields are optional. Only `description` is recommended so the agent knows when to use the skill.
+
+**Core Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `name` | string | Skill identifier. Lowercase letters, numbers, hyphens only (max 64 chars). If omitted, uses directory name. | `"service-breakdown"` |
+| `description` | string | What the skill does and when to use it. Agent reads this to decide relevance. Include trigger phrases and negative triggers ("Do NOT use for..."). | `"Analyze service architecture. Use when breaking down services. Do NOT use for simple file reads."` |
+
+**Invocation Control Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `disable-model-invocation` | boolean | When `true`, only user can invoke via `/skill-name`. Agent cannot auto-trigger. Use for workflows with side effects (deploy, commit). Default: `false`. | `true` |
+| `user-invocable` | boolean | When `false`, hidden from `/` menu. Only agent can invoke. Use for background knowledge. Default: `true`. | `false` |
+| `argument-hint` | string | Hint shown during autocomplete for expected arguments. | `"[issue-number]"` |
+
+**Execution Context Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `context` | string | Set to `fork` to run in a forked subagent context (isolated from main conversation). | `"fork"` |
+| `agent` | string | Which subagent type to use when `context: fork` is set. Options: `Explore`, `Plan`, `general-purpose`, or any custom subagent name. | `"Explore"` |
+| `model` | string | Model to use when this skill is active. | `"sonnet"` |
+| `allowed-tools` | string | Tools the agent can use without permission when skill is active (comma-separated). | `"Read, Grep, Glob"` |
+| `hooks` | object | Hooks scoped to this skill's lifecycle (PreToolUse, PostToolUse, Stop). | See hooks section |
+
+**Metadata Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `license` | string | License name or reference to a bundled license file | `"MIT"` |
+| `compatibility` | string | Environment requirements (system packages, network access, etc.) | `"Requires code analysis MCP"` |
+| `metadata` | object | Arbitrary key-value mapping for additional metadata | `{"author": "team-name"}` |
+
+**String Substitutions in Skill Content**:
+
+| Variable | Description |
+|----------|-------------|
+| `$ARGUMENTS` | All arguments passed when invoking the skill |
+| `$ARGUMENTS[N]` or `$N` | Access a specific argument by 0-based index |
+| `${CLAUDE_SESSION_ID}` | Current session ID |
+| `` !`command` `` | Dynamic context injection - runs shell command before content is sent to agent |
+
+**CRITICAL Notes**:
+- Skills do NOT use `globs` or `alwaysApply` - those are MDC rule properties
+- Description budget: 2% of context window (fallback 16k chars). Override with `SLASH_COMMAND_TOOL_CHAR_BUDGET` env var
+- Nested `.claude/skills/` directories are auto-discovered (monorepo support)
+- Keep SKILL.md under 500 lines. Move detailed reference to separate files
+- Skills are discovered automatically based on `description`, unless `disable-model-invocation: true`
+
+### 3.3 Commands Frontmatter
+
+**Required**: NONE - Commands use plain markdown without frontmatter.
+
+### 3.4 Agents (Subagents) Frontmatter
+
+**Required Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `name` | string | Unique identifier. Lowercase letters and hyphens. Defaults to filename without extension. | `"service-migration-specialist"` |
+| `description` | string | **Critical**: When to delegate to this subagent. Include "Use proactively for..." to encourage auto-delegation. | `"Expert in migrating services. Use proactively when moving code between repos."` |
+
+**Execution Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `model` | string | `inherit` (default), `sonnet`, `opus`, `haiku`, or specific model ID | `"haiku"` |
+| `tools` | string/list | Tools the subagent can use (comma-separated or list). Inherits all if omitted. Use `Task(worker)` to restrict spawnable subagents. | `"Read, Grep, Glob, Bash"` |
+| `disallowedTools` | string/list | Tools to deny (removed from inherited or specified list). | `"Write, Edit"` |
+| `permissionMode` | string | How subagent handles permissions. Options: `default`, `acceptEdits`, `delegate`, `dontAsk`, `bypassPermissions`, `plan`. | `"plan"` |
+| `maxTurns` | number | Maximum agentic turns before the subagent stops. | `20` |
+
+**Context & Knowledge Fields**:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `skills` | list | Skills to preload into subagent context at startup. Full content is injected, not just made available. Subagents do NOT inherit parent skills. | `["api-conventions", "error-handling"]` |
+| `memory` | string | Persistent memory scope: `user` (all projects), `project` (this repo, versioned), `local` (this repo, gitignored). Enables cross-session learning. | `"user"` |
+| `mcpServers` | object/list | MCP servers available to this subagent. Reference by name or inline definition. | `["my-tool"]` |
+| `hooks` | object | Lifecycle hooks scoped to this subagent (PreToolUse, PostToolUse, Stop). | See hooks section |
+
+**Legacy/Custom Fields** (still supported):
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `readonly` | boolean | If `true`, restricted write permissions (equivalent to `permissionMode: plan`) | `false` |
+| `is_background` | boolean | If `true`, runs in background (users can also press Ctrl+B) | `false` |
+| `version` | string | Semantic version (custom field) | `"1.0.0"` |
+| `last_updated` | string | ISO 8601 date (custom field) | `"2026-01-25"` |
+
+**Model Options**:
+- **`inherit`** (default): Uses the same model as the parent agent
+- **`haiku`**: Fast, low-latency (good for exploration, test running)
+- **`sonnet`**: Balanced capability and speed (good for code review)
+- **`opus`**: Highest capability (good for complex reasoning)
+
+**Permission Modes**:
+- **`default`**: Standard permission checking with prompts
+- **`acceptEdits`**: Auto-accept file edits
+- **`dontAsk`**: Auto-deny permission prompts (explicitly allowed tools still work)
+- **`delegate`**: Coordination-only mode for agent team leads
+- **`bypassPermissions`**: Skip all permission checks (use with caution)
+- **`plan`**: Read-only exploration mode
+
+### Frontmatter Rules (All Types)
+
+- **Valid YAML**: Use spaces (not tabs) for indentation
+- **Consistent keys**: Use lowercase-kebab-case for custom fields
+- **Single block**: Only one frontmatter block at the top of file
+- **Date format**: Use ISO 8601 (`YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SSZ`)
+- **No frontmatter**: Commands use plain markdown (no YAML block)
+
+### Good Examples
+
+**MDC Rule**:
+```yaml
+---
+description: Error handling patterns using Option, Either, and Try for safe operations
+globs: ["**/*.scala"]
+alwaysApply: false
+version: "1.2.0"
+last_updated: "2025-01-15"
+tags: ["error-handling", "scala", "patterns"]
+---
+```
+
+**Skill** (Official Cursor Format):
+```yaml
+---
+name: service-breakdown
+description: Complete service breakdown methodology for analyzing code structure before migrations and refactoring
+---
+
+# Service Breakdown Analysis
+[Content follows skill structure]
+```
+
+**Skill** (With Execution Context):
+```yaml
+---
+name: deep-research
+description: Research a topic thoroughly using codebase exploration. Use when investigating dependencies, tracing flows, or understanding architecture.
+context: fork
+agent: Explore
+allowed-tools: Read, Grep, Glob
+---
+
+Research $ARGUMENTS thoroughly:
+1. Find relevant files using Glob and Grep
+2. Read and analyze the code
+3. Summarize findings with specific file references
+```
+
+**Skill** (Manual Invocation Only):
+```yaml
+---
+name: deploy
+description: Deploy the application to production
+disable-model-invocation: true
+argument-hint: "[environment]"
+---
+
+Deploy to $ARGUMENTS:
+1. Run the test suite
+2. Build the application
+3. Push to the deployment target
+```
+
+**CRITICAL**: Skills do NOT use `globs` or `alwaysApply` - those are MDC rule properties. If you see Skills with these fields, they should be removed.
+
+**Agent** (Official Format):
+```yaml
+---
+name: service-migration-specialist
+description: Expert in migrating services between repos. Use proactively when moving code between repositories.
+model: sonnet
+tools: Read, Grep, Glob, Bash, Write, Edit
+permissionMode: default
+skills:
+  - service-breakdown
+  - git-workflow
+---
+```
+
+**Agent** (With Persistent Memory):
+```yaml
+---
+name: code-reviewer
+description: Reviews code for quality and best practices. Use proactively after code changes.
+model: haiku
+tools: Read, Grep, Glob
+disallowedTools: Write, Edit
+memory: user
+maxTurns: 20
+---
+```
+
+**Command**: (No frontmatter - starts directly with markdown)
+```markdown
+# Code Review
+
+Run a comprehensive code review checklist on current changes.
+
+## Usage
+
+```
+/code-review
+```
+
+## What it does
+
+1. Runs all configured linters
+2. Checks for common issues
+3. Reviews test coverage
+4. Summarizes findings
+```
+
+---
+
+## 3.5 Hooks Configuration
+
+**Purpose**: Automated enforcement and security hooks that run before/after agent actions.
+
+**Location**: `.cursor/hooks/hooks.json` (project) or `~/.cursor/hooks.json` (user)
+
+**Format**: JSON (not YAML)
+
+**Structure**:
+```json
+{
+  "version": 1,
+  "hooks": {
+    "hookEventName": [
+      {
+        "command": ".cursor/hooks/script.sh",
+        "timeout": 30,
+        "matcher": "pattern"
+      }
+    ]
+  }
+}
+```
+
+**Configuration Fields**:
+
+| Field | Type | Required | Description | Example |
+|-------|------|----------|-------------|---------|
+| `version` | number | Yes | Config schema version (currently `1`) | `1` |
+| `hooks` | object | Yes | Map of hook event names to hook definitions | `{ "afterFileEdit": [...] }` |
+| `command` | string | Yes | Path to hook script (relative to project root for project hooks, relative to `~/.cursor/` for user hooks) | `".cursor/hooks/format.sh"` |
+| `timeout` | number | No | Execution timeout in seconds | `30` |
+| `matcher` | string/object | No | Filter criteria for when hook runs (depends on hook type) | `"curl\|wget"` |
+
+**Common Hook Events**:
+
+| Hook Event | When | Use Case |
+|------------|------|----------|
+| `beforeReadFile` | Before reading file | Block sensitive files |
+| `afterFileEdit` | After editing file | Format, scan secrets |
+| `beforeShellExecution` | Before shell command | Block dangerous commands |
+| `afterShellExecution` | After shell command | Audit, log |
+| `beforeMCPExecution` | Before MCP tool | Validate MCP usage |
+| `afterMCPExecution` | After MCP tool | Audit MCP calls |
+| `postToolUse` | After any tool | General auditing |
+| `sessionStart` | Session begins | Setup, inject context |
+| `sessionEnd` | Session ends | Cleanup, analytics |
+| `beforeSubmitPrompt` | Before sending prompt | Validate prompt |
+| `stop` | Agent loop ends | Auto-retry, follow-up |
+| `beforeTabFileRead` | Tab reads file | Redact secrets |
+| `afterTabFileEdit` | Tab edits file | Format Tab edits |
+
+**Example**:
+```json
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/format-code.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/scan-secrets.sh",
+        "timeout": 10
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/block-dangerous-commands.sh",
+        "timeout": 5,
+        "matcher": "rm -rf|git push --force"
+      }
+    ]
+  }
+}
+```
+
+**Hook Script Requirements**:
+- Must be executable (`chmod +x`)
+- Read JSON input from stdin
+- Return JSON output to stdout
+- Exit code `0` = success, `2` = block action, other = fail-open (action proceeds)
+
+**References**: [Cursor Hooks Documentation](https://cursor.com/docs/agent/hooks)
+
+---
+
+## 3.6 MCP Configuration
+
+**Purpose**: Configure Model Context Protocol (MCP) servers for external tool integration.
+
+**Location**: `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (user)
+
+**Format**: JSON (not YAML)
+
+**Structure**:
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "url": "https://...",
+      "command": "npx",
+      "args": ["-y", "package-name"],
+      "env": {
+        "API_KEY": "value"
+      },
+      "disabled": false
+    }
+  }
+}
+```
+
+**Server Configuration Fields**:
+
+| Field | Type | Required | Description | Example |
+|-------|------|----------|-------------|---------|
+| `url` | string | For remote servers | URL to HTTP/SSE endpoint | `"https://api.example.com/mcp"` |
+| `command` | string | For stdio servers | Command to start server | `"npx"`, `"python"`, `"node"` |
+| `args` | array[string] | No | Arguments passed to command | `["-y", "package-name"]` |
+| `env` | object | No | Environment variables | `{"API_KEY": "${env:API_KEY}"}` |
+| `envFile` | string | No | Path to .env file (stdio only) | `".env"` |
+| `headers` | object | No | HTTP headers (remote servers) | `{"Authorization": "Bearer ..."}` |
+| `auth` | object | No | OAuth configuration (remote servers) | `{"CLIENT_ID": "...", "CLIENT_SECRET": "..."}` |
+| `disabled` | boolean | No | Disable server without removing | `false` |
+
+**Transport Types**:
+
+1. **stdio** (local): Server runs as local process
+   ```json
+   {
+     "mcpServers": {
+       "local-server": {
+         "command": "python",
+         "args": ["server.py"],
+         "env": {
+           "API_KEY": "${env:API_KEY}"
+         }
+       }
+     }
+   }
+   ```
+
+2. **HTTP/SSE** (remote): Server runs on remote endpoint
+   ```json
+   {
+     "mcpServers": {
+       "remote-server": {
+         "url": "https://api.example.com/mcp",
+         "headers": {
+           "Authorization": "Bearer ${env:TOKEN}"
+         }
+       }
+     }
+   }
+   ```
+
+**Config Interpolation**:
+- `${env:NAME}` - Environment variables
+- `${userHome}` - User home directory
+- `${workspaceFolder}` - Project root
+- `${workspaceFolderBasename}` - Project name
+
+**Example**:
+```json
+{
+  "mcpServers": {
+    "code-graph": {
+      "url": "https://mcp-example.example.com/mcp",
+      "disabled": false
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp-server"],
+      "disabled": false
+    }
+  }
+}
+```
+
+**References**: [Cursor MCP Documentation](https://cursor.com/docs/context/mcp)
+
+---
+
+## 4. Document Structure (By File Type)
+
+### 4.1 MDC Rules Structure
+
+**Required Sections**:
+
+1. **Triggers** (H2):
+   - **APPLY WHEN**: Specific intent (e.g., "User asks to refactor")
+   - **SKIP WHEN**: Exclusion criteria
+
+2. **Core Directive** (H2):
+   - The single most important rule (The "Bottom Line")
+   - One sentence summary
+
+3. **Process / Instructions** (H2):
+   - Numbered, deterministic steps
+   - Explicit verification gates ("Verify X before Y")
+   - Error handling ("If X fails, STOP")
+
+4. **Examples** (H2):
+   - **Positive**: Generic, adaptable pattern
+   - **Negative**: Specific anti-patterns to avoid
+
+5. **Related Rules** (H2, Optional):
+   - Links to other rules via `@fetch_rules` or relative paths
+
+**Heading Hierarchy**: Single H1 → H2 → H3 → H4 (don't skip levels)
+
+### 4.2 Skills Structure
+
+**Required Sections**:
+
+1. **When to Use This Skill** (H2):
+   - **APPLY WHEN**: Specific triggers
+   - **SKIP WHEN**: Exclusions
+
+2. **Core Directive** (H2):
+   - One sentence summary of the skill's purpose
+
+3. **Process** (H2):
+   - Detailed methodology (can be multiple phases)
+   - Numbered steps with verification gates
+
+4. **Output** (H2):
+   - **CRITICAL**: Explicitly define what this skill produces
+   - Files created, code changes, documentation, etc.
+
+5. **Related Skills** (H2):
+   - Links to related skills and technologies
+
+**Optional Sections**:
+- Prerequisites
+- Common Pitfalls
+- Success Criteria
+- Code graph query patterns (if applicable)
+
+**Heading Hierarchy**: Single H1 → H2 → H3 → H4 (can be longer than MDC rules)
+
+### 4.3 Commands Structure
+
+**Required Sections**:
+
+1. **Usage** (H2):
+   - How to invoke: `/command-name`
+
+2. **What it does** (H2):
+   - Numbered list of actions performed
+
+**Optional Sections**:
+- Examples
+- Review Checklist
+- Parameters (if command accepts arguments)
+
+**Heading Hierarchy**: Single H1 → H2 → H3 (keep concise)
+
+### 4.4 Agents Structure
+
+**Required Sections**:
+
+1. **Your Mission** (H2):
+   - What the agent does
+   - Key principles/rules
+
+2. **Prerequisites** (H2, if applicable):
+   - What must be completed first
+
+**Optional Sections**:
+- Common Tasks
+- Quality Standards
+- Reporting
+- Common Pitfalls
+- References to Skills (e.g., "Follow the `/skill-name` skill methodology")
+
+**Heading Hierarchy**: Single H1 → H2 → H3 (agent personality and capabilities)
+
+### 4.5 Chaining & Cross-References
+
+- **MDC Rules**: Use `@fetch_rules <filename>` for loading related rules
+- **Skills**: Reference other skills via `.cursor/rules/shared/skills/` (technology-specific guides can be added as needed)
+- **Agents**: Reference skills via `.cursor/rules/shared/skills/{skill-name}/SKILL.md`
+- **Commands**: Can reference skills or agents in documentation
+
+---
+
+## 4. File Naming & Organization
+
+### File Naming Rules
+
+- **Extension**: Always use `.mdc`
+- **Case**: Lowercase only
+- **Separator**: Hyphens (`-`) not underscores or camelCase
+- **No spaces**: Use hyphens instead
+- **Descriptive**: Name reflects content/purpose
+- **Examples**:
+  - Good: `error-handling-patterns.mdc`
+  - Good: `scala-code-style.mdc`
+  - Bad: `ErrorHandling.mdc` (camelCase)
+  - Bad: `error_handling.mdc` (underscores)
+  - Bad: `error handling.mdc` (spaces)
+
+### Directory Organization
+
+- Group by domain: `scala/`, `python/`, `tools/`, `generic/`
+- Use subdirectories for categories: `scala/language/`, `scala/testing/`
+- Keep related rules together
+- Use `**/*.mdc` globs to match nested files
+
+---
+
+## 5. Writing Guidelines (Do's and Don'ts)
+
+### DO
+
+- Use **imperative verbs**: "Verify", "Run", "Stop", "Report".
+- Use **Checklists**: `[ ] Step 1`, `[ ] Step 2`.
+- Define **Failure States**: "If query returns 0 results, FAIL FAST."
+- Focus on **"How"**: specific tools, commands, and verification steps.
+- Enforce **Fact-Checking**: "Verify via [Tool] or [Search] before claiming X."
+- Mandate **Questions**: "If Y is ambiguous, ASK the user."
+- Use **active voice**: "Run the test" not "The test should be run".
+- Keep **sentences short**: One idea per sentence (3-5 sentences per paragraph max).
+- Use **descriptive link text**: "See error handling guide" not "click here".
+- Include **alt text** for images (if any): `![Description](image.png)`.
+- **Remove emojis**: Use text labels instead (Good:, Bad:, CRITICAL:, 1st, 2nd, etc.)
+
+### DO NOT
+
+- Write narratives or "stories".
+- Use polite hedging ("You should probably...", "Please try...").
+- Duplicate content found in other rules (Link it instead!).
+- Create "kitchen sink" rules that cover 5 different topics.
+- Allow **Assumptions**: "Assume standard port" → NO. "Check config for port" → YES.
+- Use **passive voice**: "The code was written" → NO. "Write the code" → YES.
+- Skip **heading levels**: H2 → H4 (missing H3) → NO.
+- Use **vague link text**: "click here" → NO. "See error handling guide" → YES.
+- **Use emojis**: Remove all emojis (⚠️, ✅, ❌, 🥇, 🥈, 🥉, 🚨, etc.) from rules
+
+---
+
+## 6. Formatting Standards
+
+### Markdown Syntax
+
+- **Headings**: Use ATX style (`#`, `##`, `###`) uniformly
+- **Lists**: Use hyphens (`-`) for unordered lists, consistent indentation (2 spaces)
+- **Code blocks**: Fenced code blocks (```) with language specifier
+- **Inline code**: Use backticks for `code`, `variables`, `file-names`
+- **Bold**: Use `**bold**` for emphasis, key terms, principles
+- **Blank lines**: Separate headings, lists, code blocks with blank lines
+
+### Line Length & Spacing
+
+- **Line length**: Keep under 80-100 characters (allows longer for URLs)
+- **Blank lines**: 
+  - Before and after headings
+  - Before and after lists
+  - Before and after code blocks
+  - Between paragraphs
+- **No trailing whitespace**: Remove spaces at end of lines
+
+### Code Examples
+
+- **Language tags**: Always specify language in fenced blocks
+- **Good examples**: Show positive patterns first (use "Good:" not emojis)
+- **Bad examples**: Show negative patterns with explanation (use "Bad:" not emojis)
+- **Comments**: Include brief comments explaining key points
+- **Realistic**: Use meaningful variable names, not `foo`/`bar`
+
+### Good Code Example
+
+```scala
+// Good: Option makes nullability explicit
+def findUser(id: String): Option[User] = {
+  if (exists(id)) Some(getUser(id))
+  else None
+}
+```
+
+### Bad Code Example
+
+```scala
+// Bad: Nullable return - compiler can't track this!
+def findUser(id: String): User = null
+```
+
+### Emoji Usage Rules
+
+**CRITICAL: Do NOT use emojis in MDC rules**
+
+- **Why**: Emojis add noise, reduce readability, and don't help LLMs understand content
+- **Agent-centric writing**: LLMs parse text, not visual decorations
+- **Consistency**: Plain text is more maintainable and professional
+- **Accessibility**: Screen readers may not handle emojis well
+
+**Examples of what to avoid:**
+- ❌ `## ⚠️ CRITICAL: Combined Methodology`
+- ✅ `## CRITICAL: Combined Methodology`
+
+- ❌ `| 🥇 **1st** | Tool | Purpose |`
+- ✅ `| **1st** | Tool | Purpose |`
+
+- ❌ `- ✅ Use imperative verbs`
+- ✅ `- Use imperative verbs`
+
+- ❌ `### ✅ Positive Pattern`
+- ✅ `### Positive Pattern`
+
+- ❌ `### ❌ Negative Pattern`
+- ✅ `### Negative Pattern`
+
+**When editing rules:**
+1. **Remove all emojis** from headings, tables, lists, and examples
+2. **Use text labels** instead: "Good:", "Bad:", "CRITICAL:", "1st", "2nd", etc.
+3. **Verify**: Search for common emoji patterns before committing
+4. **Consistency**: Apply this rule to ALL MDC files
+
+---
+
+## 7. Glob Patterns
+
+### Glob Pattern Rules
+
+- **Be specific**: Avoid `**/*` unless root orchestrator
+- **Match intent**: `["**/*.scala"]` for Scala rules, `["**/*.mdc"]` for MDC rules
+- **Multiple patterns**: Use array: `["**/*.scala", "**/*.sc"]`
+- **Subdirectories**: `folder/**/*.mdc` matches all `.mdc` files in `folder/` and subdirs
+- **Examples**:
+  - Good: `["**/*.scala"]` - All Scala files
+  - Good: `["**/*.mdc"]` - All MDC files (meta-rule)
+  - Good: `["src/**/*.ts", "test/**/*.ts"]` - TypeScript in specific dirs
+  - Bad: `["**/*"]` - Too broad (unless root router)
+
+---
+
+## 8. Cross-Referencing & Chaining
+
+### Referencing Other Rules
+
+- **Use `@fetch_rules`**: `@fetch_rules <filename>` for loading related rules
+- **Relative paths**: Use relative paths for links: `[Error Handling](error-handling-patterns.mdc)`
+- **Descriptive links**: "See [Error Handling Patterns](error-handling-patterns.mdc)" not "click here"
+- **Avoid duplication**: Link to existing rules instead of copying content
+
+### Chaining Example
+
+```markdown
+## Related Rules
+
+For database queries, load `@fetch_rules trino-mcp-usage-guide.mdc`.
+For error handling, see [Error Handling Patterns](error-handling-patterns.mdc).
+```
+
+---
+
+## 9. Versioning & Maintenance
+
+### Versioning Rules
+
+- **Semantic versioning**: Use `MAJOR.MINOR.PATCH` format
+  - **MAJOR**: Breaking changes (removed fields, changed behavior)
+  - **MINOR**: New features, additions (backward compatible)
+  - **PATCH**: Bug fixes, clarifications
+- **Update dates**: Set `last_updated` when modifying
+- **Changelog**: Document breaking changes in commit messages
+
+### Maintenance Checklist
+
+- [ ] Frontmatter includes all required fields
+- [ ] `last_updated` date is current
+- [ ] Links are valid (no broken references)
+- [ ] Examples are still accurate
+- [ ] No duplicate content (link instead)
+- [ ] File length < 100 lines (or justified if longer)
+
+---
+
+## 10. Testing & Validation
+
+### Validation Checklist
+
+Before committing an MDC file, verify:
+
+- [ ] **Frontmatter valid**: YAML syntax correct, required fields present
+- [ ] **Globs specific**: Not using `**/*` unless root router
+- [ ] **Heading hierarchy**: Single H1, no skipped levels
+- [ ] **Line length**: Under 80-100 characters
+- [ ] **Blank lines**: Proper spacing around headings/lists/code
+- [ ] **Links valid**: All internal links work
+- [ ] **Examples**: Both good and bad patterns included (no emojis)
+- [ ] **No assumptions**: All instructions are explicit
+- [ ] **No emojis**: All emojis removed from headings, tables, lists, examples
+
+### Automated Checks (Recommended)
+
+- **Linting**: Use `markdownlint` or similar for syntax
+- **Link checking**: Validate internal references
+- **Frontmatter validation**: Ensure required fields present
+- **CI/CD**: Run checks on PRs
+
+---
+
+## 11. Quick Reference: File Type Decision Tree
+
+```
+Need to create a new file? Ask:
+
+1. Is it a custom slash command (/command-name)?
+   → YES: Create COMMAND (.md in commands/, no frontmatter)
+   
+2. Is it a subagent for specialized tasks?
+   → YES: Create AGENT (.md in agents/, frontmatter with name/tools/model)
+   
+3. Is it a dynamic capability invoked via /skill-name?
+   → YES: Create SKILL (SKILL.md in skills/{name}/, frontmatter with description/globs)
+   → **CRITICAL**: BEFORE creating ANY skill:
+     1. Check if `/skill-creator` skill is available (try invoking it)
+     2. If available, use `/skill-creator` to guide the creation process
+     3. If not available, follow this style guide and existing skill examples
+     4. Include all "when to use" information in frontmatter `description` field (not in body)
+     5. Keep content concise - Claude is already smart, only add non-obvious information
+   
+4. Is it a context-triggered or always-on rule?
+   → YES: Create MDC RULE (.mdc in rules/, frontmatter with description/globs/alwaysApply)
+```
+
+### File Type Comparison Table
+
+| Aspect | MDC Rules | Skills | Commands | Agents |
+|--------|-----------|--------|----------|--------|
+| **Extension** | `.mdc` | `SKILL.md` | `.md` | `.md` |
+| **Location** | `rules/` | `skills/{name}/` | `commands/` | `agents/` |
+| **Frontmatter** | Yes (description/globs) | Yes (name/description) | No | Yes (name/description/model) |
+| **Invocation** | Auto (globs) or manual | `/skill-name` or auto | `/command-name` | Via agent delegation |
+| **Length** | <100 lines | <500 lines | 50-100 lines | Variable |
+| **Focus** | Rules/guidelines | Processes/methodologies | Workflows | Personality/capabilities |
+| **Output** | N/A | Explicitly defined | N/A | Task completion |
+
+---
+
+## 12. The Golden Templates
+
+### 12.1 MDC Rule Template
+
+```markdown
+---
+description: [Action] [Subject] - Brief summary (max 200 chars)
+globs: ["path/to/relevant/files/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "YYYY-MM-DD"
+tags: ["category1", "category2"]
+---
+
+# [Rule Name]
+
+## Triggers
+**APPLY WHEN:** [Specific intent, e.g., "User asks to refactor"]
+**SKIP WHEN:** [Exclusion criteria, e.g., "User asks for code review"]
+
+## Core Directive
+**[The Bottom Line]**: [One sentence summary of the most important rule].
+
+## Process
+
+1. **Step 1**: [Action]
+2. **Verification**: [Check - "Verify X before Y"]
+3. **Error Handling**: If [Fail condition] → [Stop/Fix action]
+
+## Examples
+
+### Positive Pattern
+
+```language
+// Good code example with explanation
+```
+
+### Negative Pattern
+
+```language
+// Bad code example with explanation of why it's wrong
+```
+
+## Related Rules
+
+- See `@fetch_rules <related-rule.mdc>` for [related topic]
+- See [Other Rule](other-rule.mdc) for [other topic]
+```
+
+### 12.2 Skill Template
+
+Skills fall into three categories. Choose the right template:
+
+#### Category A: Knowledge Skills (Static Reference)
+For coding patterns, standards, and conventions the agent should know.
+
+```markdown
+---
+name: error-handling-patterns
+description: Error handling patterns for Scala using Option, Either, and Try. Use when writing error handling code or reviewing error handling patterns.
+user-invocable: false
+---
+
+# Error Handling Patterns
+
+## Preferred Patterns
+
+[Patterns, examples, and anti-patterns - agent absorbs this as knowledge]
+
+## Anti-Patterns
+
+[What NOT to do, with explanations]
+```
+
+#### Category B: Process Skills (Guided Workflow)
+For multi-step procedures the agent should follow.
+
+```markdown
+---
+name: service-breakdown
+description: Complete service breakdown methodology. Use when analyzing services before migration or refactoring. Do NOT use for simple code reads or single-file analysis.
+---
+
+# Service Breakdown Analysis
+
+## When to Use This Skill
+
+**USE WHEN:**
+- Analyzing service architecture before migration or refactoring
+- Creating comprehensive service documentation
+
+**DO NOT USE WHEN:**
+- Simple code review (use code-reviewer agent instead)
+- Single-file analysis (just read the file directly)
+
+## Prerequisites
+
+- [ ] [Required tool or access]
+- [ ] [Required context or data]
+
+## Process
+
+### Phase 1: [Phase Name]
+
+1. **Step 1**: [Action]
+2. **Verification**: [What to check before proceeding]
+   - If verification fails: [Recovery action]
+
+### Phase 2: [Phase Name]
+
+[Continue phases - each with verification gates]
+
+## Output
+
+**This skill produces**: [Explicit output description]
+
+## Iteration
+
+If output quality is insufficient:
+1. Identify which phase produced weak results
+2. Re-run that phase with adjusted parameters
+3. Verify improvement before proceeding
+```
+
+#### Category C: Automation Skills (Forked Execution)
+For tasks that should run in an isolated subagent.
+
+```markdown
+---
+name: deep-research
+description: Research a codebase topic thoroughly in a forked context. Use when deep investigation is needed without polluting the main conversation.
+context: fork
+agent: Explore
+allowed-tools: Read, Grep, Glob
+argument-hint: "[topic to research]"
+---
+
+Research "$ARGUMENTS" thoroughly:
+
+1. Find all relevant files using Glob patterns
+2. Search for key terms using Grep
+3. Read and analyze each relevant file
+4. Return a structured summary with file references
+
+Report back with:
+- Key findings (with file:line references)
+- Architecture diagram (if applicable)
+- Recommendations
+```
+
+**Skill Design Principles** (from the Agent Skills Open Standard):
+- **Progressive disclosure**: YAML frontmatter (metadata) -> SKILL.md body (core instructions) -> linked files in `references/` and `scripts/` (detail on demand). Only what's needed gets loaded.
+- **Size budget**: Keep SKILL.md under 500 lines. If longer, move reference material to `references/` subdirectory.
+- **Negative triggers**: Always include "DO NOT USE WHEN" to prevent false activation. This is as important as positive triggers.
+- **Verification gates**: Every multi-step process should have checkpoints where the agent verifies before continuing.
+- **Iteration loop**: Include guidance for what to do when output quality is insufficient.
+- **Single responsibility**: One skill = one capability. Compose skills via agent `skills:` field, not by making mega-skills.
+
+**CRITICAL**: Do NOT include `globs` or `alwaysApply` in skill frontmatter - those are MDC rule properties only.
+
+### 12.3 Command Template
+
+```markdown
+# [Command Name]
+
+[Brief description of what the command does]
+
+## Usage
+
+```
+/[command-name]
+```
+
+## What it does
+
+1. [Action 1]
+2. [Action 2]
+3. [Action 3]
+
+## Example
+
+```
+/[command-name]
+```
+
+[Expected output or behavior]
+```
+
+### 12.4 Agent Template
+
+```markdown
+---
+name: agent-name
+description: [What agent does] - Use proactively for [triggers]. Include specific keywords the parent agent should match on.
+model: sonnet
+tools: Read, Grep, Glob, Bash, Write, Edit
+permissionMode: default
+skills:
+  - relevant-skill-1
+  - relevant-skill-2
+---
+
+# [Agent Name]
+
+You are an expert in [domain].
+
+## Your Mission
+
+[One paragraph: what this agent does and what quality standards it upholds]
+
+## Process
+
+1. **[Step 1]**: [Action with verification]
+2. **[Step 2]**: [Action with verification]
+3. **[Step 3]**: [Action with verification]
+
+## Output
+
+[What this agent produces - be explicit]
+
+## Constraints
+
+- [Hard constraint 1 - things the agent must never do]
+- [Hard constraint 2]
+```
+
+**Subagent Design Principles**:
+- **Preload skills via `skills:` field** instead of telling agents to "read" skill files. This injects the full skill content at startup.
+- **Use `disallowedTools`** instead of `readonly` for fine-grained control (e.g., allow Read but deny Write).
+- **Use `permissionMode: plan`** for read-only explorers instead of `readonly: true`.
+- **Use `maxTurns`** to bound runaway agents (20-30 for most tasks).
+- **Use `memory: project`** for agents that learn from repeated tasks (e.g., code reviewer learning repo conventions).
+
+**Model Guidance**:
+- `haiku`: Exploration, simple searches, test running (~3x faster)
+- `sonnet`: Code review, standard analysis, most tasks (balanced)
+- `opus`: Complex reasoning, architecture decisions, multi-file refactoring (highest quality)
+
+---
+
+## 13. Complete Examples: Good Files
+
+```markdown
+---
+description: Error handling patterns using Option, Either, and Try for safe operations
+globs: ["**/*.scala"]
+alwaysApply: false
+version: "1.2.0"
+last_updated: "2025-01-15"
+tags: ["error-handling", "scala", "patterns"]
+---
+
+# Error Handling Patterns
+
+## Triggers
+**APPLY WHEN:** Writing Scala code that handles potential failures or missing values
+**SKIP WHEN:** Code is already using proper error handling patterns
+
+## Core Directive
+**Use Option, Either, or Try** - Never use null or throw exceptions for control flow.
+
+## Process
+
+1. **Identify failure mode**: Missing value → Option, Business error → Either, Exception → Try
+2. **Verify**: Check if existing code already handles this case
+3. **Error Handling**: If pattern unclear → ASK user for clarification
+
+## Examples
+
+### Positive Pattern
+
+```scala
+// Good: Option makes nullability explicit
+def findUser(id: String): Option[User] = {
+  if (exists(id)) Some(getUser(id))
+  else None
+}
+```
+
+### Negative Pattern
+
+```scala
+// Bad: Nullable return - compiler can't track this!
+def findUser(id: String): User = null
+```
+
+## Related Rules
+
+- See `@fetch_rules validation-and-safe-operations.mdc` for validation patterns
+- See [Referential Transparency](referential-transparency.mdc) for pure functions
+```
+
+---
+
+## 14. Common Mistakes to Avoid
+
+### Mistake 1: Vague Descriptions
+
+```yaml
+# Bad
+description: Error handling
+
+# Good
+description: Error handling patterns using Option, Either, and Try for safe operations
+```
+
+### Mistake 2: Too-Broad Globs
+
+```yaml
+# Bad
+globs: ["**/*"]
+
+# Good
+globs: ["**/*.scala"]
+```
+
+### Mistake 3: Missing Examples
+
+```markdown
+# Bad: Only explains concept
+Use Option for missing values.
+
+# Good: Shows both patterns
+### Positive Pattern
+def find(id: String): Option[User] = ...
+
+### Negative Pattern
+def find(id: String): User = null  // Don't do this!
+```
+
+### Mistake 4: Skipping Heading Levels
+
+```markdown
+# Bad
+## Section 1
+#### Subsection 1.1  # Skipped H3!
+
+# Good
+## Section 1
+### Subsection 1.1
+#### Detail 1.1.1
+```
+
+### Mistake 5: Using Emojis
+
+```markdown
+# Bad: Emojis add noise and reduce readability
+## ⚠️ CRITICAL: Combined Methodology
+| 🥇 **1st** | Tool | Purpose |
+- ✅ Use imperative verbs
+### ❌ Negative Pattern
+
+# Good: Plain text is clearer and more professional
+## CRITICAL: Combined Methodology
+| **1st** | Tool | Purpose |
+- Use imperative verbs
+### Negative Pattern
+```
+
+---
+
+## 15. Validation Checklist (By File Type)
+
+### MDC Rules Checklist
+- [ ] Frontmatter includes `description`, `globs`, `alwaysApply`
+- [ ] Triggers section (APPLY WHEN / SKIP WHEN)
+- [ ] Core Directive section
+- [ ] Process section with numbered steps
+- [ ] Examples (positive and negative)
+- [ ] File length < 100 lines (or justified)
+- [ ] No emojis
+
+### Skills Checklist
+- [ ] Frontmatter includes `name` (required) and `description` (required)
+- [ ] Frontmatter does NOT include `globs` or `alwaysApply` (these are rule properties)
+- [ ] `name` matches parent folder name (lowercase, hyphens)
+- [ ] `description` includes "when to use" information (agent reads this for relevance)
+- [ ] "When to Use This Skill" section (APPLY WHEN / SKIP WHEN)
+- [ ] Core Directive section
+- [ ] Process section (can be multiple phases)
+- [ ] **Output section** (CRITICAL - explicitly defines what skill produces)
+- [ ] Related Skills section
+- [ ] Success Criteria section
+- [ ] No emojis
+
+### Commands Checklist
+- [ ] **No frontmatter** (starts with H1)
+- [ ] Usage section showing `/command-name`
+- [ ] "What it does" section (numbered list)
+- [ ] Example section
+- [ ] File length 50-100 lines
+- [ ] No emojis
+
+### Agents Checklist
+- [ ] Frontmatter includes `name` (required) and `description` (required)
+- [ ] `description` is specific and includes "when to use" information
+- [ ] Optional fields: `model` (inherit/fast/specific), `readonly`, `is_background`, `tools`
+- [ ] "Your Mission" section
+- [ ] References to related skills (if applicable)
+- [ ] Prerequisites section (if applicable)
+- [ ] Common Tasks section
+- [ ] Quality Standards section
+- [ ] No emojis
+
+### Hooks Checklist
+- [ ] JSON format (not YAML)
+- [ ] Includes `version: 1` and `hooks` object
+- [ ] Hook scripts are executable (`chmod +x`)
+- [ ] Script paths are correct (relative to project root for project hooks)
+- [ ] Timeout values are reasonable
+- [ ] Matchers are appropriate for hook type
+- [ ] Scripts handle JSON input/output correctly
+- [ ] Exit codes are correct (0=success, 2=block)
+
+### MCP Configuration Checklist
+- [ ] JSON format (not YAML)
+- [ ] Includes `mcpServers` object
+- [ ] Server names are lowercase with hyphens
+- [ ] Remote servers have `url` field
+- [ ] STDIO servers have `command` and optionally `args`
+- [ ] Environment variables use interpolation (`${env:NAME}`)
+- [ ] OAuth config uses `auth` object (if needed)
+- [ ] `disabled` field used to disable without removing
+
+---
+
+## 16. Sources & References
+
+This guide incorporates best practices from:
+
+- **Official Cursor Documentation**:
+  - [Rules](https://cursor.com/docs/context/rules)
+  - [Skills](https://cursor.com/docs/context/skills)
+  - [Commands](https://cursor.com/docs/context/commands)
+  - [Subagents](https://cursor.com/docs/context/subagents)
+  - [Hooks](https://cursor.com/docs/agent/hooks)
+  - [MCP](https://cursor.com/docs/context/mcp)
+- **Community**: Cursor forum discussions, Reddit r/cursor, cursor.fan tutorials
+- **Style Guides**: Google Markdown Style Guide, CommonMark spec
+- **Blogs**: Markdown best practices from trusted technical blogs
+- **Experience**: Real-world patterns from production rule files
+
+---
+
+**Remember**: 
+- **MDC Rules**: Short, focused, actionable. Write for LLMs, not humans.
+- **Skills**: Detailed methodologies with explicit outputs. Use `name` and `description` only - NO `globs` or `alwaysApply`.
+- **Commands**: Concise workflows for specific tasks. No frontmatter.
+- **Agents**: Specialized personalities with tool access. Use `name`, `description`, `model`, `readonly`, `is_background`.
+- **Hooks**: JSON configuration for automated enforcement. Scripts must handle JSON I/O.
+- **MCP**: JSON configuration for external tool integration. Supports stdio and HTTP/SSE transports.
+- **All Types**: Verify facts, never guess. Remove emojis.

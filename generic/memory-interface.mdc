@@ -1,0 +1,32 @@
+---
+description: "Enforce persistent session memory for complex multi-step tasks. Use when starting multi-step tasks, refactoring, or significant code changes. Do NOT use for simple single-file edits."
+globs: []
+alwaysApply: false
+---
+
+# Memory Interface
+
+**Purpose**: Enforce the use of persistent session memory for complex tasks.
+
+**Trigger**: When starting a task involving multiple steps, refactoring, or significant code changes.
+
+## Rule
+You have a persistent memory file at `.cursor/memory/active_context.md`.
+
+1.  **READ** this file at the start of every complex task to understand the current state.
+2.  **UPDATE** this file before finishing a major step or ending the session.
+
+## File Location
+- Path: `.cursor/memory/active_context.md`
+- Infrastructure: This file is local to the user's workspace and is NOT committed to git.
+
+## Usage
+Use the `read_file` tool to read it.
+Use the `Write` tool to update it (overwriting with the new state).
+
+## Content Structure
+Keep the file structured with:
+- `# Active Context`
+- `## Current Focus`
+- `## Recent Decisions`
+- `## Scratchpad`

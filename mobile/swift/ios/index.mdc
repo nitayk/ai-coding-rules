@@ -1,0 +1,47 @@
+---
+description: "iOS Swift development patterns index - best practices and performance optimization. Use when: (1) iOS development, (2) iOS architecture, (3) iOS performance, (4) SwiftUI patterns. Points to iOS pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# iOS Swift Development Patterns Index
+
+**Purpose**: Router for iOS Swift patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **ios**, ios development, ios architecture, mvvm ios, swiftui, uikit | `ios-best-practices.mdc` |
+| **ios performance**, ios memory management, instruments, swiftui performance | `ios-performance.mdc` |
+
+---
+
+## iOS Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [iOS Best Practices](ios-best-practices.mdc) | MVVM, UIKit/SwiftUI, memory management | ios, ios development, ios architecture, swiftui |
+| [iOS Performance](ios-performance.mdc) | Memory management, profiling, Instruments, SwiftUI performance | ios performance, ios memory management, instruments |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| iOS best practices | `ios-best-practices.mdc` |
+| iOS performance | `ios-performance.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for Swift language patterns
+- **Build Tools**: See `.cursor/rules/shared/mobile/cocoapods/index.mdc` for CocoaPods patterns

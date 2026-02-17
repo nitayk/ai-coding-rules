@@ -1,0 +1,266 @@
+---
+description: "Design small, focused interfaces - prefer single-method interfaces, compose when needed. Use when: (1) Designing Go interfaces, (2) Creating abstractions, (3) Following Go interface principles, (4) Composing interfaces, (5) Writing idiomatic Go. Covers small interfaces, interface composition, and Go interface best practices."
+globs: []
+alwaysApply: false
+---
+
+# Small Interfaces
+
+Design interfaces to be small and focused. Prefer single-method interfaces. Compose larger interfaces only when needed.
+
+---
+
+## Prefer Single-Method Interfaces
+
+**Small interfaces are easier to implement and more flexible:**
+
+```go
+// ✅ Good: Single-method interface (like stdlib)
+type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+type Closer interface {
+    Close() error
+}
+
+// ❌ Bad: Large interface with many methods
+type FileOperations interface {
+    Read(p []byte) (n int, err error)
+    Write(p []byte) (n int, err error)
+    Close() error
+    Seek(offset int64, whence int) (int64, error)
+    Stat() (FileInfo, error)
+    // ... many more methods
+}
+```
+
+**Benefits:**
+- Easier to implement (only one method needed)
+- More flexible - many types can satisfy it
+- Better testability - simple mocks
+- Follows Go stdlib pattern (`io.Reader`, `io.Writer`, `fmt.Stringer`)
+
+---
+
+## Compose Interfaces When Needed
+
+**Combine small interfaces into larger ones when callers need multiple behaviors:**
+
+```go
+// ✅ Good: Compose small interfaces
+type ReadCloser interface {
+    Reader
+    Closer
+}
+
+type ReadWriteCloser interface {
+    Reader
+    Writer
+    Closer
+}
+
+// Usage - can pass anything that implements both Reader and Closer
+func processStream(rc ReadCloser) error {
+    data := make([]byte, 1024)
+    n, err := rc.Read(data)
+    if err != nil {
+        return err
+    }
+    defer rc.Close()
+    return process(data[:n])
+}
+```
+
+---
+
+## Define Interfaces at Point of Use
+
+**Define interfaces where they're used, not where implementations live:**
+
+```go
+// ✅ Good: Interface defined where it's used
+package service
+
+// Define interface in the package that uses it
+type UserRepository interface {
+    FindByID(id int) (*User, error)
+}
+
+func ProcessUser(repo UserRepository, id int) (*User, error) {
+    return repo.FindByID(id)
+}
+
+// Implementation lives elsewhere
+package database
+
+type UserDB struct { /* ... */ }
+
+func (db *UserDB) FindByID(id int) (*User, error) {
+    // Implementation
+}
+
+// ❌ Bad: Interface defined with implementation
+package database
+
+type UserRepository interface {
+    FindByID(id int) (*User, error)
+}
+
+type UserDB struct { /* ... */ }
+
+func (db *UserDB) FindByID(id int) (*User, error) {
+    // Implementation
+}
+```
+
+**Why:**
+- Keeps interfaces close to their consumers
+- Reduces coupling between packages
+- Allows multiple implementations without import cycles
+
+---
+
+## Accept Interfaces, Return Concrete Types
+
+**Functions should accept interfaces but return concrete types:**
+
+```go
+// ✅ Good: Accept interface, return concrete type
+func ProcessData(r io.Reader) (*ProcessedData, error) {
+    data, err := io.ReadAll(r)
+    if err != nil {
+        return nil, err
+    }
+    return &ProcessedData{Data: data}, nil
+}
+
+// Callers can pass any Reader
+func main() {
+    file, _ := os.Open("data.txt")
+    defer file.Close()
+    
+    result, _ := ProcessData(file)  // file implements io.Reader
+    
+    buffer := bytes.NewBufferString("data")
+    result, _ := ProcessData(buffer)  // buffer also implements io.Reader
+}
+
+// ❌ Bad: Return interface (loses type information)
+func ProcessData(r io.Reader) (io.Reader, error) {
+    // Caller doesn't know what concrete type they get
+}
+```
+
+---
+
+## Start Small, Grow When Needed
+
+**Begin with minimal interface, add methods only when required:**
+
+```go
+// ✅ Good: Start with smallest interface
+type Validator interface {
+    Validate(data []byte) error
+}
+
+// Later, if needed, add methods
+type AdvancedValidator interface {
+    Validator
+    ValidateWithContext(ctx context.Context, data []byte) error
+}
+
+// ❌ Bad: Large interface from the start
+type Validator interface {
+    Validate(data []byte) error
+    ValidateWithContext(ctx context.Context, data []byte) error
+    ValidateAsync(data []byte) <-chan error
+    ValidateBatch(items [][]byte) []error
+    // ... many methods that may never be used
+}
+```
+
+---
+
+## Use Interface Names Ending in -er
+
+**Single-method interfaces should end in -er:**
+
+```go
+// ✅ Good: Interface names ending in -er
+type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+type Stringer interface {
+    String() string
+}
+
+type Validator interface {
+    Validate(data []byte) error
+}
+
+// ❌ Bad: Non-standard naming
+type Read interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Validation interface {
+    Validate(data []byte) error
+}
+```
+
+---
+
+## Avoid Interface Pollution
+
+**Don't create interfaces "just in case" - create them when you need them:**
+
+```go
+// ❌ Bad: Creating interface before it's needed
+type UserService interface {
+    GetUser(id int) (*User, error)
+    CreateUser(user *User) error
+    UpdateUser(user *User) error
+    DeleteUser(id int) error
+}
+
+// Better: Start with concrete type
+type UserService struct {
+    repo *UserRepository
+}
+
+func (s *UserService) GetUser(id int) (*User, error) {
+    return s.repo.FindByID(id)
+}
+
+// Create interface only when you need to mock or abstract
+// (e.g., for testing or dependency injection)
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal SOLID principles (Interface Segregation Principle)
+
+**Go-Specific:**
+- [Idiomatic Error Handling](idiomatic-error-handling.mdc) - Error handling patterns
+- [Error Handling Patterns](error-handling-patterns.mdc) - Basic error handling
+
+---
+
+## References
+
+- [Dave Cheney: Small Ideas](https://dave.cheney.net/category/small-ideas)
+- [Dave Cheney: SOLID Go Design](https://dave.cheney.net/2016/08/20/solid-go-design)
+- [Effective Go: Interfaces](https://go.dev/doc/effective_go#interfaces)

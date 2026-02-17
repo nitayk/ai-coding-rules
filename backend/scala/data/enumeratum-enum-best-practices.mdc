@@ -1,0 +1,69 @@
+---
+description: "Best practices for using enumeratum type-safe enums in Scala. Use when: (1) Creating type-safe enums, (2) Enums with values, (3) Enums needing serialization support, (4) Replacing string constants, (5) Enums with additional methods. Covers enumeratum patterns, value enums, and integration with JSON/formats."
+globs: []
+alwaysApply: false
+---
+
+- **Always use `enumeratum` for type-safe enums**: Avoid string-based or primitive comparisons in pattern matching.  
+  ```scala
+  import enumeratum.{Enum, EnumEntry, PlayLowercaseJsonEnum}
+  import enumeratum.EnumEntry.Lowercase
+  
+  sealed trait Status extends EnumEntry with Lowercase
+  object Status extends Enum[Status] with PlayLowercaseJsonEnum[Status] {
+    case object Active extends Status
+    case object Inactive extends Status
+    val values: immutable.IndexedSeq[Status] = findValues
+  }
+  ```
+
+- **Consistent enum naming conventions**:  
+  - Use `PascalCase` for enum trait and object names  
+  - Use `PascalCase` for case objects  
+  - Always extend appropriate mixins (`Lowercase`, `Uppercase`)  
+  - Always include `PlayLowercaseJsonEnum` or `PlayUppercaseJsonEnum` for JSON serialization
+
+- **Pattern match on enums, never on strings**:  
+  ```scala
+  // ✅ Good: Type-safe pattern matching
+  status match {
+    case Status.Active => handleActive()
+    case Status.Inactive => handleInactive()
+  }
+  
+  // ❌ Bad: String-based comparison
+  statusString match {
+    case "active" => handleActive()
+    case "inactive" => handleInactive()
+  }
+  ```
+
+- **Use `withNameOption` for safe string-to-enum conversion**:  
+  ```scala
+  // ✅ Good: Safe conversion with Option
+  Environment.withNameInsensitiveOption(envString) match {
+    case Some(env) => proceed(env)
+    case None => handleInvalidEnv()
+  }
+  
+  // ❌ Bad: Unsafe conversion that can throw
+  val env = Environment.withName(envString) // Can throw NoSuchElementException
+  ```
+
+- **Always include `findValues` in enum companion objects** for proper enumeration discovery.
+
+- **Use appropriate case conventions**:  
+  - `Lowercase` for most business domain enums  
+  - `Uppercase` for log levels and technical constants  
+  - Choose JSON enum variants that match your API conventions
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Scala-Specific:**
+- This file provides Scala-specific enumeratum enum patterns (type-safe enums, pattern matching, JSON serialization)
+- [Scala Complex Enum Best Practices](scala-complex-enum-best-practices.mdc) - Complex enum patterns with sealed traits

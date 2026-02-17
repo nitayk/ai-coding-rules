@@ -1,0 +1,76 @@
+---
+description: "Patterns for semantic code analysis - identifying modality and downstream deception. Use when: (1) Analyzing code semantics, (2) Investigating code behavior, (3) Identifying modality patterns, (4) Detecting downstream deception, (5) Understanding code intent. Covers semantic analysis patterns, modality identification, and code behavior investigation."
+globs: []
+alwaysApply: false
+version: "2.1.0"
+last_updated: "2025-01-21"
+tags: ["analysis", "patterns", "concepts", "scala"]
+---
+
+# Semantic Code Analysis: Beyond the Audit
+
+**Goal**: Move from "I read the files" to "I understand the architectural truth and maintenance risks."
+
+---
+
+## 1. The "Modality" Check
+
+When analyzing state resolution, don't just find the code. Determine the **Modality**:
+
+| Modality | Type | Characteristic | Why? |
+|:---|:---|:---|:---|
+| **Lazy Pull** | Standard | Executed anywhere, on-demand. | Simplicity, local context. |
+| **Scheduled Push** | Constrained | **MUST** be executed in a specific stage. | Infrastructure dependencies, batching requirements. |
+
+**🚨 Warning**: If you see a `memo.memoize()` or `inject()` call in an early stage, it is likely a **Scheduled Push**. You must identify if this is a choice or a hard architectural constraint (e.g., TF/Triton infrastructure).
+
+---
+
+## 2. Detecting "Downstream Deception"
+
+Identifying where the code "lies" to future readers is critical for maintenance risk assessment.
+
+**The "Deception" Audit Pattern**:
+1.  **Find the Mutators**: Search for `.modify`, `.copy`, or `.inject` on core domain objects (e.g., `DSDemand`, `World`).
+2.  **Trace the Consumers**: Find the "Victims"—downstream code that reads the mutated field.
+3.  **Assess the Gap**: If a developer reading the Victim code would have no idea the value was overridden by a "Shadow" layer (like SKAN or Elasticity), **document it as a High Maintenance Risk**.
+
+---
+
+## 3. Synthesis Over Auditing
+
+**❌ Audit Approach**: "I read `EconomicValueEvaluator.scala` and it calculates ER."
+**✅ Semantic Approach**: "The ER calculation in `EconomicValueEvaluator.scala` is semantically deceptive. While it looks like a simple formula, the probability is a **Scheduled Push** from an async batcher, and the payout is frequently hijacked by a SKAN lookup table."
+
+### Key Questions to Ask Yourself:
+*   "Is this value really what it says it is, or was it hijacked earlier?"
+*   "Can this logic be called anywhere, or is it trapped in a specific stage?"
+*   "What would a new developer misunderstand if they only read this specific file?"
+
+---
+
+## 4. Common Failure Modes (What to avoid)
+
+**1. "God Object" Bias**
+*   **The Trap**: Seeing a 1000+ line file and assuming it's just "legacy mess."
+*   **The Miss**: Failing to see the robust logical layering hidden within the massive class.
+*   **The Fix**: Ignore file size; trace the **Execution Funnel** instead. Large files often contain the service's "Sequential Highway."
+
+**2. Shallow Entry-Point Tracing**
+*   **The Trap**: Analyzing the service's `Main.scala` or initialization and stopping there.
+*   **The Miss**: Missing the hand-off to the actual request-handling logic (e.g., `TargetingDecisionStrategyRunner`).
+*   **The Fix**: Follow the data! Don't stop at "Service started"; continue until "Response returned."
+
+**3. Bureaucratic Auditing (The "100% Myth")**
+*   **The Trap**: Reading 193 files and claiming 100% coverage because the "Files Read" counter matches.
+*   **The Miss**: Reading literal lines without synthesizing how those lines interact across modules (Semantic Synthesis).
+*   **The Fix**: Acknowledge that reading ≠ understanding. Your investigation log must show **Cross-Module Synthesis**, not just a file list.
+
+---
+
+## 5. Practical Tooling (The "Graph Analysis + Grep" Synergy)
+
+*   **Code graph tools**: Use to find the **Explicit Call Graph** (the physical truth).
+*   **Grep**: Use to find the **Semantic Collisions** (e.g., search for the same variable name being used in different stages to find where the "Truth" changes).
+
+**Reference**: Every investigation should result in an enriched understanding that combines code structure with these semantic insights.

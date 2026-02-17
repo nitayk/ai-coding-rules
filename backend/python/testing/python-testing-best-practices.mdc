@@ -1,0 +1,374 @@
+---
+description: "Python testing best practices using pytest framework. Use when: (1) Writing Python tests, (2) Using pytest, (3) Structuring test files, (4) Writing test fixtures, (5) Organizing test code. Covers pytest patterns, fixtures, test organization, and Python testing conventions."
+globs: []
+alwaysApply: false
+---
+
+# Python Testing Best Practices
+
+Critical testing patterns to ensure tests actually verify behavior, not just that code runs.
+
+---
+
+## 🚨 The #1 Testing Anti-Pattern: Testing Structure, Not Behavior
+
+**This bug pattern cost us hours of debugging!**
+
+```python
+# ❌ BAD: Tests dataclass creation, NOT the logic that populates it
+def test_method_info_creation():
+    method = MethodInfo(
+        name="myMethod",
+        is_compiler_generated=False,  # ← HARDCODED! Parser never tested!
+    )
+    assert method.name == "myMethod"
+    assert method.is_compiler_generated == False  # Tests NOTHING useful!
+```
+
+```python
+# ✅ GOOD: Tests the LOGIC that determines if a method is compiler-generated
+def test_product_trait_methods_marked_as_generated():
+    """Product trait methods should be marked as compiler-generated."""
+    parser = SemanticDBParser(Path("/tmp"))
+    
+    # Create mock input (not hardcoded output!)
+    doc = create_mock_semanticdb_document()
+    add_trait_with_productIterator(doc)  # Non-case-class!
+    
+    # Let the parser COMPUTE the result
+    classes = parser._extract_classes(doc)
+    methods = parser._extract_methods(doc, classes)
+    
+    # Verify the LOGIC worked correctly
+    assert len(methods) == 1
+    assert methods[0].name == "productIterator"
+    assert methods[0].is_compiler_generated is True  # Key assertion!
+    assert methods[0].generation_reason == "product_trait"
+```
+
+**The bug we caught**: `productIterator` methods in non-case-classes were NOT being marked as `is_compiler_generated=True` because the parser only checked case classes. 7,661 boilerplate methods leaked into the graph!
+
+---
+
+## Test Categories & Their Purpose
+
+### 1. Unit Tests: Test Logic in Isolation
+
+```python
+# ✅ GOOD: Tests specific logic condition
+def test_should_skip_method_with_default_pattern():
+    """Methods with $default$ should be skipped."""
+    assert SemanticDBProcessor._should_skip_method("copy$default$1") is True
+    assert SemanticDBProcessor._should_skip_method("copy$default$99") is True
+    assert SemanticDBProcessor._should_skip_method("apply$default$3") is True
+    
+def test_should_skip_method_regular_methods():
+    """Regular methods should NOT be skipped."""
+    assert SemanticDBProcessor._should_skip_method("processRequest") is False
+    assert SemanticDBProcessor._should_skip_method("calculateScore") is False
+```
+
+### 2. Integration Tests: Test Component Interactions
+
+```python
+# ✅ GOOD: Tests parser + processor working together
+def test_boilerplate_methods_filtered_from_graph():
+    """Boilerplate methods should not appear in final graph."""
+    parser = SemanticDBParser(semanticdb_root)
+    processor = SemanticDBProcessor(ingestor, source_root)
+    
+    # Parse real SemanticDB files
+    documents = parser.parse_all()
+    
+    # Process them
+    for doc in documents:
+        processor.process_document(doc)
+    
+    # Verify boilerplate filtered
+    assert "productIterator" not in [m.name for m in ingested_methods]
+    assert "copy$default$1" not in [m.name for m in ingested_methods]
+```
+
+### 3. Behavior Tests: Test What Users Care About
+
+```python
+# ✅ GOOD: Tests the feature/behavior users expect
+def test_case_class_copy_method_kept_in_graph():
+    """copy() method should be kept (users call it directly)."""
+    # ... setup ...
+    assert "copy" in [m.name for m in ingested_methods]
+    
+def test_scalapb_internal_methods_removed():
+    """ScalaPB internal methods should not clutter the graph."""
+    # ... setup ...
+    assert "__serializedSizeMemoized" not in [m.name for m in ingested_methods]
+```
+
+---
+
+## Table-Driven Testing for Comprehensive Coverage
+
+```python
+import pytest
+
+# ✅ GOOD: Comprehensive coverage of all cases
+@pytest.mark.parametrize("method_name,should_skip,reason", [
+    # Product trait boilerplate - SKIP
+    ("productIterator", True, "Product trait method"),
+    ("productArity", True, "Product trait method"),
+    ("productElement", True, "Product trait method"),
+    
+    # Default parameter accessors - SKIP
+    ("copy$default$1", True, "Default param accessor"),
+    ("copy$default$99", True, "High-numbered default"),
+    ("apply$default$3", True, "Apply default"),
+    
+    # ScalaPB internals - SKIP
+    ("__serializedSizeMemoized", True, "ScalaPB internal"),
+    ("getFieldByNumber", True, "ScalaPB internal"),
+    
+    # User-callable methods - KEEP
+    ("copy", False, "User-callable case class method"),
+    ("apply", False, "User-callable factory method"),
+    ("equals", False, "Sometimes used directly"),
+    ("processRequest", False, "Regular user method"),
+    
+    # Edge cases
+    ("copycat", False, "Starts with 'copy' but not a default"),
+    ("product", False, "Partial match but not Product trait"),
+])
+def test_should_skip_method(method_name, should_skip, reason):
+    """Verify method skip logic for all known patterns."""
+    result = SemanticDBProcessor._should_skip_method(method_name)
+    assert result == should_skip, f"Failed for {method_name}: {reason}"
+```
+
+---
+
+## Testing Parser Logic Specifically
+
+**Pattern: Test the DETECTION logic, not the output structure**
+
+```python
+class TestCompilerGeneratedDetection:
+    """Tests that verify compiler-generated method DETECTION logic."""
+    
+    def test_case_class_methods_marked_as_generated(self):
+        """Case class methods should be marked as compiler-generated."""
+        parser = SemanticDBParser(Path("/tmp"))
+        doc = create_mock_document_with_case_class("Person", ["copy", "productIterator"])
+        
+        classes = parser._extract_classes(doc)
+        methods = parser._extract_methods(doc, classes)
+        
+        # Verify DETECTION logic
+        for method in methods:
+            if method.name in ["copy", "productIterator"]:
+                assert method.is_compiler_generated is True
+                
+    def test_product_trait_methods_for_non_case_class(self):
+        """Product trait methods should be marked even for non-case classes!"""
+        parser = SemanticDBParser(Path("/tmp"))
+        
+        # KEY: Create a TRAIT (not case class!) with Product methods
+        doc = create_mock_document_with_trait("MyTrait", ["productIterator"])
+        
+        classes = parser._extract_classes(doc)
+        assert not classes[0].is_case_class  # Verify it's NOT a case class
+        
+        methods = parser._extract_methods(doc, classes)
+        
+        # THIS WAS THE BUG: Non-case-class Product methods weren't marked!
+        assert methods[0].is_compiler_generated is True
+        assert methods[0].generation_reason == "product_trait"
+        
+    def test_regular_methods_not_marked(self):
+        """Regular user methods should NOT be marked as compiler-generated."""
+        parser = SemanticDBParser(Path("/tmp"))
+        doc = create_mock_document_with_class("Service", ["processRequest", "handleError"])
+        
+        classes = parser._extract_classes(doc)
+        methods = parser._extract_methods(doc, classes)
+        
+        for method in methods:
+            assert method.is_compiler_generated is False
+            assert method.generation_reason == ""
+```
+
+---
+
+## Test Naming Convention
+
+```python
+# ✅ GOOD: Describes the behavior being tested
+def test_product_trait_methods_marked_as_generated_for_non_case_classes():
+    """Bug regression: Product trait methods weren't marked for non-case classes."""
+    
+def test_scalapb_internal_methods_filtered_from_graph():
+    """ScalaPB machinery should not appear in graph."""
+    
+def test_copy_method_kept_despite_being_generated():
+    """copy() is generated but useful - should be kept."""
+
+# ❌ BAD: Vague names that don't explain what's tested
+def test_method_info():
+    """Test MethodInfo."""  # What about it?!
+    
+def test_parser():
+    """Test parser."""  # Tests what behavior?!
+```
+
+---
+
+## Creating Mock SemanticDB Documents
+
+```python
+from codebase_rag.parsers.scala import semanticdb_pb2
+
+def create_mock_document_with_class(
+    class_name: str, 
+    method_names: list[str],
+    is_case_class: bool = False
+) -> semanticdb_pb2.TextDocument:
+    """Create a mock SemanticDB document for testing."""
+    doc = semanticdb_pb2.TextDocument()
+    doc.uri = f"test/{class_name}.scala"
+    
+    # Add class
+    cls = doc.symbols.add()
+    cls.symbol = f"test/{class_name}#"
+    cls.kind = 13  # CLASS (NOT 5! Common mistake)
+    cls.display_name = class_name
+    cls.properties = 0x80 if is_case_class else 0  # CASE_CLASS_PROPERTY
+    
+    cls_occ = doc.occurrences.add()
+    cls_occ.symbol = cls.symbol
+    cls_occ.role = 0  # DEFINITION
+    cls_occ.range.start_line = 1
+    
+    # Add methods
+    for i, method_name in enumerate(method_names):
+        method = doc.symbols.add()
+        method.symbol = f"test/{class_name}#{method_name}()."
+        method.kind = 3  # METHOD
+        method.display_name = method_name
+        
+        method_occ = doc.occurrences.add()
+        method_occ.symbol = method.symbol
+        method_occ.role = 0  # DEFINITION
+        method_occ.range.start_line = 5 + i
+    
+    return doc
+
+# Usage in tests:
+def test_parser_handles_case_class():
+    doc = create_mock_document_with_class(
+        "Person", 
+        ["copy", "productIterator", "equals"],
+        is_case_class=True
+    )
+    # Now test parser logic...
+```
+
+---
+
+## ⚠️ Common Testing Pitfalls
+
+### Pitfall 1: Testing Implementation, Not Behavior
+
+```python
+# ❌ BAD: Tests implementation details
+def test_skip_exact_methods_contains_productIterator():
+    assert "productIterator" in SemanticDBProcessor.SKIP_EXACT_METHODS
+
+# ✅ GOOD: Tests observable behavior
+def test_productIterator_is_skipped():
+    assert SemanticDBProcessor._should_skip_method("productIterator") is True
+```
+
+### Pitfall 2: Using Wrong Constants
+
+```python
+# ❌ BAD: Wrong SemanticDB kind value
+case_class.kind = 5  # WRONG! CLASS is 13, not 5
+
+# ✅ GOOD: Correct constants (or use named constants!)
+CLASS_KIND = 13
+TRAIT_KIND = 14
+METHOD_KIND = 3
+CASE_CLASS_PROPERTY = 0x80
+
+case_class.kind = CLASS_KIND
+```
+
+### Pitfall 3: Not Testing Edge Cases
+
+```python
+# ❌ BAD: Only tests happy path
+def test_parser():
+    doc = create_simple_document()
+    result = parser.parse(doc)
+    assert len(result) > 0
+
+# ✅ GOOD: Tests edge cases that caused bugs
+def test_parser_handles_sealed_trait_with_product():
+    """Sealed traits extending Product should have methods marked too."""
+    
+def test_parser_handles_empty_document():
+    """Empty document should return empty results, not crash."""
+    
+def test_parser_handles_method_with_175_default_params():
+    """Real case: copy$default$175 exists in our codebase!"""
+```
+
+---
+
+## Test Checklist
+
+Before submitting tests, verify:
+
+- [ ] **Tests BEHAVIOR, not structure** - Does the test verify logic, or just that code compiles?
+- [ ] **Uses real inputs, not hardcoded outputs** - Does the test let the code COMPUTE results?
+- [ ] **Covers the bug scenario** - If fixing a bug, does the test reproduce it?
+- [ ] **Names describe behavior** - Can someone understand what's tested from the name?
+- [ ] **Tests edge cases** - Did you test the boundary conditions?
+- [ ] **Uses correct constants** - Are SemanticDB kinds/properties correct?
+
+---
+
+## Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test class
+pytest -v tests/test_semanticdb.py::TestCompilerGeneratedDetection
+
+# Run with verbose output
+pytest -v --tb=short
+
+# Run only failed tests from last run
+pytest --lf
+
+# Show print statements
+pytest -s
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (test behavior not implementation, AAA pattern, isolation)
+
+**Python-Specific:**
+- This file provides Python-specific implementation (pytest patterns, fixtures, async testing)
+
+---
+
+## References
+
+- **[Scala Testing Best Practices](../../scala/testing/scala-testing-best-practices.mdc)** - Similar patterns for Scala
+- **[pytest Documentation](https://docs.pytest.org/)** - Official pytest docs
+- **[Python Testing with pytest](https://pragprog.com/titles/bopytest2/)** - Brian Okken's book

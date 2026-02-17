@@ -1,0 +1,27 @@
+---
+description: "CocoaPods best practices for dependency management. Use when: (1) Managing iOS dependencies, (2) Using CocoaPods, (3) Podfile management, (4) Dependency updates, (5) iOS dependency management. Covers CocoaPods patterns, Podfile best practices, and dependency management. Auto-loads when Podfile or .podspec files are opened."
+globs: ["**/Podfile", "**/*.podspec"]
+alwaysApply: false
+---
+
+# CocoaPods Best Practices
+
+**Graph Structure**: This is a Layer 0 leaf (rule file) - contains actual CocoaPods patterns and best practices.
+
+**Keywords**: cocoapods, podfile, podspec, ios dependencies, pod install
+
+---
+
+## 1. Podfile
+- **Versioning**: Explicitly specify versions for dependencies to avoid unexpected breaking changes (`pod 'AFNetworking', '~> 4.0'`).
+- **inhibit_all_warnings!**: Use with caution. Better to fix warnings or silence specific pods.
+- **use_frameworks!**: Required for Swift pods.
+
+## 2. Podspec
+- **Metadata**: Ensure `s.summary`, `s.description`, `s.license` are accurate.
+- **Source**: Use tag-based source for releases (`:tag => s.version.to_s`).
+- **Dependencies**: List dependencies clearly (`s.dependency 'SomePod'`).
+
+## 3. Performance
+- Check in `Pods/` directory ONLY if strictly required by team policy (usually recommended to gitignore and run `pod install`).
+- Use `pod install --repo-update` only when necessary to speed up builds.

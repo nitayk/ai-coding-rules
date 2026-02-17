@@ -1,0 +1,104 @@
+---
+description: "Comprehensive index of CLI tool references and usage guides. Use when: (1) Need to use CLI tools (curl, jq, git, docker, etc.), (2) Looking up command syntax, (3) Finding tool-specific patterns, (4) CLI tool best practices. Points to specific tool guides (curl.mdc, jq.mdc, git.mdc, etc.). Auto-loads when tool keywords detected via router."
+globs: []
+alwaysApply: false
+---
+
+# CLI Tools Index
+
+**Purpose**: Router for CLI tools - detects keywords and routes to specific tool files.
+
+**When to use this**: When you need to use CLI tools or look up command syntax.
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (tool files) based on keywords.
+
+**Loading**: Router detects tool keywords → loads this index → routes to specific tool files.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **curl**, http request, rest api, api call, http client | `curl.mdc` |
+| **jq**, json parser, json filter, parse json, jq query | `jq.mdc` |
+| **git**, git commit, git branch, git merge, version control | `git.mdc` |
+| **docker**, docker container, docker image, docker logs, docker exec | `docker.mdc` |
+| **kcat**, kafkacat, kafka client, kafka cli, produce kafka, consume kafka | `kcat.mdc` |
+| **gh cli**, github cli, pull request cli, issue cli, gh pr, gh issue | `gh-cli.mdc` |
+| **aws cli**, s3 cli, ec2 cli, cloudwatch logs, aws logs, ssm cli | `aws-cli.mdc` |
+| **kubectl**, kubernetes cli, k8s cli, pod logs, kubectl exec, kubectl logs | `kubectl.mdc` |
+
+---
+
+## Available Tools (Leaves)
+
+### HTTP & APIs
+- **[curl](curl.mdc)** - HTTP requests, REST APIs, authentication
+  - Keywords: curl, http request, rest api, api call, http client
+
+### JSON Processing
+- **[jq](jq.mdc)** - JSON parsing, filtering, manipulation
+  - Keywords: jq, json parser, json filter, parse json, jq query
+
+### Version Control
+- **[git](git.mdc)** - Version control commands, workflows
+  - Keywords: git, git commit, git branch, git merge, version control
+
+### Containers
+- **[docker](docker.mdc)** - Container management, logs, exec
+  - Keywords: docker, docker container, docker image, docker logs, docker exec
+
+### Kafka
+- **[kcat](kcat.mdc)** - Kafka CLI client for producing/consuming
+  - Keywords: kcat, kafkacat, kafka client, kafka cli, produce kafka, consume kafka
+
+### GitHub
+- **[gh-cli](gh-cli.mdc)** - GitHub CLI for PRs, issues, repos
+  - Keywords: gh cli, github cli, pull request cli, issue cli, gh pr, gh issue
+
+### AWS
+- **[aws-cli](aws-cli.mdc)** - AWS services (S3, EC2, CloudWatch, SSM)
+  - Keywords: aws cli, s3 cli, ec2 cli, cloudwatch logs, aws logs, ssm cli
+
+### Kubernetes
+- **[kubectl](kubectl.mdc)** - Kubernetes CLI for pods, logs, exec
+  - Keywords: kubectl, kubernetes cli, k8s cli, pod logs, kubectl exec, kubectl logs
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Specific Tool File**
+
+1. Router detects tool keyword (e.g., "curl", "jq", "git")
+2. Router loads `.cursor/rules/shared/tools/index.mdc` (this file)
+3. Index points to specific tool file (e.g., `curl.mdc`)
+4. Tool file provides command syntax and usage patterns
+
+---
+
+## Quick Reference
+
+| Need | Tool | File |
+|------|------|------|
+| HTTP requests | curl | `curl.mdc` |
+| Parse JSON | jq | `jq.mdc` |
+| Git operations | git | `git.mdc` |
+| Docker commands | docker | `docker.mdc` |
+| Kafka CLI | kcat | `kcat.mdc` |
+| GitHub CLI | gh | `gh-cli.mdc` |
+| AWS CLI | aws | `aws-cli.mdc` |
+| Kubernetes CLI | kubectl | `kubectl.mdc` |
+
+---
+
+## CLI Tool Installation
+
+When user needs to interact with 3rd party services (HTTP APIs, Kafka, AWS, Kubernetes, etc.), suggest CLI tools and check if installed. CLI tools provide better integration than manual API calls. If not installed, suggest installation command (each tool guide includes install instructions).
+
+---
+
+## Related Resources
+
+- **Skills**: See `skills/` for procedural workflows using these tools

@@ -1,0 +1,431 @@
+---
+description: "Avoid Option blindness - use domain-specific types when absence has richer meaning than just \"missing\". Use when: (1) Designing error types, (2) Handling optional values with semantic meaning, (3) Replacing Option with domain types, (4) Encoding business logic in types, (5) Making error handling explicit. Covers when Option loses meaning and domain-specific alternatives."
+globs: []
+alwaysApply: false
+---
+
+# Avoid Option Blindness
+
+This guide explains why **`Option` can be too generic** and when to use **domain-specific types** that capture the reason for absence.
+
+---
+
+## Core Principle
+
+> **Option blindness**: Using `Option` everywhere loses domain semantics. When absence has meaning beyond "maybe missing", use domain-specific types that express WHY the value is absent.
+
+---
+
+## The Problem: Option Blindness
+
+`Option` only tells us "maybe there's a value, maybe there isn't" - it doesn't explain **why** the value is absent.
+
+### ❌ The Problem: Generic Option
+
+```scala
+// ❌ Bad: Option loses domain semantics
+def findUser(id: UserId): Option[User] = ???
+
+// What does None mean?
+// - User doesn't exist?
+// - User was deleted?
+// - User is not authorized?
+// - Database error?
+// - Invalid ID format?
+
+// Caller doesn't know why None was returned
+val user = findUser(userId)
+user match {
+  case Some(u) => displayUser(u)
+  case None => ???  // What should we do? Why is it None?
+}
+```
+
+**Problems**:
+- **Lost semantics**: `None` doesn't explain why value is missing
+- **Generic handling**: Can't handle different absence reasons differently
+- **Poor error messages**: Can't provide context-specific error messages
+- **Debugging difficulty**: Hard to understand why operation failed
+
+---
+
+## ✅ Solution 1: Use Either for Explicit Reasons
+
+Use `Either` to express the reason for absence:
+
+```scala
+// ✅ Good: Either expresses why user is missing
+sealed trait UserNotFoundReason
+case object UserDoesNotExist extends UserNotFoundReason
+case object UserWasDeleted extends UserNotFoundReason
+case object UserNotAuthorized extends UserNotFoundReason
+case class DatabaseError(message: String) extends UserNotFoundReason
+
+def findUser(id: UserId): Either[UserNotFoundReason, User] = ???
+
+// Now caller knows why user is missing
+val result = findUser(userId)
+result match {
+  case Right(user) => displayUser(user)
+  case Left(UserDoesNotExist) => showNotFoundMessage()
+  case Left(UserWasDeleted) => showDeletedMessage()
+  case Left(UserNotAuthorized) => showUnauthorizedMessage()
+  case Left(DatabaseError(msg)) => showError(msg)
+}
+```
+
+**Benefits**:
+- **Explicit reasons**: Type system captures why value is missing
+- **Different handling**: Can handle each reason appropriately
+- **Better errors**: Can provide context-specific messages
+- **Easier debugging**: Clear why operation failed
+
+### ✅ Solution 2: Sealed Traits for Domain Semantics
+
+Use sealed traits to model domain-specific absence:
+
+```scala
+// ✅ Good: Domain-specific types for absence
+sealed trait UserLookupResult
+case class UserFound(user: User) extends UserLookupResult
+case object UserNotFound extends UserLookupResult
+case object UserDeleted extends UserLookupResult
+case object UserSuspended extends UserLookupResult
+
+def findUser(id: UserId): UserLookupResult = ???
+
+// Exhaustive matching ensures all cases handled
+val result = findUser(userId)
+result match {
+  case UserFound(user) => displayUser(user)
+  case UserNotFound => showNotFoundMessage()
+  case UserDeleted => showDeletedMessage()
+  case UserSuspended => showSuspendedMessage()
+  // Compiler ensures all cases handled!
+}
+```
+
+**Benefits**:
+- **Domain semantics**: Types express domain concepts
+- **Exhaustive matching**: Compiler ensures all cases handled
+- **Self-documenting**: Type names explain meaning
+- **Type-safe**: Can't mix up different absence reasons
+
+### ✅ Solution 3: Custom Types for Rich Semantics
+
+Create custom types that capture domain meaning:
+
+```scala
+// ❌ Bad: Option loses meaning
+def getEmail(user: User): Option[String] = ???
+// Why might email be None? Not set? Not verified? Hidden?
+
+// ✅ Good: Domain-specific type
+sealed trait EmailStatus
+case class VerifiedEmail(email: String) extends EmailStatus
+case object EmailNotSet extends EmailStatus
+case object EmailNotVerified extends EmailStatus
+case object EmailHidden extends EmailStatus
+
+def getEmail(user: User): EmailStatus = ???
+
+// Now we know why email might not be available
+val emailStatus = getEmail(user)
+emailStatus match {
+  case VerifiedEmail(email) => sendEmail(email)
+  case EmailNotSet => promptForEmail()
+  case EmailNotVerified => sendVerificationEmail()
+  case EmailHidden => showEmailHiddenMessage()
+}
+```
+
+---
+
+## When Option Is Appropriate
+
+`Option` is fine when absence truly means "maybe present, maybe not" with no additional semantics:
+
+### ✅ Good Uses of Option
+
+```scala
+// ✅ Good: Optional configuration - truly optional
+def getConfig(key: String): Option[ConfigValue] = ???
+
+// ✅ Good: Optional field in form - user might not fill it
+case class FormData(
+  name: String,
+  email: Option[String]  // Optional - user might skip
+)
+
+// ✅ Good: Search result - might not find anything
+def search(query: String): Option[SearchResult] = ???
+
+// ✅ Good: Cache lookup - might not be cached
+def getFromCache(key: String): Option[Value] = ???
+```
+
+**Key**: Use `Option` when absence has **no additional meaning** - it's just "not present".
+
+---
+
+## When to Avoid Option
+
+Avoid `Option` when absence has **domain meaning**:
+
+### ❌ Bad: Option When Absence Has Meaning
+
+```scala
+// ❌ Bad: User lookup - None could mean many things
+def findUser(id: UserId): Option[User] = ???
+
+// ❌ Bad: Authentication - None doesn't explain why
+def authenticate(credentials: Credentials): Option[Session] = ???
+
+// ❌ Bad: Validation - None doesn't explain what's wrong
+def validateOrder(order: Order): Option[ValidOrder] = ???
+
+// ❌ Bad: Payment - None doesn't explain failure reason
+def processPayment(payment: Payment): Option[TransactionId] = ???
+```
+
+### ✅ Good: Domain-Specific Types
+
+```scala
+// ✅ Good: User lookup with explicit reasons
+sealed trait UserLookupResult
+case class UserFound(user: User) extends UserLookupResult
+case object UserNotFound extends UserLookupResult
+case object UserDeleted extends UserLookupResult
+
+def findUser(id: UserId): UserLookupResult = ???
+
+// ✅ Good: Authentication with failure reasons
+sealed trait AuthResult
+case class Authenticated(session: Session) extends AuthResult
+case object InvalidCredentials extends AuthResult
+case object AccountLocked extends AuthResult
+case object AccountExpired extends AuthResult
+
+def authenticate(credentials: Credentials): AuthResult = ???
+
+// ✅ Good: Validation with error details
+def validateOrder(order: Order): Either[List[ValidationError], ValidOrder] = ???
+
+// ✅ Good: Payment with failure reasons
+sealed trait PaymentResult
+case class PaymentSuccess(transactionId: TransactionId) extends PaymentResult
+case class PaymentFailed(reason: PaymentFailureReason) extends PaymentResult
+
+def processPayment(payment: Payment): PaymentResult = ???
+```
+
+---
+
+## Real-World Examples
+
+### Example 1: User Lookup
+
+```scala
+// ❌ Bad: Option blindness
+def getUser(id: UserId): Option[User] = {
+  database.find(id)  // None could mean: not found, deleted, error
+}
+
+// Caller doesn't know what to do with None
+val user = getUser(id)
+user match {
+  case Some(u) => displayUser(u)
+  case None => ???  // What error message? What action?
+}
+
+// ✅ Good: Domain-specific result
+sealed trait UserResult
+case class UserFound(user: User) extends UserResult
+case object UserNotFound extends UserResult
+case object UserDeleted extends UserResult
+case class DatabaseError(error: String) extends UserResult
+
+def getUser(id: UserId): UserResult = {
+  try {
+    database.find(id) match {
+      case Some(u) if !u.deleted => UserFound(u)
+      case Some(_) => UserDeleted
+      case None => UserNotFound
+    }
+  } catch {
+    case e: Exception => DatabaseError(e.getMessage)
+  }
+}
+
+// Caller knows exactly what to do
+val result = getUser(id)
+result match {
+  case UserFound(user) => displayUser(user)
+  case UserNotFound => showNotFoundError()
+  case UserDeleted => showDeletedMessage()
+  case DatabaseError(msg) => showError(msg)
+}
+```
+
+### Example 2: Configuration Parsing
+
+```scala
+// ❌ Bad: Option loses parsing error details
+def parseConfig(json: String): Option[Config] = {
+  Try(Json.parse(json).as[Config]).toOption  // Loses error details!
+}
+
+// Caller can't provide helpful error messages
+val config = parseConfig(json)
+config match {
+  case Some(c) => useConfig(c)
+  case None => ???  // What went wrong? Invalid JSON? Missing field?
+}
+
+// ✅ Good: Either preserves error information
+def parseConfig(json: String): Either[ParseError, Config] = {
+  Try(Json.parse(json)) match {
+    case Success(jsValue) =>
+      jsValue.asOpt[Config].toRight(ParseError("Invalid config structure"))
+    case Failure(e) =>
+      Left(ParseError(s"Invalid JSON: ${e.getMessage}"))
+  }
+}
+
+// Caller can provide helpful error messages
+val config = parseConfig(json)
+config match {
+  case Right(c) => useConfig(c)
+  case Left(ParseError(msg)) => showError(s"Failed to parse config: $msg")
+}
+```
+
+### Example 3: Form Validation
+
+```scala
+// ❌ Bad: Option doesn't explain validation failures
+def validateForm(form: FormData): Option[ValidForm] = {
+  if (form.email.contains("@") && form.age > 0) Some(ValidForm(form))
+  else None  // Why invalid? Email? Age? Both?
+}
+
+// ✅ Good: Validation errors explain what's wrong
+sealed trait ValidationError
+case class InvalidEmail(reason: String) extends ValidationError
+case class InvalidAge(reason: String) extends ValidationError
+
+def validateForm(form: FormData): Either[List[ValidationError], ValidForm] = {
+  val errors = List(
+    if (!form.email.contains("@")) Some(InvalidEmail("Invalid email format")) else None,
+    if (form.age <= 0) Some(InvalidAge("Age must be positive")) else None
+  ).flatten
+  
+  if (errors.isEmpty) Right(ValidForm(form))
+  else Left(errors)
+}
+
+// Caller can show specific validation errors
+val result = validateForm(form)
+result match {
+  case Right(valid) => submitForm(valid)
+  case Left(errors) => 
+    errors.foreach {
+      case InvalidEmail(msg) => showEmailError(msg)
+      case InvalidAge(msg) => showAgeError(msg)
+    }
+}
+```
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Option Blindness
+
+Find `Option` usages where `None` could mean different things:
+
+```scala
+// Look for patterns like:
+def findX(id: Id): Option[X]  // What does None mean?
+def processY(y: Y): Option[Z]  // Why might it fail?
+```
+
+### Step 2: Identify Domain Semantics
+
+Understand what `None` actually means in each case:
+
+```scala
+// Ask: What are the possible reasons for None?
+// - Not found?
+// - Deleted?
+// - Error?
+// - Invalid?
+// - Not authorized?
+```
+
+### Step 3: Create Domain Types
+
+Create types that capture the reasons:
+
+```scala
+// Create sealed trait or Either with explicit reasons
+sealed trait LookupResult
+case class Found(value: X) extends LookupResult
+case object NotFound extends LookupResult
+case object Deleted extends LookupResult
+```
+
+### Step 4: Refactor Gradually
+
+Update code incrementally:
+
+```scala
+// Before
+def findUser(id: UserId): Option[User]
+
+// After
+def findUser(id: UserId): UserLookupResult
+
+// Update call sites to handle all cases
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- Use **`Option`** when absence has **no additional meaning** (truly optional)
+- Use **`Either`** when absence has **error reasons** that matter
+- Use **sealed traits** when absence has **domain semantics**
+- Use **custom types** when absence has **rich meaning**
+- **Express WHY** a value is absent, not just that it's absent
+
+### ❌ DON'T
+- Use **`Option`** when `None` could mean **different things**
+- Use **`Option`** when you need to **handle absence differently** based on reason
+- Use **`Option`** when absence has **domain meaning** beyond "missing"
+- **Lose semantics** by using generic `Option` everywhere
+
+### Key Insight
+
+> **Option blindness occurs when we use `Option` everywhere, losing the domain semantics of WHY a value is absent. Use domain-specific types (Either, sealed traits, custom types) to express the reason for absence, not just the fact of absence.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, explicit error types)
+
+**Scala-Specific:**
+- [Error Handling Patterns](error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Validation and Safe Operations](validation-and-safe-operations.mdc) - Validation with explicit errors
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+- [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) - Exhaustive matching on sealed types
+
+---
+
+## References
+
+- [Random Scala Tip #624: The Pitfalls of Option Blindness](https://blog.daniel-beskin.com/2025-05-01-random-scala-tip-624-option-blindness) - Daniel Beskin's Blog
+- [When Option is not good enough](https://danielwestheide.com/blog/when-option-is-not-good-enough/) - Daniel Westheide's Blog

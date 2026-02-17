@@ -1,0 +1,82 @@
+---
+description: "Scala language patterns index - error handling, functional programming, type safety, and language-specific patterns. Use when: (1) Scala language features, (2) Error handling (Option/Either/Try), (3) Functional programming patterns, (4) Type safety. Points to specific language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Scala Language Patterns Index
+
+**Purpose**: Router for Scala language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **error handling**, option, either, try, error patterns | `error-handling-patterns.mdc` |
+| **future error**, async errors, future error handling | `future-error-handling-conventions.mdc` |
+| **compiler friendly**, type safety, compiler errors, stop lying to compiler | `compiler-friendly-types.mdc` |
+| **referential transparency**, pure functions, functional programming | `referential-transparency.mdc` |
+| **sealed traits**, illegal states, make illegal states unrepresentable, type safety | `make-illegal-states-unrepresentable.mdc` |
+| **option blindness**, domain types, avoid option | `avoid-option-blindness.mdc` |
+| **method overloading**, avoid overloading, explicit naming | `avoid-overloading.mdc` |
+| **pattern matching**, sealed types, exhaustive when | `pattern-matching-best-practices.mdc` |
+| **functional composition**, HOF, higher-order functions | `functional-composition-and-hof.mdc` |
+| **extension methods**, implicit conversions, implicit extensions | `implicit-extension-methods.mdc` |
+| **validation**, safe operations, safe validation | `validation-and-safe-operations.mdc` |
+| **case classes**, tuples, prefer case classes | `prefer-case-classes-over-tuples.mdc` |
+| **iterators**, iterator safety, side effects | `iterator-safety.mdc` |
+| **lazy evaluation**, lazy val, lazy evaluation patterns | `lazy-evaluation-and-productivity.mdc` |
+| **scala best practices**, scala patterns | `scala-more-best-practices.mdc` |
+| **visibility**, access modifiers, private, scala visibility | `scala-visibility-guidelines.mdc` |
+| **anonymous functions**, SAM types, avoid anonymous | `avoid-anonymous-function-dependencies.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Compiler-Friendly Types](compiler-friendly-types.mdc) | Core principle: stop lying to compiler | compiler friendly, type safety, compiler errors |
+| [Error Handling Patterns](error-handling-patterns.mdc) | Option, Either, Try patterns | error handling, option, either, try |
+| [Future Error Handling Conventions](future-error-handling-conventions.mdc) | Async error handling with Future[Either[E, A]] | future error handling, async errors |
+| [Referential Transparency](referential-transparency.mdc) | Pure functional programming principles | referential transparency, pure functions |
+| [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) | Type-safe invariants with sealed traits | sealed traits, illegal states, type safety |
+| [Avoid Option Blindness](avoid-option-blindness.mdc) | When Option loses domain semantics | option blindness, domain types |
+| [Avoid Overloading](avoid-overloading.mdc) | Prefer explicit naming over overloading | method overloading, explicit naming |
+| [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) | Pattern matching patterns and exhaustiveness | pattern matching, sealed types |
+| [Functional Composition and HOF](functional-composition-and-hof.mdc) | Higher-order functions and composition | functional composition, HOF, higher-order |
+| [Implicit Extension Methods](implicit-extension-methods.mdc) | Extension methods and implicit conversions | extension methods, implicit conversions |
+| [Validation and Safe Operations](validation-and-safe-operations.mdc) | Safe validation patterns | validation, safe operations |
+| [Prefer Case Classes Over Tuples](prefer-case-classes-over-tuples.mdc) | When to use case classes vs tuples | case classes, tuples |
+| [Iterator Safety](iterator-safety.mdc) | Iterator safety and side effects | iterators, side effects |
+| [Lazy Evaluation and Productivity](lazy-evaluation-and-productivity.mdc) | Lazy evaluation patterns | lazy evaluation, lazy val |
+| [Scala More Best Practices](scala-more-best-practices.mdc) | Additional Scala best practices | scala best practices |
+| [Scala Visibility Guidelines](scala-visibility-guidelines.mdc) | Access modifiers and visibility | visibility, access modifiers, private |
+| [Avoid Anonymous Function Dependencies](avoid-anonymous-function-dependencies.mdc) | Prefer named traits over anonymous functions | anonymous functions, SAM types |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Error handling | `error-handling-patterns.mdc` |
+| Type safety | `compiler-friendly-types.mdc`, `make-illegal-states-unrepresentable.mdc` |
+| Functional programming | `referential-transparency.mdc`, `functional-composition-and-hof.mdc` |
+| Pattern matching | `pattern-matching-best-practices.mdc` |
+| Async errors | `future-error-handling-conventions.mdc` |
+
+---
+
+## Related Resources
+
+- **Architecture**: See `../architecture/index.mdc` for architectural patterns
+- **Data**: See `../data/index.mdc` for data handling patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns
+- **Performance**: See `../performance/index.mdc` for performance patterns

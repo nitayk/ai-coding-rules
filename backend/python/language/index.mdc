@@ -1,0 +1,57 @@
+---
+description: "Python language patterns index - error handling, type annotations, async patterns, pythonic patterns, and advanced features. Use when: (1) Python language features, (2) Type hints, (3) Async/await, (4) Pythonic patterns. Points to specific language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Python Language Patterns Index
+
+**Purpose**: Router for Python language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **type hints**, type annotations, mypy, pyright, static type checking | `type-annotations-everywhere.mdc` |
+| **error handling**, exceptions, try except, error patterns | `error-handling-patterns.mdc` |
+| **pythonic**, comprehensions, dataclasses, EAFP, idiomatic python | `pythonic-patterns.mdc` |
+| **async**, await, asyncio, async patterns, async await | `async-patterns.mdc` |
+| **advanced python**, decorators, context managers, advanced features | `advanced-features.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Type Annotations Everywhere](type-annotations-everywhere.mdc) | Use type annotations for static type checking | type hints, type annotations, mypy, pyright |
+| [Error Handling Patterns](error-handling-patterns.mdc) | Exceptions, try/except, context managers | error handling, exceptions, try except |
+| [Pythonic Patterns](pythonic-patterns.mdc) | Idiomatic Python: comprehensions, dataclasses, EAFP | pythonic, comprehensions, dataclasses |
+| [Async Patterns](async-patterns.mdc) | Async/await best practices, structured concurrency | async, await, asyncio, async patterns |
+| [Advanced Features](advanced-features.mdc) | Type hints, decorators, context managers | advanced python, decorators, context managers |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Type hints | `type-annotations-everywhere.mdc` |
+| Error handling | `error-handling-patterns.mdc` |
+| Pythonic code | `pythonic-patterns.mdc` |
+| Async/await | `async-patterns.mdc` |
+| Advanced features | `advanced-features.mdc` |
+
+---
+
+## Related Resources
+
+- **Testing**: See `../testing/index.mdc` for testing patterns
+- **Performance**: See `../performance/index.mdc` for performance patterns
+- **Meta**: See `../meta/pep8-style-guide.mdc` for PEP 8 style guide

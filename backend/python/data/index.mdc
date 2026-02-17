@@ -1,0 +1,44 @@
+---
+description: "Python data handling patterns index - Pandas optimizations and Pydantic validation. Use when: (1) Data handling with Pandas, (2) Pydantic validation, (3) Data processing patterns. Points to data handling pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Python Data Handling Patterns Index
+
+**Purpose**: Router for Python data patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **pandas**, pydantic, data handling, data processing | `data-handling.mdc` |
+
+---
+
+## Data Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Data Handling](data-handling.mdc) | Pandas optimizations and Pydantic validation patterns | pandas, pydantic, data handling |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Pandas/Pydantic | `data-handling.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Performance**: See `../performance/index.mdc` for performance optimization

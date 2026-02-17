@@ -1,0 +1,184 @@
+---
+description: "Python concurrency patterns and performance optimization best practices. Use when: (1) Optimizing Python code, (2) Using concurrency (threading/asyncio), (3) Profiling performance, (4) Improving parallel execution, (5) Optimizing I/O-bound operations. Covers concurrency patterns, async/await, threading, and performance optimization."
+globs: []
+alwaysApply: false
+---
+
+# Python Concurrency and Optimization Guide
+
+Best practices for parallel processing, performance tuning, and optimization in Python.
+
+## Concurrency Models
+
+Python offers three main concurrency models, each suitable for different types of tasks.
+
+### 1. Multiprocessing (CPU-Bound Tasks)
+Use `multiprocessing` for tasks that require heavy CPU computation (e.g., data processing, mathematical calculations). This bypasses the Global Interpreter Lock (GIL) by using separate processes.
+
+```python
+# ✅ GOOD: using multiprocessing for CPU-bound tasks
+from multiprocessing import Pool
+
+def compute_square(n):
+    return n * n
+
+def parallel_processing():
+    with Pool(processes=4) as pool:
+        results = pool.map(compute_square, range(1000000))
+    return results
+```
+
+### 2. Threading (I/O-Bound Tasks)
+Use `threading` for tasks that wait for I/O operations (e.g., file reading, network requests). Threads share memory and are lightweight but are limited by the GIL for CPU tasks.
+
+```python
+# ✅ GOOD: using threading for I/O-bound tasks
+import threading
+import requests
+
+def fetch_url(url):
+    response = requests.get(url)
+    print(f"Fetched {url}: {len(response.content)} bytes")
+
+def fetch_all(urls):
+    threads = []
+    for url in urls:
+        thread = threading.Thread(target=fetch_url, args=(url,))
+        threads.append(thread)
+        thread.start()
+    
+    for thread in threads:
+        thread.join()
+```
+
+### 3. Asyncio (High-Concurrency I/O)
+Use `asyncio` for high-concurrency I/O-bound applications (e.g., web servers, chat bots). It uses a single-threaded event loop and is generally more efficient than threading for thousands of connections.
+
+```python
+# ✅ GOOD: using asyncio for high concurrency
+import asyncio
+import aiohttp
+
+async def fetch_url(session, url):
+    async with session.get(url) as response:
+        return await response.read()
+
+async def main(urls):
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url) for url in urls]
+        await asyncio.gather(*tasks)
+```
+
+## Performance Optimization
+
+### Built-in Functions and Libraries
+Python's built-in functions (like `sum`, `max`, `map`) are implemented in C and are highly optimized.
+
+```python
+# ✅ GOOD: using built-in functions
+numbers = [1, 2, 3, 4, 5]
+total = sum(numbers)
+
+# ❌ BAD: manual implementation
+total = 0
+for n in numbers:
+    total += n
+```
+
+### List Comprehensions
+List comprehensions are generally faster than `for` loops for creating lists because they optimize the loop overhead.
+
+```python
+# ✅ GOOD: list comprehension
+squares = [x * x for x in range(10)]
+
+# ❌ BAD: explicit loop
+squares = []
+for x in range(10):
+    squares.append(x * x)
+```
+
+### Generators
+Use generators for large datasets to save memory. They yield items one by one instead of loading everything into memory.
+
+```python
+# ✅ GOOD: using generator expression
+large_sum = sum(x * x for x in range(1000000))
+
+# ❌ BAD: creating huge list in memory
+large_sum = sum([x * x for x in range(1000000)])
+```
+
+### Local Variables
+Accessing local variables is faster than global variables.
+
+```python
+# ✅ GOOD: using local variables
+def calculate():
+    x = 10
+    y = 20
+    return x + y
+
+# ❌ BAD: relying on global scope lookups
+GLOBAL_X = 10
+def calculate():
+    return GLOBAL_X + 20
+```
+
+### Caching
+Use `functools.lru_cache` to cache results of expensive function calls with the same arguments.
+
+```python
+# ✅ GOOD: using lru_cache
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+## Profiling
+
+Always profile before optimizing. Premature optimization can lead to complex, unmaintainable code.
+
+### cProfile
+Use `cProfile` to identify bottlenecks.
+
+```bash
+python -m cProfile -s cumulative myscript.py
+```
+
+```python
+import cProfile
+import pstats
+
+def my_function():
+    # code to profile
+    pass
+
+profiler = cProfile.Profile()
+profiler.enable()
+my_function()
+profiler.disable()
+
+stats = pstats.Stats(profiler).sort_stats('cumtime')
+stats.print_stats(10)
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (measure first, optimize bottlenecks, avoid premature optimization)
+
+**Python-Specific:**
+- This file provides Python-specific concurrency patterns (multiprocessing, threading, asyncio)
+
+---
+
+## References
+
+- [Python Concurrency Docs](https://docs.python.org/3/library/concurrency.html)
+- [Python Speed - Performance Tips](https://wiki.python.org/moin/PythonSpeed/PerformanceTips)
+- [Asyncio Documentation](https://docs.python.org/3/library/asyncio.html)

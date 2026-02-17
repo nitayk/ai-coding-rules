@@ -1,0 +1,122 @@
+---
+description: "Scala testing best practices using ScalaTest framework. Use when: (1) Writing Scala tests, (2) Using ScalaTest, (3) Structuring test suites, (4) Writing test assertions, (5) Organizing test code. Covers ScalaTest patterns, test organization, and Scala testing conventions."
+globs: []
+alwaysApply: false
+---
+
+- **Use established testing frameworks**: Prefer ScalaTest for its comprehensive feature set and idiomatic Scala patterns.  
+  ```scala
+  // ✅ Good: Using ScalaTest with proper structure
+  import org.scalatest.flatspec.AnyFlatSpec
+  import org.scalatest.matchers.should.Matchers
+
+  class TransformationServiceSpec extends AnyFlatSpec with Matchers {
+    "TransformationService" should "apply cast transformations correctly" in {
+      // test implementation
+    }
+  }
+  ```
+
+- **Write unit tests for component isolation**: Test individual components in isolation using mocks or stubs for external dependencies.  
+  ```scala
+  // ✅ Good: Isolated unit test with mocks (for legacy code)
+  import org.mockito.MockitoSugar
+
+  class DataProcessorSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+    "DataProcessor" should "process records independently" in {
+      val mockValidator = mock[DataValidator]
+      val processor = new DataProcessor(mockValidator)
+      
+      when(mockValidator.validate(any[DataRecord])).thenReturn(true)
+      
+      val result = processor.processRecord(testRecord)
+      result shouldBe defined
+    }
+  }
+  ```
+  
+  **Note**: For new code, prefer **[Pure Testing Patterns](pure-testing-patterns.mdc)** - use functional dependencies instead of mocks for cleaner, more maintainable tests.
+
+- **Implement integration tests for module interactions**: Verify interactions between modules and with external systems using real implementations.  
+  ```scala
+  // ✅ Good: Integration test with real dependencies
+  class DataPipelineIntegrationSpec extends AnyFlatSpec with Matchers {
+    "DataPipeline" should "process end-to-end workflow" in {
+      val pipeline = DataPipeline.createWithRealDependencies()
+      val input = createTestDataStream()
+      
+      val result = pipeline.process(input)
+      
+      result.processedRecords should be > 0
+      result.errors shouldBe empty
+    }
+  }
+  ```
+
+- **Prefer async testing for Future-based code**: Use ScalaTest's `eventually` and patience configuration for robust async tests.  
+  ```scala
+  // ✅ Good: Async testing with ScalaTest
+  import org.scalatest.concurrent.Eventually
+  import org.scalatest.time.{Millis, Seconds, Span}
+
+  class AsyncProcessorSpec extends AnyFlatSpec with Matchers with Eventually {
+    implicit val patience: PatienceConfig = PatienceConfig(
+      timeout = Span(5, Seconds),
+      interval = Span(100, Millis)
+    )
+
+    "AsyncProcessor" should "complete processing asynchronously" in {
+      val processor = new AsyncProcessor()
+      val futureResult = processor.processDataAsync(testData)
+      
+      eventually {
+        futureResult.isCompleted shouldBe true
+        futureResult.value.get.isSuccess shouldBe true
+      }
+    }
+  }
+  ```
+
+- **Use table-driven testing for multiple scenarios**: Employ `forAll` with test case tables for comprehensive coverage and maintainability.  
+  ```scala
+  // ✅ Good: Table-driven testing
+  import org.scalatest.prop.TableDrivenPropertyChecks
+
+  class CastTransformationSpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks {
+    val testCases = Table(
+      ("testName", "inputValue", "targetType", "expectedResult"),
+      ("string to int", "123", "int", 123),
+      ("string to double", "123.45", "double", 123.45),
+      ("invalid cast", "abc", "int", null)
+    )
+
+    forAll(testCases) { (testName, input, targetType, expected) =>
+      testName in {
+        val result = CastTransformation.apply(input, targetType)
+        result shouldEqual expected
+      }
+    }
+  }
+  ```
+
+- **Run tests frequently**: Use sbt commands or IDE integration to catch regressions early in development.  
+  ```bash
+  # ✅ Good: Regular testing workflow
+  sbt test                    # Run all tests
+  sbt testQuick              # Run only changed tests
+  sbt "testOnly *CastSpec"   # Run specific test class
+  sbt "test:compile"         # Check test compilation
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (test behavior not implementation, AAA pattern, isolation, pure testing patterns)
+
+**Scala-Specific:**
+- **[Correctness First](../meta/correctness-first.mdc)** - **Make it correct first, then optimize** - Use property-based testing to verify correctness before optimizing
+- **[Pure Testing Patterns](pure-testing-patterns.mdc)** - **Making tests side-effect-free, declarative, and composable** - Replace mocks with functional dependencies, use parametric tests, compose with monoids
+- [Referential Transparency](../language/referential-transparency.mdc) - Pure functions and testing
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Type safety in tests

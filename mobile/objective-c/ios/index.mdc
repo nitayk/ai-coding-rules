@@ -1,0 +1,44 @@
+---
+description: "iOS Objective-C development patterns index - best practices and legacy maintenance. Use when: (1) iOS Objective-C development, (2) Legacy iOS maintenance, (3) Objective-C patterns, (4) Swift interoperability. Points to iOS pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# iOS Objective-C Development Patterns Index
+
+**Purpose**: Router for iOS Objective-C patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **ios**, ios development, ios app, ios architecture, objective-c ios | `ios-best-practices.mdc` |
+
+---
+
+## iOS Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [iOS Best Practices](ios-best-practices.mdc) | Interoperability, legacy maintenance, delegates | ios, ios development, objective-c ios |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| iOS Objective-C patterns | `ios-best-practices.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for Objective-C language patterns
+- **Build Tools**: See `.cursor/rules/shared/mobile/cocoapods/index.mdc` for CocoaPods patterns

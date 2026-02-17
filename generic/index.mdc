@@ -1,0 +1,111 @@
+---
+description: "Navigation index for universal coding best practices that apply across all languages. Use when: (1) Discovering generic rules, (2) Finding code quality principles (SOLID, DRY, KISS, YAGNI), (3) Error handling/testing/performance/security patterns, (4) Debugging/architecture/communication/analysis rules, (5) Git workflow guidelines. Load manually with .cursor/rules/shared/generic/index.mdc to browse available rules. Generic rules provide universal principles; language-specific rules add implementation details."
+globs: []
+alwaysApply: false
+version: "1.2.0"
+last_updated: "2025-01-21"
+tags: ["index", "generic", "universal", "navigation"]
+---
+
+# Generic Development Rules Index
+
+**📖 Navigation Guide**: Use this to discover generic rules. The actual rules load automatically when you work with code files.
+
+Universal best practices that apply across **all languages and platforms** (backend, frontend, mobile).
+
+**Load manually** with `.cursor/rules/shared/generic/index.mdc` to browse rules. Generic rules provide universal principles; language rules add implementation details.
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) or Layer 1 nodes (communication subcategory) based on keywords. Hybrid: flattened for single-file categories, subcategory kept for communication (3 files).
+
+---
+
+## Keyword → File/Subcategory Routing
+
+| Keywords/Intent | Load File or Subcategory Index |
+|----------------|-------------------------------|
+| **communication**, business logic, tool communication, prompt engineering | `.cursor/rules/shared/generic/communication/index.mdc` (3 files) |
+| **code quality**, solid, dry, kiss, yagni, clean code | `code-quality/core-principles.mdc` |
+| **architecture**, design patterns, separation of concerns | `architecture/core-principles.mdc` |
+| **testing**, test patterns, unit testing, integration testing | `testing/core-principles.mdc` |
+| **performance**, performance optimization, profiling | `performance/core-principles.mdc` |
+| **security**, security best practices, input validation | `security/core-principles.mdc` |
+| **debugging**, debug, troubleshooting, investigate bug | `debugging/strategies.mdc` |
+| **error handling**, error patterns, fail fast, explicit errors | `error-handling/universal-patterns.mdc` |
+| **semantic analysis**, code analysis, modality detection | `analysis/semantic-code-analysis-patterns.mdc` |
+| **git**, git staging, git workflow, commit best practices | `git/git-staging-guidelines.mdc` |
+
+---
+
+## 📚 Available Rules
+
+### Code Quality (`generic/code-quality/`)
+- **[Core Principles](code-quality/core-principles.mdc)** - Boy Scout Rule, SOLID, DRY, KISS, YAGNI, correctness first, make illegal states unrepresentable, pure functions, meaningful comments
+
+### Error Handling (`generic/error-handling/`)
+- **[Universal Patterns](error-handling/universal-patterns.mdc)** - Fail fast, explicit errors, proper propagation
+
+### Testing (`generic/testing/`)
+- **[Core Principles](testing/core-principles.mdc)** - Test behavior not implementation, AAA pattern, isolation
+
+### Performance (`generic/performance/`)
+- **[Core Principles](performance/core-principles.mdc)** - Measure first, optimize bottlenecks, avoid premature optimization
+
+### Security (`generic/security/`)
+- **[Core Principles](security/core-principles.mdc)** - Input validation, least privilege, defense in depth
+
+### Debugging (`generic/debugging/`)
+- **[Strategies](debugging/strategies.mdc)** - Reproduce, isolate, hypothesis-driven investigation
+
+### Architecture (`generic/architecture/`)
+- **[Core Principles](architecture/core-principles.mdc)** - Interface-centric design, separation of concerns, dependency injection
+
+### Communication (`generic/communication/`)
+**Load**: `.cursor/rules/shared/generic/communication/index.mdc` ← Points to specific communication pattern files
+- **[Business Communication Standards](communication/business-communication-standards.mdc)** - BLUF format for business logic explanations
+- **[Tool Communication Pattern](communication/tool-communication-pattern.mdc)** - How to explain MCP tools to users
+- **[Prompt Engineering Principles](communication/prompt-engineering-principles.mdc)** - LLM prompt optimization techniques, architecture awareness, task-specific strategies
+
+### Analysis (`generic/analysis/`)
+- **[Semantic Code Analysis Patterns](analysis/semantic-code-analysis-patterns.mdc)** - Modality detection, downstream deception
+
+### Git (`generic/git/`)
+- **[Git Staging Guidelines](git/git-staging-guidelines.mdc)** - Staging workflow, commit best practices
+
+---
+
+
+## 🔍 Quick Reference
+
+| Need | Rule |
+|------|------|
+| Writing clean code | `code-quality/core-principles.mdc` |
+| Designing architecture | `architecture/core-principles.mdc` |
+| Handling errors | `error-handling/universal-patterns.mdc` |
+| Writing tests | `testing/core-principles.mdc` |
+| Optimizing performance | `performance/core-principles.mdc` |
+| Security concerns | `security/core-principles.mdc` |
+| Debugging issues | `debugging/strategies.mdc` |
+| Explaining business logic | `communication/business-communication-standards.mdc` |
+| Optimizing LLM prompts | `communication/prompt-engineering-principles.mdc` |
+| Git workflow | `git/git-staging-guidelines.mdc` |
+
+---
+
+## 📝 Contributing
+
+When adding new generic rules:
+1. Place in appropriate subdirectory (`code-quality/`, `testing/`, etc.)
+2. Follow format from `meta/cursor-rules-style-guide.mdc`
+3. Ensure rule applies universally (not language-specific)
+4. Update this index
+5. Update `index.mdc` in root (complete catalog)
+
+---
+
+## 🔗 Related Resources
+
+- **Language-specific rules**: See `backend/`, `frontend/`, `mobile/` directories
+- **Tools**: See `tools/` directory
+- **Skills & Workflows**: See `skills/` directory for procedural workflows
+- **Style guide**: See `meta/cursor-rules-style-guide.mdc`
+- **Router**: See `ROUTER.mdc` for intent-based rule loading

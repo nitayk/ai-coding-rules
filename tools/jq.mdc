@@ -1,0 +1,494 @@
+---
+description: "jq command-line JSON processor for parsing, filtering, transforming, and formatting JSON data. Use when: (1) Parsing JSON data, (2) Filtering JSON, (3) Transforming JSON, (4) Formatting JSON output, (5) Processing JSON in scripts. Covers jq syntax, filters, transformations, and JSON processing patterns."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["json", "jq", "parsing", "basics", "cli"]
+---
+
+# jq Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to parse, filter, transform, or format JSON data from APIs, files, or command output
+**SKIP WHEN:** Simple JSON viewing or using programmatic JSON libraries
+
+## Core Directive
+**Use jq for JSON operations** - Parse, filter, transform, and format JSON data efficiently from the command line.
+
+## Installation
+
+```bash
+# macOS
+brew install jq
+
+# Linux (Debian/Ubuntu)
+apt-get install jq
+
+# Verify installation
+jq --version
+```
+
+## Basic Operations
+
+### Pretty Print JSON
+
+```bash
+# Format JSON
+echo '{"name":"John","age":30}' | jq
+
+# Format JSON from file
+jq . file.json
+
+# Format JSON from curl
+curl -s https://api.example.com/endpoint | jq
+```
+
+### Access Fields
+
+**Simple field access:**
+```bash
+echo '{"name":"John","age":30}' | jq '.name'
+# Output: "John"
+
+echo '{"name":"John","age":30}' | jq '.age'
+# Output: 30
+```
+
+**Nested fields:**
+```bash
+echo '{"user":{"name":"John","address":{"city":"NYC"}}}' | jq '.user.address.city'
+# Output: "NYC"
+```
+
+**Optional field (no error if missing):**
+```bash
+echo '{"name":"John"}' | jq '.age?'
+# Output: null
+```
+
+### Arrays
+
+**Access array elements:**
+```bash
+echo '[1,2,3,4,5]' | jq '.[0]'
+# Output: 1
+
+echo '[1,2,3,4,5]' | jq '.[2]'
+# Output: 3
+```
+
+**Array slicing:**
+```bash
+echo '[1,2,3,4,5]' | jq '.[1:3]'
+# Output: [2,3]
+
+echo '[1,2,3,4,5]' | jq '.[:3]'
+# Output: [1,2,3]
+```
+
+**Iterate array:**
+```bash
+echo '[{"name":"John"},{"name":"Jane"}]' | jq '.[]'
+# Output: {"name":"John"}
+#         {"name":"Jane"}
+
+echo '[{"name":"John"},{"name":"Jane"}]' | jq '.[].name'
+# Output: "John"
+#         "Jane"
+```
+
+**Array length:**
+```bash
+echo '[1,2,3,4,5]' | jq 'length'
+# Output: 5
+```
+
+## Filtering
+
+### Select
+
+**Filter objects:**
+```bash
+echo '[{"name":"John","age":30},{"name":"Jane","age":25}]' | jq '.[] | select(.age > 27)'
+# Output: {"name":"John","age":30}
+```
+
+**Multiple conditions:**
+```bash
+jq '.[] | select(.age > 25 and .name == "John")'
+```
+
+**Contains:**
+```bash
+jq '.[] | select(.name | contains("Jo"))'
+```
+
+**Match regex:**
+```bash
+jq '.[] | select(.email | test("@example.com$"))'
+```
+
+### Map
+
+**Transform array:**
+```bash
+echo '[1,2,3]' | jq 'map(. * 2)'
+# Output: [2,4,6]
+
+echo '[{"name":"John","age":30}]' | jq 'map(.name)'
+# Output: ["John"]
+```
+
+**Map with select:**
+```bash
+jq 'map(select(.age > 25))'
+```
+
+## Output Formats
+
+### Raw Output
+
+**Remove quotes from strings:**
+```bash
+echo '{"name":"John"}' | jq -r '.name'
+# Output: John (without quotes)
+```
+
+**Raw output for arrays:**
+```bash
+echo '["a","b","c"]' | jq -r '.[]'
+# Output: a
+#         b
+#         c
+```
+
+### Compact Output
+
+```bash
+echo '{"name":"John","age":30}' | jq -c
+# Output: {"name":"John","age":30}
+```
+
+### Tab Output
+
+```bash
+jq -r '.[] | [.name, .age] | @tsv'
+# Output: John	30
+```
+
+### CSV Output
+
+```bash
+jq -r '.[] | [.name, .age] | @csv'
+# Output: "John",30
+```
+
+## Common Patterns
+
+### Extract Specific Fields
+
+```bash
+# Single field
+curl -s https://api.example.com/users | jq '.[].name'
+
+# Multiple fields
+curl -s https://api.example.com/users | jq '.[] | {name, age}'
+
+# Rename fields
+curl -s https://api.example.com/users | jq '.[] | {username: .name, years: .age}'
+```
+
+### Filter and Extract
+
+```bash
+# Get names of users over 25
+jq '.[] | select(.age > 25) | .name'
+
+# Get IDs of active users
+jq '.[] | select(.active == true) | .id'
+```
+
+### Count and Aggregate
+
+```bash
+# Count items
+jq 'length'
+
+# Count matching items
+jq '[.[] | select(.active == true)] | length'
+
+# Sum values
+jq '[.[].age] | add'
+
+# Average
+jq '[.[].age] | add / length'
+
+# Max/min
+jq '[.[].age] | max'
+jq '[.[].age] | min'
+```
+
+### Sort
+
+```bash
+# Sort by field
+jq 'sort_by(.age)'
+
+# Sort descending
+jq 'sort_by(.age) | reverse'
+
+# Sort by multiple fields
+jq 'sort_by(.age, .name)'
+```
+
+### Group By
+
+```bash
+# Group by field
+jq 'group_by(.category)'
+
+# Group and count
+jq 'group_by(.category) | map({category: .[0].category, count: length})'
+```
+
+### Combine Objects
+
+```bash
+# Merge objects
+echo '{"a":1}' '{"b":2}' | jq -s '.[0] + .[1]'
+# Output: {"a":1,"b":2}
+
+# Add field
+echo '{"name":"John"}' | jq '. + {age: 30}'
+# Output: {"name":"John","age":30}
+```
+
+## Advanced Operations
+
+### Conditionals
+
+```bash
+# If-then-else
+jq '.[] | if .age > 30 then "senior" else "junior" end'
+
+# Ternary
+jq '.[] | {name, status: (if .active then "active" else "inactive" end)}'
+```
+
+### String Operations
+
+```bash
+# Concatenate
+jq '.firstName + " " + .lastName'
+
+# Split
+echo '"a,b,c"' | jq 'split(",")'
+# Output: ["a","b","c"]
+
+# Join
+echo '["a","b","c"]' | jq 'join(",")'
+# Output: "a,b,c"
+
+# Uppercase/lowercase
+echo '"hello"' | jq 'ascii_upcase'
+# Output: "HELLO"
+```
+
+### Type Checking
+
+```bash
+# Check type
+jq 'type'
+# Output: "object", "array", "string", "number", etc.
+
+# Filter by type
+jq '.[] | select(type == "string")'
+```
+
+### Keys and Values
+
+```bash
+# Get keys
+echo '{"a":1,"b":2}' | jq 'keys'
+# Output: ["a","b"]
+
+# Get values
+echo '{"a":1,"b":2}' | jq 'values'
+# Output: 1
+#         2
+
+# Key-value pairs
+echo '{"a":1,"b":2}' | jq 'to_entries'
+# Output: [{"key":"a","value":1},{"key":"b","value":2}]
+```
+
+### Null Handling
+
+```bash
+# Alternative operator (return first non-null)
+jq '.name // "Unknown"'
+
+# Select non-null
+jq '.[] | select(.age != null)'
+
+# Has key
+jq 'has("name")'
+```
+
+## Real-World Examples
+
+### Parse AWS CLI Output
+
+```bash
+# Get instance IDs
+aws ec2 describe-instances | jq -r '.Reservations[].Instances[].InstanceId'
+
+# Get running instances
+aws ec2 describe-instances | jq '.Reservations[].Instances[] | select(.State.Name=="running") | {ID:.InstanceId,IP:.PrivateIpAddress}'
+```
+
+### Parse Kubernetes Output
+
+```bash
+# Get pod names
+kubectl get pods -o json | jq -r '.items[].metadata.name'
+
+# Get pods with high restarts
+kubectl get pods -o json | jq '.items[] | select(.status.containerStatuses[0].restartCount > 5) | .metadata.name'
+```
+
+### Parse GitHub API
+
+```bash
+# Get PR titles
+gh pr list --json number,title | jq '.[] | {number, title}'
+
+# Filter merged PRs
+gh pr list --state all --json number,title,state | jq '.[] | select(.state=="MERGED")'
+```
+
+### Transform Data
+
+```bash
+# Flatten nested structure
+jq '[.[] | {name: .user.name, city: .user.address.city}]'
+
+# Create lookup table
+jq '[.[] | {(.id): .name}] | add'
+```
+
+## Examples
+
+### ✅ Positive Pattern: Build Query Incrementally
+
+```bash
+# Step 1: View raw data
+curl -s https://api.example.com/users | jq
+
+# Step 2: Extract array
+curl -s https://api.example.com/users | jq '.data'
+
+# Step 3: Filter
+curl -s https://api.example.com/users | jq '.data[] | select(.active == true)'
+
+# Step 4: Extract fields
+curl -s https://api.example.com/users | jq -r '.data[] | select(.active == true) | .name'
+```
+
+### ✅ Positive Pattern: Handle Missing Fields
+
+```bash
+# Use alternative operator for missing fields
+jq '.name // "Unknown"'
+
+# Use optional operator to avoid errors
+jq '.user?.email? // "No email"'
+```
+
+### ❌ Negative Pattern: Not Using Raw Output
+
+```bash
+# ❌ BAD: Quoted strings
+echo '{"name":"John"}' | jq '.name'
+# Output: "John" (with quotes)
+
+# ✅ GOOD: Raw output
+echo '{"name":"John"}' | jq -r '.name'
+# Output: John (no quotes)
+```
+
+### ❌ Negative Pattern: Not Handling Nulls
+
+```bash
+# ❌ BAD: Fails if field missing
+jq '.user.email'
+
+# ✅ GOOD: Handle missing fields
+jq '.user.email? // "No email"'
+```
+
+## Troubleshooting
+
+### Parse Errors
+
+```bash
+# Validate JSON first
+jq empty < file.json
+
+# Show parse error details
+jq . invalid.json 2>&1
+```
+
+### Empty Output
+
+```bash
+# Check if filter matches anything
+jq 'any' < file.json
+
+# Debug filter
+jq '.' < file.json  # View full structure first
+```
+
+### Complex Filters Not Working
+
+```bash
+# Break into smaller steps
+jq '.data' | jq '.[]' | jq 'select(.age > 25)'
+
+# Use debug to see intermediate values
+jq '.[] | debug | select(.age > 25)'
+```
+
+## Useful Patterns
+
+### Create JSON from Shell Variables
+
+```bash
+jq -n \
+  --arg name "$NAME" \
+  --arg email "$EMAIL" \
+  '{name: $name, email: $email}'
+```
+
+### Read Multiple JSON Files
+
+```bash
+jq -s '.' file1.json file2.json
+# Combines into single array
+```
+
+### Process Large JSON Files
+
+```bash
+# Stream processing (memory efficient)
+jq -c '.[]' large-file.json | while read -r item; do
+  echo "$item" | jq '.name'
+done
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/curl.mdc` for HTTP requests that return JSON
+- See `.cursor/rules/shared/tools/aws-cli.mdc` for AWS CLI with jq filtering
+- See `.cursor/rules/shared/tools/gh-cli.mdc` for GitHub CLI with jq filtering

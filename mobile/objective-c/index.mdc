@@ -1,0 +1,52 @@
+---
+description: "Comprehensive index of Objective-C development rules and best practices. Use when: (1) Writing Objective-C code, (2) iOS development, (3) ARC memory management, (4) Objective-C style guidelines, (5) Legacy iOS maintenance. Auto-loads when Objective-C files are opened (via globs). Points to ios/, language/ subdirectories."
+globs: ["**/*.m", "**/*.h", "**/*.mm"]
+alwaysApply: false
+---
+
+# Objective-C Development Rules
+
+## Available Rules
+
+### 📝 Language Features (`language/`)
+**Load**: `.cursor/rules/shared/mobile/objective-c/language/index.mdc` ← Points to specific language pattern files
+- **[Style Guide](language/style-guide.mdc)** - Objective-C naming conventions, formatting, code organization
+- **[ARC Memory Management](language/arc-memory-management.mdc)** - Strong/weak references, retain cycles, property attributes
+
+### 📱 iOS Development (`ios/`)
+**Load**: `.cursor/rules/shared/mobile/objective-c/ios/index.mdc` ← Points to specific iOS pattern files
+- **[iOS Best Practices](ios/ios-best-practices.mdc)** - iOS-specific patterns and conventions
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **objective-c style**, objc style, objc formatting, style guide | `language/style-guide.mdc` |
+| **arc**, memory management, retain cycles, weak strong, arc memory | `language/arc-memory-management.mdc` |
+| **ios**, ios development, ios app, ios architecture, objective-c ios | `ios/ios-best-practices.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Language Features (`language/`)
+- **[Style Guide](language/style-guide.mdc)** - Objective-C naming conventions, formatting, code organization
+- **[ARC Memory Management](language/arc-memory-management.mdc)** - Strong/weak references, retain cycles, property attributes
+
+### 📱 iOS Development (`ios/`)
+- **[iOS Best Practices](ios/ios-best-practices.mdc)** - iOS-specific patterns and conventions
+
+---
+
+## Core Principles
+- **ARC**: Use Automatic Reference Counting for all new code
+- **Memory Safety**: Avoid retain cycles with weak references
+- **Interoperability**: Support Swift interoperability with nullability annotations
+
+## Key Resources
+- [Apple: Transitioning to ARC](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/)
+- [Memory Management Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/)

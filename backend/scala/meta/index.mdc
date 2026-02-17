@@ -1,0 +1,61 @@
+---
+description: "Scala meta patterns index - code style, correctness principles, functional programming principles, and code smells. Use when: (1) Scala code style, (2) Correctness principles, (3) Functional programming principles, (4) Code quality. Points to specific meta pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Scala Meta Patterns Index
+
+**Purpose**: Router for Scala meta patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **correctness first**, optimization, make it correct | `correctness-first.mdc` |
+| **functional programming**, FP principles, functional principles | `functional-programming-principles.mdc` |
+| **scala style**, code style, scala code style | `scala-code-style.mdc` |
+| **code smells**, anti-patterns, scala code smells | `scala-code-smells.mdc` |
+| **comments**, meaningful comments, documentation | `meaningful-comments-only.mdc` |
+| **monitoring**, observability, logging, scala observability | `monitoring-and-observability-patterns.mdc` |
+| **rules format**, documentation format, scala rules format | `scala-rules-format-guide.mdc` |
+
+---
+
+## Meta Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Correctness First](correctness-first.mdc) | Make it correct, then optimize | correctness first, optimization |
+| [Functional Programming Principles](functional-programming-principles.mdc) | Core FP principles for Scala | functional programming, FP principles |
+| [Scala Code Style](scala-code-style.mdc) | Scala coding style guidelines | scala style, code style |
+| [Scala Code Smells](scala-code-smells.mdc) | Common Scala code smells and anti-patterns | code smells, anti-patterns |
+| [Meaningful Comments Only](meaningful-comments-only.mdc) | When and how to write comments | comments, documentation |
+| [Monitoring and Observability Patterns](monitoring-and-observability-patterns.mdc) | Observability patterns for Scala services | monitoring, observability, logging |
+| [Scala Rules Format Guide](scala-rules-format-guide.mdc) | Format guide for Scala rule files | rules format, documentation |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Code style | `scala-code-style.mdc` |
+| Correctness principles | `correctness-first.mdc` |
+| Functional programming | `functional-programming-principles.mdc` |
+| Code smells | `scala-code-smells.mdc` |
+| Observability | `monitoring-and-observability-patterns.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Architecture**: See `../architecture/index.mdc` for architectural patterns
+- **Generic**: See `.cursor/rules/shared/generic/code-quality/core-principles.mdc` for universal principles

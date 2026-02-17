@@ -1,0 +1,521 @@
+---
+description: "Docker CLI for container management - images, containers, logs, exec, networking, and debugging containerized applications. Use when: (1) Managing Docker containers, (2) Building/running images, (3) Viewing logs, (4) Executing commands in containers, (5) Debugging containerized apps. Covers Docker commands, container management, image operations, and debugging."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["docker", "containers", "cli", "basics", "devops"]
+---
+
+# Docker Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to manage containers, inspect images, view logs, debug containerized applications, or test locally
+**SKIP WHEN:** Using Kubernetes (kubectl) or Docker Compose for orchestration
+
+## Core Directive
+**Use Docker for container operations** - Manage containers, images, networks, and volumes from the command line for local development and debugging.
+
+## Installation
+
+```bash
+# macOS
+brew install --cask docker
+
+# Linux (Ubuntu)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# Verify installation
+docker --version
+docker ps
+```
+
+## Basic Operations
+
+### Containers
+
+**List containers:**
+```bash
+docker ps  # Running containers
+docker ps -a  # All containers
+docker ps -a -q  # Only IDs
+```
+
+**Run container:**
+```bash
+docker run nginx
+docker run -d nginx  # Detached (background)
+docker run -d --name my-nginx nginx  # Named container
+docker run -d -p 8080:80 nginx  # Port mapping
+docker run -d -e ENV_VAR=value nginx  # Environment variable
+docker run -it ubuntu bash  # Interactive terminal
+```
+
+**Start/stop containers:**
+```bash
+docker start container-id
+docker stop container-id
+docker restart container-id
+docker kill container-id  # Force stop
+```
+
+**Remove containers:**
+```bash
+docker rm container-id
+docker rm -f container-id  # Force remove running container
+docker rm $(docker ps -a -q)  # Remove all stopped
+```
+
+**Container info:**
+```bash
+docker inspect container-id
+docker stats container-id  # Resource usage
+docker top container-id  # Running processes
+```
+
+### Logs
+
+**View logs:**
+```bash
+docker logs container-id
+docker logs -f container-id  # Follow (tail)
+docker logs --tail 100 container-id  # Last 100 lines
+docker logs --since 1h container-id  # Last hour
+docker logs --timestamps container-id  # With timestamps
+```
+
+**Combined logs from multiple containers:**
+```bash
+docker logs container1 & docker logs container2
+```
+
+### Execute Commands
+
+**Execute in running container:**
+```bash
+docker exec container-id command
+docker exec container-id ls -la /app
+docker exec -it container-id bash  # Interactive shell
+docker exec -it container-id sh
+docker exec -u root container-id whoami  # As different user
+```
+
+### Images
+
+**List images:**
+```bash
+docker images
+docker images -a  # Include intermediate images
+docker images -q  # Only IDs
+```
+
+**Pull image:**
+```bash
+docker pull nginx
+docker pull nginx:1.21
+docker pull nginx:latest
+```
+
+**Build image:**
+```bash
+docker build -t my-app:latest .
+docker build -t my-app:v1 -f Dockerfile.prod .
+docker build --no-cache -t my-app:latest .
+```
+
+**Remove images:**
+```bash
+docker rmi image-id
+docker rmi -f image-id  # Force remove
+docker image prune  # Remove dangling images
+docker image prune -a  # Remove unused images
+```
+
+**Image info:**
+```bash
+docker inspect image-id
+docker history image-id  # Image layers
+```
+
+## Networking
+
+**List networks:**
+```bash
+docker network ls
+```
+
+**Create network:**
+```bash
+docker network create my-network
+docker network create --driver bridge my-network
+```
+
+**Connect container to network:**
+```bash
+docker network connect my-network container-id
+docker run -d --network my-network nginx
+```
+
+**Inspect network:**
+```bash
+docker network inspect my-network
+```
+
+**Remove network:**
+```bash
+docker network rm my-network
+docker network prune  # Remove unused networks
+```
+
+## Volumes
+
+**List volumes:**
+```bash
+docker volume ls
+```
+
+**Create volume:**
+```bash
+docker volume create my-volume
+```
+
+**Mount volume:**
+```bash
+docker run -d -v my-volume:/data nginx
+docker run -d -v /host/path:/container/path nginx  # Bind mount
+docker run -d -v /host/path:/container/path:ro nginx  # Read-only
+```
+
+**Inspect volume:**
+```bash
+docker volume inspect my-volume
+```
+
+**Remove volume:**
+```bash
+docker volume rm my-volume
+docker volume prune  # Remove unused volumes
+```
+
+## Common Patterns
+
+### Debug Running Container
+
+```bash
+# Step 1: Check if running
+docker ps | grep container-name
+
+# Step 2: View logs
+docker logs -f container-name
+
+# Step 3: Exec into container
+docker exec -it container-name bash
+
+# Step 4: Inspect configuration
+docker inspect container-name
+```
+
+### Copy Files
+
+```bash
+# From container to host
+docker cp container-id:/path/in/container /host/path
+
+# From host to container
+docker cp /host/path container-id:/path/in/container
+```
+
+### View Container Changes
+
+```bash
+# Files changed in container
+docker diff container-id
+```
+
+### Export and Import
+
+```bash
+# Export container filesystem
+docker export container-id > container.tar
+
+# Import as image
+cat container.tar | docker import - my-image:latest
+
+# Save image to tar
+docker save -o image.tar image-name
+
+# Load image from tar
+docker load -i image.tar
+```
+
+### Resource Limits
+
+```bash
+# Memory limit
+docker run -d --memory="512m" nginx
+
+# CPU limit
+docker run -d --cpus="1.5" nginx
+
+# Combined
+docker run -d --memory="512m" --cpus="1.5" nginx
+```
+
+## Dockerfile Best Practices
+
+**Basic Dockerfile:**
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+**Multi-stage build:**
+```dockerfile
+# Build stage
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+RUN npm install --production
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+## Advanced Operations
+
+### Prune Everything
+
+```bash
+# Remove stopped containers
+docker container prune
+
+# Remove dangling images
+docker image prune
+
+# Remove unused networks
+docker network prune
+
+# Remove unused volumes
+docker volume prune
+
+# Remove everything
+docker system prune
+docker system prune -a --volumes  # Include all images and volumes
+```
+
+### Monitor Resources
+
+```bash
+# Resource usage
+docker stats
+
+# Disk usage
+docker system df
+
+# Detailed disk usage
+docker system df -v
+```
+
+### Commit Container to Image
+
+```bash
+docker commit container-id new-image:tag
+docker commit -m "Commit message" container-id new-image:tag
+```
+
+### Tag and Push
+
+```bash
+# Tag image
+docker tag local-image:latest registry/image:tag
+
+# Push to registry
+docker push registry/image:tag
+
+# Login to registry
+docker login registry.example.com
+docker login  # Docker Hub
+```
+
+## Debugging
+
+### Container Won't Start
+
+```bash
+# Check logs
+docker logs container-id
+
+# Inspect exit code
+docker inspect container-id --format='{{.State.ExitCode}}'
+
+# Try running interactively
+docker run -it image-name bash
+```
+
+### Port Not Accessible
+
+```bash
+# Check port mapping
+docker ps
+docker port container-id
+
+# Check if process listening
+docker exec container-id netstat -tlnp
+```
+
+### Permission Issues
+
+```bash
+# Run as root
+docker exec -u root container-id command
+
+# Check file permissions
+docker exec container-id ls -la /path
+```
+
+### Network Issues
+
+```bash
+# Check container IP
+docker inspect container-id --format='{{.NetworkSettings.IPAddress}}'
+
+# Test connectivity
+docker exec container1 ping container2
+
+# Check DNS
+docker exec container-id nslookup google.com
+```
+
+## Examples
+
+### ✅ Positive Pattern: Development Setup
+
+```bash
+# Step 1: Build image
+docker build -t my-app:dev .
+
+# Step 2: Run with volume mount for live reload
+docker run -d \
+  --name my-app-dev \
+  -v $(pwd):/app \
+  -p 3000:3000 \
+  my-app:dev
+
+# Step 3: View logs
+docker logs -f my-app-dev
+
+# Step 4: Exec for debugging
+docker exec -it my-app-dev bash
+```
+
+### ✅ Positive Pattern: Database Container
+
+```bash
+# Run with persistent volume
+docker run -d \
+  --name postgres-dev \
+  -e POSTGRES_PASSWORD=secret \
+  -v postgres-data:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  postgres:14
+```
+
+### ❌ Negative Pattern: Not Using Specific Tags
+
+```bash
+# ❌ BAD: Using latest tag
+docker pull nginx:latest
+
+# ✅ GOOD: Use specific version
+docker pull nginx:1.21-alpine
+```
+
+### ❌ Negative Pattern: Not Cleaning Up
+
+```bash
+# ❌ BAD: Accumulating stopped containers
+docker run nginx
+docker run nginx
+docker run nginx
+
+# ✅ GOOD: Remove after stop
+docker run --rm nginx
+
+# Or clean up periodically
+docker container prune
+```
+
+## Troubleshooting
+
+### Out of Disk Space
+
+```bash
+# Check disk usage
+docker system df
+
+# Remove unused data
+docker system prune -a --volumes
+
+# Remove specific items
+docker volume prune
+docker image prune -a
+```
+
+### Container Keeps Restarting
+
+```bash
+# Check logs
+docker logs container-id
+
+# Disable restart
+docker update --restart=no container-id
+
+# Check health
+docker inspect container-id --format='{{.State.Health.Status}}'
+```
+
+### Cannot Connect to Docker Daemon
+
+```bash
+# Check if Docker running
+docker ps
+
+# Restart Docker service (Linux)
+sudo systemctl restart docker
+
+# Check permissions
+groups $USER
+sudo usermod -aG docker $USER
+```
+
+## Useful Aliases
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias di='docker images'
+alias dlog='docker logs -f'
+alias dex='docker exec -it'
+alias drm='docker rm -f'
+alias drmi='docker rmi'
+alias dprune='docker system prune -a --volumes'
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/kubectl.mdc` for Kubernetes container management

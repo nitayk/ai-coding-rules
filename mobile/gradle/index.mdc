@@ -1,0 +1,32 @@
+---
+description: "Gradle build system best practices for Android projects. Use when: (1) Managing Android builds, (2) Using Gradle, (3) Build configuration, (4) Dependency management, (5) Android build optimization. Covers Gradle patterns, build.gradle configuration, and Android build best practices. Auto-loads when .gradle files are opened."
+globs: ["**/*.gradle", "**/*.gradle.kts"]
+alwaysApply: false
+---
+
+# Gradle Best Practices
+
+**Graph Structure**: This is a Layer 0 leaf (rule file) - contains actual Gradle patterns and best practices.
+
+**Keywords**: gradle, gradle build, build.gradle, gradle kts, android build, version catalog
+
+---
+
+## 1. Version Catalogs
+- Use `libs.versions.toml` (Version Catalogs) for managing dependencies centrally.
+- Avoid hardcoding versions in individual `build.gradle` files.
+
+## 2. DSL
+- Prefer Kotlin DSL (`.gradle.kts`) over Groovy (`.gradle`) for better type safety and IDE support (autocompletion).
+- **Migration**: When refactoring, consider migrating legacy `.gradle` files to `.gradle.kts`.
+
+## 3. Configuration Cache
+- Ensure build logic is compatible with Configuration Cache to improve build speed.
+- Avoid side effects at configuration time.
+
+## 4. Module Structure
+- **Multi-module**: Organize code into feature modules and core/library modules.
+- **Dependency Management**: Use `implementation` for internal dependencies to avoid leaking transitive dependencies (`api`).
+
+## 5. Tasks
+- Register tasks lazily (`tasks.register("myTask")`) instead of eagerly (`tasks.create("myTask")`).

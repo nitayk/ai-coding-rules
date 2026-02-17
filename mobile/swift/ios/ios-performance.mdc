@@ -1,0 +1,333 @@
+---
+description: "Swift iOS performance optimization - memory management, profiling, Instruments, SwiftUI performance. Use when: (1) Optimizing iOS apps, (2) Memory management, (3) Profiling with Instruments, (4) SwiftUI performance, (5) iOS performance tuning. Covers memory optimization, Instruments profiling, SwiftUI performance, and iOS performance best practices."
+globs: ["**/*.swift"]
+alwaysApply: false
+---
+
+# iOS Performance Optimization
+
+Optimize iOS apps for memory, CPU, and UI performance. Use Instruments to profile and measure improvements.
+
+---
+
+## Profile Before Optimizing
+
+**Use Instruments to find actual bottlenecks:**
+
+```swift
+// ✅ Good: Profile with Instruments
+// 1. Use Time Profiler to find CPU hotspots
+// 2. Use Allocations instrument to find memory issues
+// 3. Use SwiftUI instrument (Instruments 26+) for UI performance
+// 4. Use Leaks instrument to find memory leaks
+
+// Profile critical paths:
+// - App startup
+// - Screen transitions
+// - Heavy computations
+// - Image loading
+
+// ❌ Bad: Optimizing without profiling
+func processData(_ data: [Data]) {
+    // Optimized this, but it's not the bottleneck!
+    for item in data {
+        processItem(item)
+    }
+}
+```
+
+---
+
+## Use Value Types When Possible
+
+**Prefer structs over classes for better performance:**
+
+```swift
+// ✅ Good: Value type (struct)
+struct User {
+    let id: String
+    let name: String
+    let email: String
+}
+
+// No reference counting overhead
+// Copied, not shared
+let user = User(id: "1", name: "John", email: "john@example.com")
+
+// ✅ Good: Enum for state
+enum LoadingState {
+    case idle
+    case loading
+    case success(User)
+    case error(String)
+}
+
+// ❌ Bad: Reference type when value type works
+class User {
+    let id: String
+    let name: String
+    let email: String
+    // Reference counting overhead
+    // Shared references - potential issues
+}
+```
+
+---
+
+## Use InlineArray for Fixed-Size Buffers (Swift 6.2+)
+
+**Use `InlineArray` to avoid heap allocations:**
+
+```swift
+// ✅ Good: InlineArray for fixed-size buffers
+import Foundation
+
+func processFixedSizeData() {
+    var buffer: InlineArray<UInt8, 1024> = []  // Stack-allocated
+    
+    for i in 0..<1024 {
+        buffer.append(UInt8(i % 256))
+    }
+    
+    processBuffer(buffer)
+    // No heap allocation, no reference counting
+}
+
+// ❌ Bad: Regular Array causes heap allocation
+func processFixedSizeData() {
+    var buffer: [UInt8] = []  // Heap-allocated
+    
+    for i in 0..<1024 {
+        buffer.append(UInt8(i % 256))  // May reallocate
+    }
+}
+```
+
+---
+
+## Preallocate Array Capacity
+
+**Reserve capacity when size is known:**
+
+```swift
+// ✅ Good: Preallocate capacity
+func processItems(_ items: [Item]) -> [ProcessedItem] {
+    var results: [ProcessedItem] = []
+    results.reserveCapacity(items.count)  // Preallocate
+    
+    for item in items {
+        results.append(processItem(item))
+    }
+    
+    return results
+}
+
+// ❌ Bad: Array grows dynamically
+func processItems(_ items: [Item]) -> [ProcessedItem] {
+    var results: [ProcessedItem] = []  // Starts small
+    
+    for item in items {
+        results.append(processItem(item))  // May reallocate multiple times
+    }
+    
+    return results
+}
+```
+
+---
+
+## Avoid Unnecessary Copies
+
+**Use `Span` for non-escaping buffer views (Swift 6.2+):**
+
+```swift
+// ✅ Good: Span for non-escaping buffer access
+func processBuffer(_ data: [UInt8]) {
+    data.withUnsafeBytes { bytes in
+        let span = Span(unsafeBufferPointer: bytes)
+        // Safe, non-escaping view - no copy
+        processSpan(span)
+    }
+}
+
+// ❌ Bad: Copying data unnecessarily
+func processBuffer(_ data: [UInt8]) {
+    let copy = data  // Unnecessary copy
+    processData(copy)
+}
+```
+
+---
+
+## Optimize SwiftUI Performance
+
+**Reduce unnecessary view updates:**
+
+```swift
+// ✅ Good: Break up views to minimize recomposition
+struct UserProfile: View {
+    let user: User
+    
+    var body: some View {
+        VStack {
+            UserHeader(user: user)  // Only updates if user changes
+            UserDetails(user: user)  // Separate view
+        }
+    }
+}
+
+// ✅ Good: Use @State for local state
+struct Counter: View {
+    @State private var count = 0  // Local state
+    
+    var body: some View {
+        Button("Count: \(count)") {
+            count += 1  // Only this view updates
+        }
+    }
+}
+
+// ❌ Bad: Large view body causes full recomposition
+struct UserProfile: View {
+    let user: User
+    
+    var body: some View {
+        VStack {
+            // 100+ lines of UI - all recomposes together
+            Text(user.name)
+            // ... many views
+        }
+    }
+}
+```
+
+---
+
+## Avoid Retain Cycles
+
+**Use weak/unowned references appropriately:**
+
+```swift
+// ✅ Good: Weak reference to break cycle
+class ViewController {
+    var delegate: ViewControllerDelegate?
+    
+    func setupDelegate() {
+        delegate = DelegateImplementation()
+        delegate?.viewController = self  // Strong reference
+    }
+}
+
+protocol ViewControllerDelegate: AnyObject {
+    var viewController: ViewController? { get set }
+}
+
+class DelegateImplementation: ViewControllerDelegate {
+    weak var viewController: ViewController?  // Weak breaks cycle
+}
+
+// ✅ Good: Unowned when lifetime is guaranteed
+class Parent {
+    var child: Child?
+}
+
+class Child {
+    unowned let parent: Parent  // Unowned - parent always exists
+    
+    init(parent: Parent) {
+        self.parent = parent
+    }
+}
+
+// ❌ Bad: Retain cycle
+class ViewController {
+    var delegate: ViewControllerDelegate?
+}
+
+class DelegateImplementation: ViewControllerDelegate {
+    var viewController: ViewController?  // Strong - cycle!
+}
+```
+
+---
+
+## Use Lazy Loading for Heavy Resources
+
+**Load resources on demand:**
+
+```swift
+// ✅ Good: Lazy loading
+class ImageLoader {
+    private lazy var heavyImage: UIImage = {
+        // Loaded only when first accessed
+        return UIImage(named: "large-image")!
+    }()
+    
+    func getImage() -> UIImage {
+        return heavyImage
+    }
+}
+
+// ✅ Good: Lazy computed property
+struct DataProcessor {
+    let items: [Item]
+    
+    lazy var processedItems: [ProcessedItem] = {
+        // Computed only when accessed
+        return items.map(processItem)
+    }()
+}
+
+// ❌ Bad: Eager loading
+class ImageLoader {
+    private let heavyImage = UIImage(named: "large-image")!  // Loaded immediately
+}
+```
+
+---
+
+## Use NSCache for Image Caching
+
+**Use NSCache for memory-efficient caching:**
+
+```swift
+// ✅ Good: NSCache with memory pressure handling
+class ImageCache {
+    private let cache = NSCache<NSString, UIImage>()
+    
+    init() {
+        cache.countLimit = 100
+        cache.totalCostLimit = 50 * 1024 * 1024  // 50MB
+    }
+    
+    func image(for key: String) -> UIImage? {
+        return cache.object(forKey: key as NSString)
+    }
+    
+    func setImage(_ image: UIImage, for key: String) {
+        cache.setObject(image, forKey: key as NSString)
+    }
+}
+
+// NSCache automatically evicts under memory pressure
+
+// ❌ Bad: Dictionary cache - not memory-aware
+class ImageCache {
+    private var cache: [String: UIImage] = [:]  // Grows unbounded
+}
+```
+
+---
+
+## Related Rules
+
+- [Swift Concurrency Patterns](../language/swift-concurrency-patterns.mdc) - Concurrency performance
+- [iOS Best Practices](ios-best-practices.mdc) - iOS patterns
+
+---
+
+## References
+
+- [Apple: Improving Memory Usage and Performance with Swift](https://developer.apple.com/videos/play/wwdc2025/312/)
+- [Apple: Optimize CPU Performance with Instruments](https://developer.apple.com/videos/play/wwdc2025/308/)
+- [Instruments Documentation](https://developer.apple.com/documentation/instruments)

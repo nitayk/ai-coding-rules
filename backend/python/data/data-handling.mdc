@@ -1,0 +1,107 @@
+---
+description: "Python data handling - Pandas optimizations and Pydantic validation patterns. Use when: (1) Working with Pandas DataFrames, (2) Optimizing data processing, (3) Validating data with Pydantic, (4) Data transformation pipelines, (5) Performance optimization. Covers Pandas best practices, Pydantic validation, and data handling patterns."
+globs: []
+alwaysApply: false
+---
+
+# Data Handling Best Practices
+
+Guidelines for efficient data processing with Pandas and robust validation with Pydantic.
+
+## Pandas Optimization
+
+### Vectorization
+Avoid iterating over rows. Use vectorized operations which are implemented in C.
+
+```python
+import pandas as pd
+import numpy as np
+
+# ❌ BAD: Iterating rows
+for index, row in df.iterrows():
+    df.at[index, 'c'] = row['a'] + row['b']
+
+# ✅ GOOD: Vectorized operation
+df['c'] = df['a'] + df['b']
+```
+
+### Chaining (Method Chaining)
+Use method chaining for cleaner, more readable pipelines.
+
+```python
+# ✅ GOOD: Method chaining
+result = (
+    df.query("age > 18")
+    .assign(status="adult")
+    .groupby("city")
+    .agg({"salary": "mean"})
+)
+```
+
+### Memory Management
+Use explicit dtypes to save memory (e.g., `category` for strings with few unique values).
+
+```python
+# ✅ GOOD: Using category dtype
+df['status'] = df['status'].astype('category')
+```
+
+## Pydantic Models
+
+Use Pydantic for robust data validation and settings management.
+
+### Model Definition (V2 Style)
+
+```python
+from pydantic import BaseModel, Field, EmailStr, field_validator
+
+class User(BaseModel):
+    id: int
+    name: str = Field(..., min_length=2)
+    email: EmailStr
+    age: int = Field(gt=0, lt=150)
+
+    @field_validator('name')
+    @classmethod
+    def name_must_be_capitalized(cls, v: str) -> str:
+        if not v[0].isupper():
+            raise ValueError('Name must start with capital letter')
+        return v
+```
+
+### Settings Management
+Use `BaseSettings` for environment variable handling.
+
+```python
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    app_name: str = "My App"
+    db_url: str
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
+# Access via settings.db_url
+```
+
+### Serialization
+Use `model_dump()` and `model_dump_json()` (V2) instead of `dict()` and `json()`.
+
+```python
+user = User(id=1, name="John", email="john@example.com", age=30)
+data = user.model_dump()
+json_data = user.model_dump_json()
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (vectorization, batching)
+
+**Python-Specific:**
+- This file provides Python-specific data handling patterns (Pandas optimization, Pydantic validation)

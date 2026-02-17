@@ -1,0 +1,270 @@
+---
+description: "Objective-C ARC memory management - strong/weak references, retain cycles, property attributes. Use when: (1) Managing Objective-C memory, (2) Using ARC, (3) Avoiding retain cycles, (4) Property attributes, (5) Memory management patterns. Covers ARC patterns, strong/weak references, retain cycle prevention, and Objective-C memory management."
+globs: ["**/*.m", "**/*.h", "**/*.mm"]
+alwaysApply: false
+---
+
+# ARC Memory Management
+
+Use ARC (Automatic Reference Counting) correctly. Avoid retain cycles with weak references, use proper property attributes.
+
+---
+
+## Use ARC Everywhere
+
+**Enable ARC for all new code - it's the standard:**
+
+```objc
+// ✅ Good: ARC enabled (default in modern Xcode)
+@interface UserService : NSObject
+@property (nonatomic, strong) NSURLSession *session;
+@property (nonatomic, weak) id<UserServiceDelegate> delegate;
+@end
+
+@implementation UserService
+- (void)dealloc {
+    // Cleanup resources, but don't call [super dealloc] - ARC handles it
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+@end
+
+// ❌ Bad: Manual retain/release (MRC)
+- (void)oldMethod {
+    NSArray *items = [[NSArray alloc] init];  // Manual memory management
+    [items release];  // Easy to forget or double-release
+}
+```
+
+---
+
+## Use Weak References to Avoid Retain Cycles
+
+**Use `weak` for delegate and parent-child relationships:**
+
+```objc
+// ✅ Good: Weak delegate
+@protocol ViewControllerDelegate <NSObject>
+- (void)viewControllerDidFinish:(ViewController *)controller;
+@end
+
+@interface ViewController : UIViewController
+@property (nonatomic, weak) id<ViewControllerDelegate> delegate;  // Weak!
+@end
+
+// ✅ Good: Weak parent reference
+@interface ChildView : UIView
+@property (nonatomic, weak) ParentView *parent;  // Weak to avoid cycle
+@end
+
+// ❌ Bad: Strong delegate creates retain cycle
+@interface ViewController : UIViewController
+@property (nonatomic, strong) id<ViewControllerDelegate> delegate;  // Strong!
+// ViewController -> delegate -> ViewController (cycle!)
+@end
+```
+
+---
+
+## Use Weak-Strong Dance in Blocks
+
+**Use weak-strong pattern when blocks capture self:**
+
+```objc
+// ✅ Good: Weak-strong dance in blocks
+- (void)loadData {
+    __weak typeof(self) weakSelf = self;
+    [self.apiService fetchDataWithCompletion:^(NSArray *data, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;  // Self was deallocated
+        
+        [strongSelf processData:data];
+        [strongSelf updateUI];
+    }];
+}
+
+// ✅ Good: Weak self in async operations
+- (void)performAsyncWork {
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        
+        // Do work
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [strongSelf updateUI];
+        });
+    });
+}
+
+// ❌ Bad: Strong self in block creates retain cycle
+- (void)loadData {
+    [self.apiService fetchDataWithCompletion:^(NSArray *data, NSError *error) {
+        [self processData:data];  // Strong self capture - cycle!
+        [self updateUI];
+    }];
+}
+```
+
+---
+
+## Use Correct Property Attributes
+
+**Choose appropriate property attributes for ownership:**
+
+```objc
+// ✅ Good: Correct property attributes
+@interface User : NSObject
+@property (nonatomic, strong) NSString *name;  // Owned
+@property (nonatomic, copy) NSString *email;  // Copy mutable strings
+@property (nonatomic, weak) id<UserDelegate> delegate;  // Weak reference
+@property (nonatomic, assign) NSInteger userId;  // Primitive type
+@end
+
+// ✅ Good: Copy for mutable types
+@property (nonatomic, copy) NSArray *items;  // Prevents external mutation
+@property (nonatomic, copy) NSDictionary *metadata;
+
+// ❌ Bad: Wrong property attributes
+@interface User : NSObject
+@property (nonatomic, strong) NSString *email;  // Should be copy for strings
+@property (nonatomic, strong) id<UserDelegate> delegate;  // Should be weak
+@property (nonatomic, retain) NSArray *items;  // Use strong, not retain (ARC)
+@end
+```
+
+---
+
+## Clean Up Resources in dealloc
+
+**Remove observers and clean up resources in dealloc:**
+
+```objc
+// ✅ Good: Cleanup in dealloc
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleNotification:)
+                                                 name:SomeNotification
+                                               object:nil];
+}
+
+- (void)dealloc {
+    // Remove observers
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    // Remove KVO observers
+    [self.observedObject removeObserver:self forKeyPath:@"someProperty"];
+    
+    // Don't call [super dealloc] - ARC handles it
+}
+
+@end
+
+// ❌ Bad: Forgetting to remove observers
+- (void)dealloc {
+    // Forgot to remove notification observer - crash risk!
+    // Notification might fire after dealloc
+}
+```
+
+---
+
+## Use Autorelease Pools for Loops
+
+**Wrap loops that create many temporary objects in autorelease pools:**
+
+```objc
+// ✅ Good: Autorelease pool in loop
+- (void)processLargeDataset:(NSArray *)items {
+    for (NSDictionary *item in items) {
+        @autoreleasepool {
+            // Creates temporary objects
+            NSString *processed = [self processItem:item];
+            [self saveProcessed:processed];
+            // Temporary objects released at end of iteration
+        }
+    }
+}
+
+// ❌ Bad: No autorelease pool - memory buildup
+- (void)processLargeDataset:(NSArray *)items {
+    for (NSDictionary *item in items) {
+        // Many temporary objects accumulate until run loop drains
+        NSString *processed = [self processItem:item];
+        [self saveProcessed:processed];
+    }
+}
+```
+
+---
+
+## Handle CoreFoundation Bridging Correctly
+
+**Use correct bridging macros for CoreFoundation types:**
+
+```objc
+// ✅ Good: Correct bridging
+- (void)useCoreFoundation {
+    CFStringRef cfString = CFStringCreateWithCString(NULL, "Hello", kCFStringEncodingUTF8);
+    
+    // Transfer ownership to ARC
+    NSString *nsString = (__bridge_transfer NSString *)cfString;
+    // ARC now owns the object, will release it
+    
+    // Or retain CF object
+    CFStringRef retained = (__bridge_retained CFStringRef)nsString;
+    // Must call CFRelease later
+    
+    // Or temporary bridge (no ownership transfer)
+    CFStringRef temp = (__bridge CFStringRef)nsString;
+    // No retain/release - use only during this scope
+}
+
+// ❌ Bad: Wrong bridging - memory leaks or crashes
+- (void)badBridging {
+    CFStringRef cfString = CFStringCreateWithCString(NULL, "Hello", kCFStringEncodingUTF8);
+    NSString *nsString = (__bridge NSString *)cfString;  // Leak! CFString not released
+    // Should use __bridge_transfer
+}
+```
+
+---
+
+## Avoid Strong References in Long-Lived Objects
+
+**Don't hold strong references to short-lived objects:**
+
+```objc
+// ✅ Good: Weak reference in singleton
+@interface AppManager : NSObject
+@property (nonatomic, weak) UIViewController *currentViewController;  // Weak!
+@end
+
+// ✅ Good: Clear references when done
+- (void)cleanup {
+    self.cachedData = nil;  // Release strong reference
+    self.temporaryObjects = nil;
+}
+
+// ❌ Bad: Strong reference in singleton
+@interface AppManager : NSObject
+@property (nonatomic, strong) UIViewController *currentViewController;  // Strong!
+// ViewController can't deallocate while AppManager exists
+@end
+```
+
+---
+
+## Related Rules
+
+- [iOS Best Practices](../ios/ios-best-practices.mdc) - iOS-specific patterns
+- [Style Guide](style-guide.mdc) - Objective-C style conventions
+
+---
+
+## References
+
+- [Apple: Transitioning to ARC](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/)
+- [Memory Management Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/)

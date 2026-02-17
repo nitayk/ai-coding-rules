@@ -1,0 +1,51 @@
+---
+description: Advanced prompting strategies including Challenge, Prove, and Scrap. Use when needing higher quality output, rigorous verification, or elegant refactoring.
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-02-03"
+tags: ["prompting", "advanced", "quality", "verification"]
+---
+
+# Advanced Prompting Strategies
+
+## Triggers
+**APPLY WHEN:**
+- Critical code changes requiring rigorous review.
+- Debugging complex issues where "it works" isn't enough.
+- Refactoring legacy code for elegance.
+- Reducing ambiguity in specs.
+
+## Strategies
+
+### 1. The Challenge ("Grill Me")
+**Goal**: Turn the agent into a ruthless reviewer.
+**Prompt**: "Grill me on these changes and don't make a PR until I pass your test."
+**Action**:
+- Agent reviews code for every possible edge case.
+- Agent asks hard questions about performance, security, and scalability.
+- Agent refuses to proceed until satisfied.
+
+### 2. The Proof ("Prove It")
+**Goal**: Verify behavior difference or correctness.
+**Prompt**: "Prove to me this works." or "Diff behavior between main and feature branch."
+**Action**:
+- Agent writes a reproduction script or test case.
+- Agent runs the code on both branches (if possible) or analyzes the flow difference.
+- Agent provides evidence, not just claims.
+
+### 3. The Scrap ("Elegant Solution")
+**Goal**: Move from "working" to "elegant".
+**Prompt**: "Knowing everything you know now, scrap this and implement the elegant solution."
+**Action**:
+- Agent discards the "quick fix" mental model.
+- Agent re-architects the solution based on full context.
+- Agent prioritizes maintainability and cleanliness over speed.
+
+### 4. The Spec ("Reduce Ambiguity")
+**Goal**: Prevent "garbage in, garbage out".
+**Prompt**: "Write a detailed spec for this feature. Reduce all ambiguity before writing code."
+**Action**:
+- Agent drafts a spec (PRD/RFC).
+- Agent identifies edge cases and open questions.
+- Agent asks clarifying questions until the path is clear.

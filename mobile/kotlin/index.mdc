@@ -1,0 +1,62 @@
+---
+description: "Comprehensive index of Kotlin development rules and best practices for Android development. Use when: (1) Writing Kotlin code, (2) Android development, (3) Coroutines/sealed classes, (4) Kotlin style guidelines, (5) Android best practices. Auto-loads when Kotlin files are opened (via globs). Points to android/, language/ subdirectories."
+globs: ["**/*.kt", "**/*.kts"]
+alwaysApply: false
+---
+
+# Kotlin Development Rules
+
+# Kotlin Development Rules
+
+## Available Rules
+
+### 📝 Language Features (`language/`)
+**Load**: `.cursor/rules/shared/mobile/kotlin/language/index.mdc` ← Points to specific language pattern files
+- **[Style Guide](language/style-guide.mdc)** - Kotlin naming conventions, formatting, code organization
+- **[Coroutines Patterns](language/coroutines-patterns.mdc)** - Structured concurrency, dispatchers, error handling, Flow
+- **[Sealed Classes Patterns](language/sealed-classes-patterns.mdc)** - Closed hierarchies, exhaustive when expressions
+
+### 📱 Android Development (`android/`)
+**Load**: `.cursor/rules/shared/mobile/kotlin/android/index.mdc` ← Points to specific Android pattern files
+- **[Android Best Practices](android/android-best-practices.mdc)** - Android-specific patterns and conventions
+- **[Android Performance](android/android-performance.mdc)** - Memory leaks, profiling, Compose performance
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **kotlin style**, kotlin formatting, kotlin naming, style guide | `language/style-guide.mdc` |
+| **kotlin coroutines**, coroutines, structured concurrency, dispatchers, flow | `language/coroutines-patterns.mdc` |
+| **kotlin sealed**, sealed classes, sealed interfaces, exhaustive when | `language/sealed-classes-patterns.mdc` |
+| **android**, android development, android architecture, mvvm android, compose | `android/android-best-practices.mdc` |
+| **android performance**, android memory leak, android profiling, compose performance | `android/android-performance.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Language Features (`language/`)
+- **[Style Guide](language/style-guide.mdc)** - Kotlin naming conventions, formatting, code organization
+- **[Coroutines Patterns](language/coroutines-patterns.mdc)** - Structured concurrency, dispatchers, error handling, Flow
+- **[Sealed Classes Patterns](language/sealed-classes-patterns.mdc)** - Closed hierarchies, exhaustive when expressions
+
+### 📱 Android Development (`android/`)
+- **[Android Best Practices](android/android-best-practices.mdc)** - Android-specific patterns and conventions
+- **[Android Performance](android/android-performance.mdc)** - Memory leaks, profiling, Compose performance
+
+---
+
+## Core Principles
+- **Conciseness**: Reduce boilerplate, but not at the expense of readability.
+- **Safety**: Leverage null safety and type system features.
+- **Interoperability**: Write Kotlin that is friendly to Java callers when necessary.
+- **Coroutines**: Prefer Coroutines and Flow for asynchronous operations over callbacks or RxJava.
+
+## Key Resources
+- [Official Kotlin Style Guide](https://developer.android.com/kotlin/style-guide)
+- [Android Kotlin Guides](https://developer.android.com/kotlin/guides)
+- [Roman Elizarov - Kotlin Coroutines](https://blog.jetbrains.com/kotlin/)

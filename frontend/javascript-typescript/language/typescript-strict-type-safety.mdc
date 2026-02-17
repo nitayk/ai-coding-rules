@@ -1,0 +1,306 @@
+---
+description: "TypeScript strict type safety - avoid any, use unknown, strict mode configuration, type guards. Use when: (1) Writing TypeScript code, (2) Avoiding 'any' type, (3) Using 'unknown' for type safety, (4) Configuring strict mode, (5) Writing type guards. Covers strict type safety, type guards, and TypeScript best practices."
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# TypeScript Strict Type Safety
+
+Use TypeScript's type system effectively. Avoid `any`, use `unknown` for untrusted data, enable strict mode, and use type guards.
+
+---
+
+## Avoid `any` - Use `unknown` Instead
+
+**Never use `any` - it disables type checking. Use `unknown` for untrusted data:**
+
+```typescript
+// ✅ Good: Use unknown for untrusted data
+function parseUserData(data: unknown): User {
+  if (isUser(data)) {
+    return data;
+  }
+  throw new Error("Invalid user data");
+}
+
+function isUser(data: unknown): data is User {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "id" in data &&
+    "name" in data &&
+    typeof (data as { id: unknown }).id === "string" &&
+    typeof (data as { name: unknown }).name === "string"
+  );
+}
+
+// ❌ Bad: Using any disables type safety
+function parseUserData(data: any): User {
+  return data;  // No type checking!
+}
+```
+
+**For API responses, validate at boundaries:**
+
+```typescript
+// ✅ Good: Validate API responses with unknown
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  const data: unknown = await response.json();
+  
+  if (isUser(data)) {
+    return data;
+  }
+  throw new Error("Invalid user data from API");
+}
+
+// ❌ Bad: Assuming API response shape
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  return await response.json();  // No validation!
+}
+```
+
+---
+
+## Enable Strict Mode Configuration
+
+**Use strict TypeScript configuration for maximum type safety:**
+
+```json
+// ✅ Good: Strict tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
+```
+
+**Key strict flags:**
+- `strict`: Enables multiple strict checks
+- `noUncheckedIndexedAccess`: Makes `arr[0]` return `T | undefined`
+- `exactOptionalPropertyTypes`: Distinguishes missing vs `undefined`
+- `noImplicitOverride`: Requires `override` keyword
+
+---
+
+## Use Type Guards for Narrowing
+
+**Create type guards to safely narrow `unknown` types:**
+
+```typescript
+// ✅ Good: Type guard function
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+function isUser(data: unknown): data is User {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "id" in data &&
+    "name" in data &&
+    "email" in data &&
+    typeof (data as { id: unknown }).id === "string" &&
+    typeof (data as { name: unknown }).name === "string" &&
+    typeof (data as { email: unknown }).email === "string"
+  );
+}
+
+function processUser(data: unknown) {
+  if (isUser(data)) {
+    // TypeScript knows data is User here
+    console.log(data.name);  // ✅ Type-safe
+  }
+}
+
+// ❌ Bad: Type assertion without validation
+function processUser(data: unknown) {
+  const user = data as User;  // Unsafe! No runtime check
+  console.log(user.name);  // Might crash at runtime
+}
+```
+
+---
+
+## Use Discriminated Unions for State
+
+**Use discriminated unions for type-safe state machines:**
+
+```typescript
+// ✅ Good: Discriminated union
+type LoadingState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: User }
+  | { status: "error"; error: string };
+
+function handleState(state: LoadingState) {
+  switch (state.status) {
+    case "idle":
+      return "Ready to load";
+    case "loading":
+      return "Loading...";
+    case "success":
+      return state.data.name;  // TypeScript knows data exists
+    case "error":
+      return state.error;  // TypeScript knows error exists
+  }
+}
+
+// ❌ Bad: Union without discriminator
+type BadState =
+  | { data?: User; error?: string }
+  | { data?: User; error?: string };
+
+function handleBadState(state: BadState) {
+  if (state.data) {
+    return state.data.name;  // Might have error too!
+  }
+  // TypeScript can't narrow properly
+}
+```
+
+---
+
+## Use `as const` for Literal Types
+
+**Use `as const` to preserve literal types:**
+
+```typescript
+// ✅ Good: as const preserves literal types
+const colors = ["red", "green", "blue"] as const;
+type Color = typeof colors[number];  // "red" | "green" | "blue"
+
+function setColor(color: Color) {
+  // Only accepts literal strings
+}
+
+setColor("red");  // ✅
+setColor("yellow");  // ❌ Type error
+
+// ❌ Bad: Without as const, types widen
+const colors = ["red", "green", "blue"];  // string[]
+type Color = typeof colors[number];  // string
+
+function setColor(color: Color) {
+  // Accepts any string!
+}
+
+setColor("yellow");  // ✅ No error, but wrong!
+```
+
+---
+
+## Handle Optional Properties Correctly
+
+**Use `noUncheckedIndexedAccess` and handle undefined:**
+
+```typescript
+// ✅ Good: Handle undefined from indexed access
+const users: User[] = [];
+const firstUser = users[0];  // User | undefined (with noUncheckedIndexedAccess)
+
+if (firstUser) {
+  console.log(firstUser.name);  // Safe access
+}
+
+// ✅ Good: Use optional chaining
+const userName = users[0]?.name;  // string | undefined
+
+// ❌ Bad: Assuming index exists
+const firstUser = users[0];  // Might be undefined!
+console.log(firstUser.name);  // Runtime error if undefined
+```
+
+---
+
+## Use Utility Types Effectively
+
+**Leverage TypeScript's utility types:**
+
+```typescript
+// ✅ Good: Utility types for transformations
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+};
+
+// Make all fields optional
+type PartialUser = Partial<User>;
+
+// Pick specific fields
+type UserPreview = Pick<User, "id" | "name">;
+
+// Omit fields
+type UserWithoutEmail = Omit<User, "email">;
+
+// Make specific fields required
+type UserWithRequiredEmail = User & { email: string };
+
+// ❌ Bad: Manually creating similar types
+type PartialUser = {
+  id?: string;
+  name?: string;
+  email?: string;
+  age?: number;
+};  // Duplicates User definition
+```
+
+---
+
+## Validate External Data at Boundaries
+
+**Always validate data from external sources:**
+
+```typescript
+// ✅ Good: Validate at API boundary
+import { z } from "zod";  // Or use io-ts, valibot
+
+const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  const data: unknown = await response.json();
+  
+  // Validate at boundary
+  const user = UserSchema.parse(data);
+  return user;  // Now type-safe
+}
+
+// ❌ Bad: Trusting external data
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  return await response.json();  // No validation!
+}
+```
+
+---
+
+## Related Rules
+
+- [Error Handling Patterns](error-handling-patterns.mdc) - Type-safe error handling
+- [Modern JavaScript Patterns](../language/modern-javascript-patterns.mdc) - JS patterns
+
+---
+
+## References
+
+- [Matt Pocock - Total TypeScript](https://www.totaltypescript.com/)
+- [TypeScript Deep Dive - Basarat Ali Syed](https://basarat.com/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)

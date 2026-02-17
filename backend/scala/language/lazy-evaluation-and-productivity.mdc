@@ -1,0 +1,447 @@
+---
+description: "Understanding lazy evaluation and writing productive functions that work with infinite sequences in Scala. Use when: (1) Working with LazyList/Stream, (2) Processing infinite sequences, (3) Optimizing with lazy evaluation, (4) Avoiding eager evaluation pitfalls, (5) Writing productive functions. Covers lazy evaluation patterns, LazyList usage, and infinite sequence handling."
+globs: []
+alwaysApply: false
+---
+
+# Lazy Evaluation and Productivity
+
+This guide explains when functions are "lazy enough" (productive) to work with infinite sequences, based on the principle that **a function is productive when it uses a finite chunk of input to produce a finite chunk of output**.
+
+---
+
+## Core Principle
+
+> **A function on sequences is "productive" (lazy enough) when for all inputs it uses a finite chunk of the input to produce a finite chunk of the output.**
+
+This means:
+- ✅ **Productive functions** can work with infinite sequences (`LazyList.from(1)`)
+- ❌ **Non-productive functions** require the entire sequence and will hang on infinite sequences
+
+---
+
+## Understanding LazyList
+
+Scala's `LazyList` (formerly `Stream`) provides lazy evaluation:
+
+```scala
+// ✅ Good: LazyList is lazy - elements computed on demand
+val infiniteNumbers = LazyList.from(1)
+val firstTen = infiniteNumbers.take(10).toList  // Works! Only computes first 10
+
+// ❌ Bad: List is strict - would hang trying to create infinite list
+val infiniteList = List.from(1)  // This would never finish!
+```
+
+**Important**: Unlike `Iterator`, `LazyList` **memoizes** computed values, so it can be reused:
+
+```scala
+// ✅ Good: LazyList can be reused (memoized)
+val lazyData = LazyList.from(1).map(expensiveComputation)
+val first = lazyData.take(5).toList  // Computes 5 elements
+val second = lazyData.take(5).toList  // Reuses memoized values - no recomputation!
+
+// ❌ Bad: Iterator cannot be reused
+val iterator = List(1, 2, 3, 4, 5).iterator
+val first = iterator.take(2).toList  // Consumes first 2
+val second = iterator.take(2).toList  // Gets next 2, not first 2!
+```
+
+**See [Iterator Safety](iterator-safety.mdc)** for details on avoiding iterator leaks.
+
+### Key Differences
+
+| Operation | List (Strict) | LazyList (Lazy) |
+|-----------|---------------|-----------------|
+| Creation | Evaluates all elements immediately | Evaluates on demand |
+| Infinite sequences | ❌ Cannot represent | ✅ Can represent |
+| Memory | All elements in memory | Only computed elements |
+| Performance | Predictable | Can be more efficient for large sequences |
+
+---
+
+## Productive Functions (Work with Infinite Sequences)
+
+### ✅ Head and Tail Operations
+
+```scala
+// ✅ Good: Only needs first element
+def head[A](xs: LazyList[A]): Option[A] = xs.headOption
+
+// ✅ Good: Only needs to skip first element
+def tail[A](xs: LazyList[A]): LazyList[A] = xs.tail
+
+val infinite = LazyList.from(1)
+head(infinite)  // Some(1) - works!
+head(tail(infinite))  // Some(2) - works!
+```
+
+**Why it works**: Only needs a finite chunk (first element) to produce a finite result.
+
+### ✅ Take Operations
+
+```scala
+// ✅ Good: Only needs n elements
+def take[A](n: Int)(xs: LazyList[A]): LazyList[A] = xs.take(n)
+
+val infinite = LazyList.from(1)
+take(5)(infinite).toList  // List(1, 2, 3, 4, 5) - works!
+```
+
+**Why it works**: Only needs a finite chunk (n elements) to produce a finite result.
+
+### ✅ Map Operations
+
+```scala
+// ✅ Good: Map is lazy - only computes what's needed
+def doubleAll(xs: LazyList[Int]): LazyList[Int] = xs.map(_ * 2)
+
+val infinite = LazyList.from(1)
+doubleAll(infinite).take(5).toList  // List(2, 4, 6, 8, 10) - works!
+```
+
+**Why it works**: `map` is lazy - to get the first element of the result, you only need the first element of the input.
+
+### ✅ Filter Operations
+
+```scala
+// ✅ Good: Filter is lazy - only evaluates what's needed
+def evens(xs: LazyList[Int]): LazyList[Int] = xs.filter(_ % 2 == 0)
+
+val infinite = LazyList.from(1)
+evens(infinite).take(5).toList  // List(2, 4, 6, 8, 10) - works!
+```
+
+**Why it works**: `filter` evaluates elements one at a time until it finds matches.
+
+### ✅ FoldRight (When Used Correctly)
+
+```scala
+// ✅ Good: foldRight can be lazy if the combining function is lazy
+def partialSums(xs: LazyList[Int]): LazyList[Int] = {
+  xs.foldRight(LazyList(0)) { (x, acc) =>
+    LazyList.cons(0, acc.map(_ + x))
+  }
+}
+
+val infinite = LazyList.from(1)
+partialSums(infinite).take(6).toList  // List(0, 1, 3, 6, 10, 15) - works!
+```
+
+**Why it works**: The combining function produces output incrementally without needing the entire input.
+
+---
+
+## Non-Productive Functions (Require Full Evaluation)
+
+### ❌ Length
+
+```scala
+// ❌ Bad: Requires entire sequence
+def length[A](xs: LazyList[A]): Int = xs.length
+
+val infinite = LazyList.from(1)
+length(infinite)  // Hangs forever!
+```
+
+**Why it fails**: To produce a finite result (a number), it must consume the entire (potentially infinite) sequence.
+
+### ❌ Reverse
+
+```scala
+// ❌ Bad: Requires entire sequence
+def reverse[A](xs: LazyList[A]): LazyList[A] = xs.reverse
+
+val infinite = LazyList.from(1)
+reverse(infinite).take(5)  // Hangs forever!
+```
+
+**Why it fails**: The first element of the result is the last element of the input - requires consuming the entire sequence.
+
+### ❌ FoldLeft
+
+```scala
+// ❌ Bad: foldLeft is strict - evaluates entire sequence
+def sum(xs: LazyList[Int]): Int = xs.foldLeft(0)(_ + _)
+
+val infinite = LazyList.from(1)
+sum(infinite)  // Hangs forever!
+```
+
+**Why it fails**: `foldLeft` is strict and evaluates the entire sequence before producing a result.
+
+### ❌ ToList / ToVector / ToArray
+
+```scala
+// ❌ Bad: Materializes entire sequence
+def toList[A](xs: LazyList[A]): List[A] = xs.toList
+
+val infinite = LazyList.from(1)
+toList(infinite)  // Hangs forever!
+```
+
+**Why it fails**: Converting to a strict collection requires evaluating all elements.
+
+---
+
+## Writing Productive Functions
+
+### ✅ Pattern: Incremental Production
+
+```scala
+// ✅ Good: Produces output incrementally
+def partialSums(xs: LazyList[Int]): LazyList[Int] = {
+  def go(remaining: LazyList[Int], currentSum: Int): LazyList[Int] = {
+    remaining match {
+      case LazyList() => LazyList.empty
+      case head #:: tail =>
+        val newSum = currentSum + head
+        newSum #:: go(tail, newSum)
+    }
+  }
+  go(xs, 0)
+}
+
+val infinite = LazyList.from(1)
+partialSums(infinite).take(6).toList  // List(1, 3, 6, 10, 15, 21) - works!
+```
+
+**Key**: Each step produces one element of output using one element of input.
+
+### ✅ Pattern: Using Lazy Combinators
+
+```scala
+// ✅ Good: Compose lazy operations
+def doubleEvens(xs: LazyList[Int]): LazyList[Int] = {
+  xs
+    .filter(_ % 2 == 0)  // Lazy
+    .map(_ * 2)          // Lazy
+}
+
+val infinite = LazyList.from(1)
+doubleEvens(infinite).take(5).toList  // List(4, 8, 12, 16, 20) - works!
+```
+
+**Key**: Each operation is lazy, so the composition is lazy.
+
+### ❌ Anti-Pattern: Calling Non-Productive Functions
+
+```scala
+// ❌ Bad: Calls length which requires full evaluation
+def badHead[A](xs: LazyList[A]): Option[A] = {
+  if (xs.length > 0) xs.headOption  // length hangs on infinite!
+  else None
+}
+
+val infinite = LazyList.from(1)
+badHead(infinite)  // Hangs forever!
+```
+
+**Fix**: Use pattern matching or `headOption` directly:
+
+```scala
+// ✅ Good: Direct head access
+def goodHead[A](xs: LazyList[A]): Option[A] = xs.headOption
+```
+
+---
+
+## When to Use LazyList vs List
+
+### Use LazyList When:
+- ✅ Working with **potentially infinite sequences**
+- ✅ Working with **very large sequences** where you only need a subset
+- ✅ **Chaining multiple transformations** without materializing intermediate results
+- ✅ **Memory efficiency** is important (only computed elements stored)
+
+```scala
+// ✅ Good: Large sequence, only need first 100
+val largeSequence = LazyList.from(1).map(expensiveComputation)
+val result = largeSequence.take(100).toList  // Only computes 100 elements
+```
+
+### Use List When:
+- ✅ Sequence is **known to be small**
+- ✅ You need **all elements** anyway
+- ✅ **Random access** is needed (List has better random access than LazyList)
+- ✅ **Predictable performance** is more important than memory
+
+```scala
+// ✅ Good: Small, known sequence
+val smallList = List(1, 2, 3, 4, 5)
+val result = smallList.map(_ * 2)  // Simple and efficient
+```
+
+---
+
+## Common Pitfalls
+
+### ❌ Pitfall 1: Materializing Too Early
+
+```scala
+// ❌ Bad: Materializes entire sequence before filtering
+def processBad(xs: LazyList[Int]): List[Int] = {
+  xs.toList  // Materializes everything!
+    .filter(_ > 0)
+    .take(10)
+}
+
+// ✅ Good: Keep lazy until the end
+def processGood(xs: LazyList[Int]): List[Int] = {
+  xs
+    .filter(_ > 0)  // Lazy
+    .take(10)        // Lazy
+    .toList          // Materialize only what we need
+}
+```
+
+### ❌ Pitfall 2: Using Strict Operations
+
+```scala
+// ❌ Bad: foldLeft is strict
+def sumBad(xs: LazyList[Int]): Int = {
+  xs.foldLeft(0)(_ + _)  // Evaluates entire sequence
+}
+
+// ✅ Good: Use take + foldLeft for finite chunks
+def sumGood(xs: LazyList[Int], n: Int): Int = {
+  xs.take(n).foldLeft(0)(_ + _)  // Only evaluates n elements
+}
+
+// ✅ Better: Use foldRight if you need lazy evaluation
+def sumLazy(xs: LazyList[Int]): LazyList[Int] = {
+  xs.foldRight(LazyList(0)) { (x, acc) =>
+    LazyList.cons(acc.head + x, acc.tail)
+  }
+}
+```
+
+### ❌ Pitfall 3: Forgetting LazyList is Memoized
+
+```scala
+// ⚠️ Important: LazyList memoizes computed values
+val expensive = LazyList.from(1).map { x =>
+  println(s"Computing $x")  // Only prints once per element
+  expensiveComputation(x)
+}
+
+val first = expensive.take(5).toList  // Computes 5 elements
+val again = expensive.take(5).toList  // Reuses memoized values, no recomputation
+```
+
+**Note**: This is usually good (avoids recomputation), but can use memory if you keep references to the head.
+
+---
+
+## Practical Examples
+
+### Example 1: Fibonacci Sequence
+
+```scala
+// ✅ Good: Infinite Fibonacci sequence
+val fibonacci: LazyList[BigInt] = {
+  def go(a: BigInt, b: BigInt): LazyList[BigInt] = {
+    a #:: go(b, a + b)
+  }
+  go(0, 1)
+}
+
+fibonacci.take(10).toList  // List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
+```
+
+### Example 2: Prime Numbers
+
+```scala
+// ✅ Good: Sieve of Eratosthenes (simplified)
+def primes: LazyList[Int] = {
+  def sieve(xs: LazyList[Int]): LazyList[Int] = {
+    xs.head #:: sieve(xs.tail.filter(_ % xs.head != 0))
+  }
+  sieve(LazyList.from(2))
+}
+
+primes.take(10).toList  // List(2, 3, 5, 7, 11, 13, 17, 19, 23, 29)
+```
+
+### Example 3: Processing Large Files
+
+```scala
+// ✅ Good: Process file lazily
+def processLargeFile(filePath: String): LazyList[ProcessedRecord] = {
+  val lines = scala.io.Source.fromFile(filePath).getLines().to(LazyList)
+  lines
+    .filter(_.nonEmpty)
+    .map(parseLine)
+    .filter(_.isValid)
+    .map(transform)
+}
+
+// Only materialize what we need
+val results = processLargeFile("huge-file.txt").take(1000).toList
+```
+
+---
+
+## Testing Productivity
+
+### How to Test if a Function is Productive
+
+```scala
+// Test: Can it work with infinite sequence?
+def testProductive[A, B](f: LazyList[A] => LazyList[B]): Boolean = {
+  val infinite = LazyList.continually(1)
+  try {
+    f(infinite).take(10).toList  // Should complete quickly
+    true
+  } catch {
+    case _: StackOverflowError => false  // Non-productive
+  }
+}
+
+// Usage
+testProductive(_.map(_ * 2))  // true - productive
+testProductive(_.reverse)     // false - non-productive
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- Use `LazyList` for potentially infinite or very large sequences
+- Keep operations lazy until you need materialized results
+- Use `take`, `head`, `tail`, `map`, `filter` for productive operations
+- Use `foldRight` with lazy combining functions for productive folds
+- Test with infinite sequences to verify productivity
+
+### ❌ DON'T
+- Call `length`, `reverse`, `foldLeft` on potentially infinite sequences
+- Materialize (`toList`, `toVector`) before you need to
+- Use strict operations in the middle of lazy pipelines
+- Forget that `LazyList` memoizes computed values
+
+### Key Insight
+
+> **A function is productive when it can produce output incrementally without needing the entire input sequence.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (pure functions, referential transparency)
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (lazy evaluation, caching)
+
+**Scala-Specific:**
+- [Iterator Safety](iterator-safety.mdc) - **Beware of leaking iterators** - Iterators are stateful and mutable, can only be consumed once
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - Performance considerations for lazy evaluation
+- [Functional Composition and HOF](functional-composition-and-hof.mdc) - Composing functions with lazy operations
+- [Referential Transparency](referential-transparency.mdc) - Pure functions and lazy evaluation
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+
+---
+
+## References
+
+- [When Are Functions Lazy Enough for Lists](https://blog.daniel-beskin.com/2024-05-02-lazy-enough) - Daniel Beskin's Blog
+- [Scala LazyList Documentation](https://www.scala-lang.org/api/current/scala/collection/immutable/LazyList.html)

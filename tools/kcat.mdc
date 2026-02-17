@@ -1,0 +1,292 @@
+---
+description: "kcat (kafkacat) command-line tool for producing, consuming, and inspecting Kafka topics, consumer groups, and metadata. Use when: (1) Producing Kafka messages, (2) Consuming Kafka topics, (3) Inspecting topics/metadata, (4) Debugging Kafka, (5) Testing Kafka operations. Covers kcat commands, Kafka operations, topic inspection, and consumer group management."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["kafka", "basics", "cli", "tools"]
+---
+
+# kcat Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to produce/consume Kafka messages, inspect topics, check consumer groups, or debug Kafka issues
+**SKIP WHEN:** Using Kafka MCP tools or programmatic Kafka clients
+
+## Core Directive
+**Use kcat for Kafka CLI operations** - Produce, consume, inspect topics, and manage consumer groups via command-line interface.
+
+## Installation
+
+```bash
+# macOS
+brew install kcat
+
+# Linux (Debian/Ubuntu)
+apt-get install kafkacat
+
+# Verify installation
+kcat -V
+```
+
+## Common Operations
+
+### Consuming Messages
+
+**Basic consume from topic:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -C
+```
+
+**Consume with specific partition and offset:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -p 0 -o beginning -C
+```
+
+**Consume latest N messages:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -o -100 -C
+```
+
+**Consume with key and value:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -C -K:
+```
+
+**Consume from consumer group:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -G <group-id> -C
+```
+
+**Consume with Avro schema (requires schema registry):**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -r <schema-registry-url> -s avro -C
+```
+
+### Producing Messages
+
+**Produce single message:**
+```bash
+echo "message" | kcat -b <broker>:9092 -t <topic-name> -P
+```
+
+**Produce with key:**
+```bash
+echo "key:value" | kcat -b <broker>:9092 -t <topic-name> -P -K:
+```
+
+**Produce from file:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -P -l messages.txt
+```
+
+**Produce with Avro schema:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -r <schema-registry-url> -s avro -P
+```
+
+### Topic Inspection
+
+**List all topics:**
+```bash
+kcat -b <broker>:9092 -L
+```
+
+**Describe topic (partitions, offsets, leaders):**
+```bash
+kcat -b <broker>:9092 -L -t <topic-name>
+```
+
+**Show topic metadata:**
+```bash
+kcat -b <broker>:9092 -L -t <topic-name> -J | jq
+```
+
+### Consumer Groups
+
+**List consumer groups:**
+```bash
+kcat -b <broker>:9092 -L -G
+```
+
+**Describe consumer group (lag, offsets):**
+```bash
+kcat -b <broker>:9092 -L -G <group-id>
+```
+
+**Consume from specific consumer group:**
+```bash
+kcat -b <broker>:9092 -t <topic-name> -G <group-id> -C
+```
+
+**Reset consumer group offset:**
+```bash
+# Note: kcat doesn't directly reset offsets - use kafka-consumer-groups CLI
+# But you can consume from beginning with group
+kcat -b <broker>:9092 -t <topic-name> -G <group-id> -o beginning -C
+```
+
+## Common Patterns
+
+### Debugging Message Format
+
+```bash
+# Consume raw bytes to inspect format
+kcat -b <broker>:9092 -t <topic-name> -C -D '\n' -e
+
+# Consume with hex dump for binary data
+kcat -b <broker>:9092 -t <topic-name> -C -D '\n' -u
+```
+
+### Sampling Messages
+
+```bash
+# Consume first 10 messages
+kcat -b <broker>:9092 -t <topic-name> -o beginning -C -c 10
+
+# Consume last 10 messages
+kcat -b <broker>:9092 -t <topic-name> -o -10 -C -c 10
+```
+
+### Testing Producer/Consumer
+
+```bash
+# Terminal 1: Produce
+echo "test message" | kcat -b <broker>:9092 -t test-topic -P
+
+# Terminal 2: Consume
+kcat -b <broker>:9092 -t test-topic -C
+```
+
+### Multi-Broker Connection
+
+```bash
+# Connect to multiple brokers
+kcat -b broker1:9092,broker2:9092,broker3:9092 -t <topic-name> -C
+```
+
+## Advanced Options
+
+### SSL/SASL Authentication
+
+```bash
+# SSL
+kcat -b <broker>:9093 -X security.protocol=SSL -t <topic-name> -C
+
+# SASL/PLAIN
+kcat -b <broker>:9092 \
+  -X security.protocol=SASL_SSL \
+  -X sasl.mechanisms=PLAIN \
+  -X sasl.username=<username> \
+  -X sasl.password=<password> \
+  -t <topic-name> -C
+```
+
+### Formatting Output
+
+```bash
+# JSON output
+kcat -b <broker>:9092 -t <topic-name> -C -J | jq
+
+# Pretty print with separators
+kcat -b <broker>:9092 -t <topic-name> -C -D '\n---\n'
+```
+
+### Performance Tuning
+
+```bash
+# Batch size
+kcat -b <broker>:9092 -t <topic-name> -C -X fetch.message.max.bytes=1048576
+
+# Max wait time
+kcat -b <broker>:9092 -t <topic-name> -C -X fetch.wait.max.ms=500
+```
+
+## Examples
+
+### ✅ Positive Pattern: Inspect Topic Before Consuming
+
+```bash
+# Step 1: Check topic exists and get metadata
+kcat -b <broker>:9092 -L -t <topic-name>
+
+# Step 2: Sample a few messages to understand format
+kcat -b <broker>:9092 -t <topic-name> -o beginning -C -c 5
+
+# Step 3: Consume with appropriate format
+kcat -b <broker>:9092 -t <topic-name> -C
+```
+
+### ✅ Positive Pattern: Debug Consumer Group Lag
+
+```bash
+# Check group status
+kcat -b <broker>:9092 -L -G <group-id>
+
+# Consume from group to see current position
+kcat -b <broker>:9092 -t <topic-name> -G <group-id> -C -c 1
+```
+
+### ❌ Negative Pattern: Consuming Without Understanding Topic
+
+```bash
+# ❌ BAD: Consuming without checking topic structure first
+kcat -b <broker>:9092 -t <topic-name> -C
+# May fail if topic doesn't exist or has wrong format
+
+# ✅ GOOD: Always verify topic exists first
+kcat -b <broker>:9092 -L -t <topic-name> && kcat -b <broker>:9092 -t <topic-name> -C
+```
+
+### ❌ Negative Pattern: Not Specifying Offset
+
+```bash
+# ❌ BAD: May start from middle of topic
+kcat -b <broker>:9092 -t <topic-name> -C
+
+# ✅ GOOD: Explicitly specify offset
+kcat -b <broker>:9092 -t <topic-name> -o beginning -C  # or -o end, -o -100
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```bash
+# Test broker connectivity
+kcat -b <broker>:9092 -L
+
+# If fails, check:
+# - Broker address and port
+# - Network connectivity
+# - Firewall rules
+# - SSL/SASL requirements
+```
+
+### Schema Registry Issues
+
+```bash
+# Test schema registry connection
+curl -X GET <schema-registry-url>/subjects
+
+# If kcat fails with schema registry:
+# - Verify schema registry URL
+# - Check schema exists for topic
+# - Verify Avro/JSON Schema format
+```
+
+### Consumer Group Issues
+
+```bash
+# Verify group exists
+kcat -b <broker>:9092 -L -G <group-id>
+
+# If group not found:
+# - Group may not exist yet (will be created on first consume)
+# - Check spelling
+# - Verify broker has consumer group metadata
+```
+
+## Related Rules
+
+- See `skills/` directory for procedural workflows using Kafka

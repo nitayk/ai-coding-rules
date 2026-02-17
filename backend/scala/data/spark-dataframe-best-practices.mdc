@@ -1,0 +1,113 @@
+---
+description: "Spark DataFrame optimization patterns and best practices. Use when: (1) Writing Spark SQL queries, (2) Optimizing DataFrame operations, (3) Handling column expressions, (4) Performance tuning, (5) Avoiding common Spark pitfalls. Covers Column expressions, caching strategies, partition management, and DataFrame API patterns."
+globs: []
+alwaysApply: false
+---
+
+- **Use Column expressions over string column references**:  
+  ```scala
+  import org.apache.spark.sql.functions.{col, lit, when}
+  
+  // ✅ Good: Type-safe column references
+  df.select(col("name"), col("age"))
+  
+  // ❌ Bad: String-based column references
+  df.select("name", "age") // No compile-time safety
+  ```
+
+- **Prefer functional transformations** over imperative DataFrame operations:  
+  ```scala
+  // ✅ Good: Functional transformation chain
+  val result = transformations.foldLeft(sourceData) { (acc, transformation) =>
+    transformation.run(df = acc, inputColumn = "input", outputColumn = "output")
+  }
+  
+  // ❌ Bad: Imperative mutation pattern
+  var currentDF = sourceData
+  for (transformation <- transformations) {
+    currentDF = transformation.apply(currentDF)
+  }
+  ```
+
+- **Use immutable DataFrame transformations**:  
+  ```scala
+  // ✅ Good: Immutable pipeline
+  val pipeline = sourceDF
+    .filter(col("active") === true)
+    .select(col("id"), col("name"))
+    .groupBy(col("category"))
+    .count()
+  
+  // DataFrames are immutable - each operation returns a new DataFrame
+  ```
+
+- **Encapsulate transformations in pure functions**:  
+  ```scala
+  // ✅ Good: Pure transformation functions
+  def addAuditColumns(df: DataFrame): DataFrame = {
+    df.withColumn("processed_at", current_timestamp())
+      .withColumn("version", lit("1.0"))
+  }
+  
+  def filterActive(df: DataFrame): DataFrame = {
+    df.filter(col("status") === "active")
+  }
+  
+  // Compose transformations
+  val result = sourceDF
+    .transform(filterActive)
+    .transform(addAuditColumns)
+  ```
+
+- **Use `.transform()` for custom DataFrame operations**:  
+  ```scala
+  // ✅ Good: Functional composition with transform
+  val result = df.transform(cleanData).transform(enrichWithMetadata)
+  
+  def cleanData(df: DataFrame): DataFrame = {
+    df.na.drop().filter(col("id").isNotNull)
+  }
+  ```
+
+- **Avoid collecting large DataFrames - prefer streaming/batching**:  
+  ```scala
+  // ✅ Good: Process in batches
+  df.write
+    .mode(SaveMode.Append)
+    .partitionBy("date")
+    .parquet("/path/to/output")
+  
+  // ❌ Bad: Collecting large datasets
+  val allData = largeDF.collect() // OOM risk
+  ```
+
+- **Use typed Datasets for compile-time safety when possible**:  
+  ```scala
+  case class User(id: Long, name: String, email: Option[String])
+  
+  // ✅ Good: Type-safe operations
+  val users: Dataset[User] = spark.read.parquet("/users").as[User]
+  val activeUsers = users.filter(_.name.nonEmpty)
+  
+  // Better than untyped DataFrame operations
+  ```
+
+- **Handle schema evolution gracefully**:  
+  ```scala
+  def safeSelect(df: DataFrame, columns: String*): DataFrame = {
+    val existingColumns = columns.filter(df.columns.contains)
+    if (existingColumns.nonEmpty) df.select(existingColumns.map(col): _*)
+    else df.limit(0) // Return empty DataFrame with same schema
+  }
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (pure functions, immutability, functional composition)
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (batching, avoid premature optimization)
+
+**Scala-Specific:**
+- This file provides Spark DataFrame-specific patterns (functional transformations, typed Datasets, schema evolution)

@@ -1,0 +1,185 @@
+---
+description: "Performance-conscious functional programming patterns in Scala. Use when: (1) Optimizing functional code, (2) Profiling performance, (3) Reducing allocations, (4) Improving FP performance, (5) Balancing correctness and speed. Covers FP performance patterns, lazy evaluation, and optimization strategies."
+globs: []
+alwaysApply: false
+---
+
+# Performance-Conscious Functional Programming
+
+**Important**: Always **[make it correct first](../meta/correctness-first.mdc)** before optimizing. Correctness is the foundation - optimize only after correctness is verified with comprehensive tests.
+
+---
+
+- **Distinguish between cold paths (startup/configuration) and hot paths (serving/computation)**:  
+  ```scala
+  // ✅ Cold path: Use immutable, functional patterns freely
+  object AppConfig {
+    def load(): Either[ConfigError, AppConfig] = 
+      parseConfig()
+        .map(validateConfig)
+        .map(enrichWithDefaults)
+        .map(AppConfig.apply)
+  }
+  
+  // ✅ Hot path: Optimize for performance, prefer simple operations
+  def processRequest(req: Request): Response = {
+    // Avoid creating intermediate collections
+    if (req.isValid) handleValid(req) else handleInvalid(req)
+  }
+  ```
+
+- **Prefer allocation-light patterns in hot paths**:  
+  ```scala
+  // ✅ Good: Reuse collections, avoid intermediate objects
+  def findUserFast(users: Array[User], id: String): Option[User] = {
+    var i = 0
+    while (i < users.length) {
+      val user = users(i)
+      if (user.id == id) return Some(user)
+      i += 1
+    }
+    None
+  }
+  
+  // ❌ Avoid in hot paths: Creates intermediate collections
+  def findUserSlow(users: List[User], id: String): Option[User] = 
+    users.filter(_.id == id).headOption
+  ```
+
+- **Use lazy evaluation strategically**:  
+  ```scala
+  // ✅ Good: Lazy computation for expensive operations
+  class UserService {
+    lazy val expensiveConfig: Config = loadComplexConfig()
+    
+    // Avoid recomputing the same expensive operation
+    private val memoizedResults = mutable.Map[String, Result]()
+    
+    def getResult(key: String): Result = 
+      memoizedResults.getOrElseUpdate(key, computeExpensiveResult(key))
+  }
+  
+  // ✅ Good: Use LazyList for large sequences where you only need a subset
+  val largeSequence = LazyList.from(1).map(expensiveComputation)
+  val result = largeSequence.take(100).toList  // Only computes 100 elements
+  
+  // ✅ Good: Chain lazy operations without materializing intermediate results
+  val processed = LazyList.from(1)
+    .filter(_ % 2 == 0)    // Lazy
+    .map(_ * 2)             // Lazy
+    .take(100)              // Lazy
+    .toList                 // Materialize only at the end
+  ```
+  
+  **See [Lazy Evaluation and Productivity](../language/lazy-evaluation-and-productivity.mdc)** for comprehensive guidance on working with infinite sequences and understanding productivity.
+
+- **Choose appropriate data structures for the use case**:  
+  ```scala
+  // ✅ Good: Match data structure to access pattern
+  
+  // For random access and frequent updates
+  val arrayBuffer = mutable.ArrayBuffer[String]()
+  
+  // For prepending and immutable usage
+  val list = List("a", "b", "c")
+  
+  // For fast lookups
+  val set = Set("key1", "key2")
+  val map = Map("key" -> "value")
+  
+  // For large collections with functional operations
+  val vector = Vector(1, 2, 3, 4, 5)
+  ```
+
+- **Avoid excessive pattern matching in tight loops**:  
+  ```scala
+  // ✅ Good: Use functional operations even in hot paths (they're optimized)
+  def processValueFast(opt: Option[Int]): Int = {
+    opt.map(_ * 2).getOrElse(0)
+    // or: opt.fold(0)(_ * 2)
+  }
+  
+  // ❌ Bad: Using isDefined + get (unsafe and not idiomatic)
+  def processValueBad(opt: Option[Int]): Int = {
+    if (opt.isDefined) opt.get * 2 else 0
+  }
+  
+  // ✅ Pattern matching for complex logic
+  def processValueComplex(result: Either[Error, Option[Int]]): String = {
+    result match {
+      case Right(Some(value)) if value > 0 => s"Positive: $value"
+      case Right(Some(value)) => s"Non-positive: $value"
+      case Right(None) => "Empty value"
+      case Left(error) => s"Error: ${error.message}"
+    }
+  }
+  ```
+
+- **Profile before optimizing, but know the trade-offs**:  
+  ```scala
+  // Measure and understand the cost of functional patterns
+  
+  // Expensive: Creates many intermediate objects
+  val result1 = list
+    .map(transform1)
+    .filter(condition)
+    .map(transform2)
+    .foldLeft(0)(_ + _)
+  
+  // More efficient: Single pass
+  val result2 = list.foldLeft(0) { (acc, item) =>
+    val t1 = transform1(item)
+    if (condition(t1)) acc + transform2(t1) else acc
+  }
+  
+  // Best of both: Use view for lazy evaluation
+  val result3 = list.view
+    .map(transform1)
+    .filter(condition)
+    .map(transform2)
+    .sum
+  ```
+
+- **Use context-appropriate effect management**:  
+  ```scala
+  // If you're not already using ZIO, don't introduce it just for validation
+  // ✅ Good: Stick with Future if that's what your codebase uses
+  def validateUserFuture(id: String): Future[Either[Error, User]] = ???
+  
+  // ✅ Good: Use ZIO if you're already in a ZIO application
+  def validateUserZIO(id: String): ZIO[UserService, Error, User] = ???
+  
+  // ❌ Avoid: Mixing effect systems unnecessarily
+  def mixedEffects(id: String): Future[ZIO[Any, Error, User]] = ???
+  ```
+
+- **Consider mutability for builders and accumulators**:  
+  ```scala
+  // ✅ When building large collections, mutable builders can be more efficient
+  def buildLargeCollection(input: Seq[RawData]): List[ProcessedData] = {
+    val builder = List.newBuilder[ProcessedData]
+    input.foreach { raw =>
+      if (raw.isValid) {
+        builder += process(raw)
+      }
+    }
+    builder.result()
+  }
+  
+  // For small collections, immutable operations are fine
+  def buildSmallCollection(input: List[String]): List[String] = 
+    input.filter(_.nonEmpty).map(_.toUpperCase)
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (measure first, optimize bottlenecks, avoid premature optimization)
+
+**Scala-Specific:**
+- [Correctness First](../meta/correctness-first.mdc) - **Make it correct first, then optimize** - Correctness is the foundation
+- [Lazy Evaluation and Productivity](../language/lazy-evaluation-and-productivity.mdc) - Understanding when functions are productive and work with infinite sequences
+- [Functional Composition and HOF](../language/functional-composition-and-hof.mdc) - Composing functions efficiently
+- [Referential Transparency](../language/referential-transparency.mdc) - Pure functions and performance

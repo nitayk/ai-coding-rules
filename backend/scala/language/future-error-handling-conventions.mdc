@@ -1,0 +1,586 @@
+---
+description: "Adopt explicit error handling conventions for Future - distinguish business errors from defects. Use when: (1) Handling Future errors, (2) Distinguishing business errors from defects, (3) Establishing error conventions, (4) Writing async error handling, (5) Standardizing error patterns. Covers Future error handling, error types, and async error conventions."
+globs: []
+alwaysApply: false
+---
+
+# Future Error Handling Conventions
+
+This guide emphasizes adopting **explicit error handling conventions** when using `Future`. Decide how your codebase treats failures: what kinds of errors are expected (business errors) vs. defects (unexpected bugs), and ensure everyone follows the same pattern.
+
+---
+
+## Core Principle
+
+> **Adopt an error handling convention for Future.** Be explicit about how failures are handled: differentiate between business errors (expected, model in types) and defects (unexpected, let Future fail). Ensure consistency across your codebase.
+
+**Why this matters**:
+- **Clarity**: Callers can see in the type whether a method might return a business failure
+- **Composability**: Code with `EitherT` or `Future[Either[_, _]]` composes easily
+- **Reliability**: Explicit conventions mean fewer surprises from unhandled failures
+- **Maintainability**: Team members have shared expectations
+
+---
+
+## The Problem: Unclear Error Handling
+
+### ❌ Bad: Mixed Error Handling
+
+```scala
+// ❌ Bad: Unclear what errors are expected vs unexpected
+def fetchUser(id: String): Future[User] = {
+  if (id.isEmpty) throw new IllegalArgumentException("Empty ID")
+  database.findUser(id)  // Can throw database exceptions
+}
+
+// Caller doesn't know:
+// - Should I handle IllegalArgumentException? (business error)
+// - Should I handle database exceptions? (defect or business error?)
+// - What other exceptions might be thrown?
+```
+
+**Problems**:
+- **Unclear error semantics** - Can't tell expected vs unexpected failures
+- **Inconsistent handling** - Different developers handle errors differently
+- **Hard to compose** - Can't easily chain operations with error handling
+- **Hidden failures** - Exceptions might not be caught or handled properly
+
+### ❌ Bad: Overusing Throwable
+
+```scala
+// ❌ Bad: Throwable everywhere makes it hard to know what to handle
+def processOrder(order: Order): Future[OrderResult] = {
+  validateOrder(order)  // Throws ValidationException
+    .flatMap(processPayment)  // Throws PaymentException
+    .flatMap(fulfillOrder)    // Throws FulfillmentException
+}
+
+// Caller must catch all exceptions - which are expected? Which are bugs?
+try {
+  val result = await(processOrder(order))
+} catch {
+  case e: ValidationException => // Expected?
+  case e: PaymentException => // Expected?
+  case e: FulfillmentException => // Expected?
+  case e: Throwable => // Bug?
+}
+```
+
+**Problems**:
+- **No type-level distinction** - Can't tell expected vs unexpected failures
+- **Hard to compose** - Must use try-catch everywhere
+- **Error handling scattered** - No consistent pattern
+
+---
+
+## The Solution: Explicit Error Handling Convention
+
+### Distinguish Business Errors from Defects
+
+**Business Errors** (Expected):
+- Invalid input, missing data, domain-specific errors
+- Model in types: `Either[BusinessError, A]` or `Future[Either[BusinessError, A]]`
+- Callers should handle these explicitly
+
+**Defects** (Unexpected):
+- `NullPointerException`, infrastructure failures, bugs
+- Let `Future` fail normally (as `Future.failed`)
+- Use `NonFatal` to separate truly fatal errors
+- These indicate bugs or system failures
+
+### ✅ Good: Business Errors in Types
+
+```scala
+// ✅ Good: Business errors modeled in types
+sealed trait AppError
+case class InvalidInput(msg: String) extends AppError
+case class UserNotFound(userId: String) extends AppError
+case class InsufficientFunds(amount: BigDecimal) extends AppError
+
+// Business errors are explicit in the type
+def fetchUser(id: String): Future[Either[AppError, User]] = {
+  if (id.isEmpty) {
+    Future.successful(Left(InvalidInput("Empty ID")))
+  } else {
+    database.findUser(id).map {
+      case Some(user) => Right(user)
+      case None => Left(UserNotFound(id))
+    }
+  }
+}
+
+// Caller knows exactly what errors to handle
+val result = fetchUser(userId)
+result.map {
+  case Right(user) => displayUser(user)
+  case Left(InvalidInput(msg)) => showError(s"Invalid input: $msg")
+  case Left(UserNotFound(id)) => showNotFound(id)
+  case Left(InsufficientFunds(amount)) => showInsufficientFunds(amount)
+}
+```
+
+**Benefits**:
+- **Explicit error types** - Callers know what errors to handle
+- **Type-safe error handling** - Compiler ensures all cases handled
+- **Composable** - Easy to chain operations with error handling
+
+### ✅ Good: Defects Fail the Future
+
+```scala
+// ✅ Good: Defects fail the Future normally
+def fetchUserFromDatabase(id: String): Future[User] = {
+  database.findUser(id).map {
+    case Some(user) => user
+    case None => throw new IllegalStateException(s"User $id not found in database")
+    // This is a defect - database should have been checked before calling
+  }
+}
+
+// Infrastructure failures are defects
+def connectToDatabase(): Future[DatabaseConnection] = {
+  Future {
+    Database.connect()  // Can throw connection exceptions - these are defects
+  }
+}
+
+// Use NonFatal to handle only recoverable errors
+def safeOperation(): Future[Result] = {
+  riskyOperation().recover {
+    case NonFatal(e) => handleRecoverableError(e)
+    // Fatal errors (OutOfMemoryError, etc.) are not caught
+  }
+}
+```
+
+**Benefits**:
+- **Clear distinction** - Defects indicate bugs or system failures
+- **Fail fast** - Unexpected errors propagate immediately
+- **NonFatal safety** - Only recoverable errors are handled
+
+---
+
+## Patterns for Future Error Handling
+
+### Pattern 1: Future[Either[E, A]] for Business Errors
+
+```scala
+// ✅ Good: Business errors in Either
+sealed trait ValidationError
+case class InvalidEmail(email: String) extends ValidationError
+case class InvalidAge(age: Int) extends ValidationError
+
+def validateUser(email: String, age: Int): Future[Either[ValidationError, User]] = {
+  Future {
+    if (!email.contains("@")) {
+      Left(InvalidEmail(email))
+    } else if (age < 0 || age > 150) {
+      Left(InvalidAge(age))
+    } else {
+      Right(User(email, age))
+    }
+  }
+}
+
+// Composing operations
+def createUser(email: String, age: Int): Future[Either[ValidationError, User]] = {
+  validateUser(email, age).flatMap {
+    case Right(user) => saveUser(user).map(Right(_))
+    case Left(error) => Future.successful(Left(error))
+  }
+}
+```
+
+**Use when**:
+- Errors are expected business failures
+- You want explicit error handling in types
+- Errors need to be composed and propagated
+
+### Pattern 2: EitherT[Future, E, A] for Better Composition
+
+```scala
+import cats.data.EitherT
+import cats.implicits._
+
+// ✅ Good: EitherT makes composition easier
+sealed trait AppError
+case class ValidationError(msg: String) extends AppError
+case class DatabaseError(msg: String) extends AppError
+
+def validateUser(email: String): EitherT[Future, AppError, User] = {
+  EitherT.fromEither[Future] {
+    if (email.contains("@")) Right(User(email))
+    else Left(ValidationError("Invalid email"))
+  }
+}
+
+def saveUser(user: User): EitherT[Future, AppError, UserId] = {
+  EitherT {
+    database.save(user).map {
+      case Some(id) => Right(id)
+      case None => Left(DatabaseError("Failed to save user"))
+    }
+  }
+}
+
+// Clean composition with for-comprehension
+def createUser(email: String): EitherT[Future, AppError, UserId] = {
+  for {
+    user <- validateUser(email)
+    userId <- saveUser(user)
+  } yield userId
+}
+```
+
+**Use when**:
+- Composing multiple operations with error handling
+- You want clean for-comprehension syntax
+- Errors need to be accumulated or propagated
+
+### Pattern 3: Utility Functions for Consistency
+
+```scala
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
+import cats.data.EitherT
+
+// ✅ Good: Utility to lift Future into EitherT
+sealed trait AppError
+case class ServiceError(cause: Throwable) extends AppError
+
+object FutureErrorHandling {
+  // Convert Future failures to business errors
+  def fromFuture[T](fa: Future[T])(implicit ec: ExecutionContext): EitherT[Future, AppError, T] = {
+    EitherT {
+      fa.map(Right(_): Either[AppError, T])
+        .recover {
+          case NonFatal(e) => Left(ServiceError(e))
+          // Fatal errors propagate (OutOfMemoryError, etc.)
+        }
+    }
+  }
+  
+  // Convert Try to EitherT
+  def fromTry[T](ta: Try[T]): EitherT[Future, AppError, T] = {
+    EitherT.fromEither[Future] {
+      ta match {
+        case Success(value) => Right(value)
+        case Failure(NonFatal(e)) => Left(ServiceError(e))
+        case Failure(e) => throw e  // Fatal errors propagate
+      }
+    }
+  }
+  
+  // Safe wrapper for operations that can fail
+  def safe[T](operation: => T)(implicit ec: ExecutionContext): EitherT[Future, AppError, T] = {
+    EitherT {
+      Future {
+        try {
+          Right(operation)
+        } catch {
+          case NonFatal(e) => Left(ServiceError(e))
+          case e => throw e  // Fatal errors propagate
+        }
+      }
+    }
+  }
+}
+
+// Usage
+def fetchData(id: String): EitherT[Future, AppError, Data] = {
+  FutureErrorHandling.fromFuture(database.findData(id))
+}
+```
+
+**Benefits**:
+- **Consistent error handling** - Same pattern everywhere
+- **Easy to use** - Simple utility functions
+- **NonFatal safety** - Only recoverable errors are handled
+
+---
+
+## Real-World Examples
+
+### Example 1: User Service with Business Errors
+
+```scala
+sealed trait UserServiceError
+case class UserNotFound(userId: String) extends UserServiceError
+case class InvalidEmail(email: String) extends UserServiceError
+case class EmailAlreadyExists(email: String) extends UserServiceError
+
+class UserService(database: Database) {
+  def findUser(id: String): Future[Either[UserServiceError, User]] = {
+    database.findUser(id).map {
+      case Some(user) => Right(user)
+      case None => Left(UserNotFound(id))
+    }.recover {
+      case NonFatal(e) => 
+        // Database connection failures are defects - log and fail
+        throw new RuntimeException("Database error", e)
+    }
+  }
+  
+  def createUser(email: String): Future[Either[UserServiceError, User]] = {
+    if (!email.contains("@")) {
+      Future.successful(Left(InvalidEmail(email)))
+    } else {
+      database.findUserByEmail(email).flatMap {
+        case Some(_) => Future.successful(Left(EmailAlreadyExists(email)))
+        case None => 
+          database.saveUser(User(email)).map(Right(_))
+            .recover {
+              case NonFatal(e) => throw new RuntimeException("Database error", e)
+            }
+      }
+    }
+  }
+}
+```
+
+### Example 2: Payment Processing with EitherT
+
+```scala
+import cats.data.EitherT
+import cats.implicits._
+
+sealed trait PaymentError
+case class InsufficientFunds(amount: BigDecimal) extends PaymentError
+case class PaymentGatewayError(msg: String) extends PaymentError
+case class InvalidCard(cardNumber: String) extends PaymentError
+
+class PaymentService {
+  def validateCard(cardNumber: String): EitherT[Future, PaymentError, Card] = {
+    EitherT.fromEither[Future] {
+      if (cardNumber.length == 16) Right(Card(cardNumber))
+      else Left(InvalidCard(cardNumber))
+    }
+  }
+  
+  def checkBalance(card: Card, amount: BigDecimal): EitherT[Future, PaymentError, Unit] = {
+    EitherT {
+      database.getBalance(card).map { balance =>
+        if (balance >= amount) Right(())
+        else Left(InsufficientFunds(amount))
+      }
+    }
+  }
+  
+  def processPayment(card: Card, amount: BigDecimal): EitherT[Future, PaymentError, TransactionId] = {
+    EitherT {
+      paymentGateway.charge(card, amount).map(Right(_))
+        .recover {
+          case NonFatal(e) => Left(PaymentGatewayError(e.getMessage))
+        }
+    }
+  }
+  
+  // Clean composition
+  def pay(cardNumber: String, amount: BigDecimal): EitherT[Future, PaymentError, TransactionId] = {
+    for {
+      card <- validateCard(cardNumber)
+      _ <- checkBalance(card, amount)
+      transactionId <- processPayment(card, amount)
+    } yield transactionId
+  }
+}
+```
+
+---
+
+## Using NonFatal for Safety
+
+### ✅ Good: Only Handle Recoverable Errors
+
+```scala
+import scala.util.control.NonFatal
+
+// ✅ Good: NonFatal separates recoverable from fatal errors
+def safeOperation(): Future[Result] = {
+  riskyOperation().recover {
+    case NonFatal(e) => 
+      // Handle recoverable errors (network failures, validation errors, etc.)
+      handleRecoverableError(e)
+    // Fatal errors (OutOfMemoryError, VirtualMachineError, etc.) propagate
+  }
+}
+
+// ✅ Good: Convert Future failures to business errors safely
+def fromFuture[T](fa: Future[T]): EitherT[Future, AppError, T] = {
+  EitherT {
+    fa.map(Right(_))
+      .recover {
+        case NonFatal(e) => Left(ServiceError(e))
+        // Fatal errors propagate - don't catch them
+      }
+  }
+}
+```
+
+**Why NonFatal**:
+- **Fatal errors** (`OutOfMemoryError`, `VirtualMachineError`) indicate system failures
+- **Should not be caught** - Let them propagate to fail fast
+- **Recoverable errors** (network failures, validation errors) can be handled
+
+---
+
+## Migration Strategy
+
+### Step 1: Define Error Types
+
+```scala
+// Define business error ADT
+sealed trait AppError
+case class ValidationError(msg: String) extends AppError
+case class NotFoundError(resource: String) extends AppError
+case class ServiceError(cause: Throwable) extends AppError
+```
+
+### Step 2: Create Utility Functions
+
+```scala
+object FutureErrorHandling {
+  def fromFuture[T](fa: Future[T]): EitherT[Future, AppError, T] = {
+    EitherT {
+      fa.map(Right(_))
+        .recover { case NonFatal(e) => Left(ServiceError(e)) }
+    }
+  }
+}
+```
+
+### Step 3: Migrate Methods Gradually
+
+```scala
+// Before: Unclear error handling
+def fetchUser(id: String): Future[User] = ???
+
+// After: Explicit error handling
+def fetchUser(id: String): Future[Either[AppError, User]] = {
+  // Business errors in Either
+  if (id.isEmpty) {
+    Future.successful(Left(ValidationError("Empty ID")))
+  } else {
+    database.findUser(id).map {
+      case Some(user) => Right(user)
+      case None => Left(NotFoundError(s"User $id"))
+    }
+  }
+}
+```
+
+### Step 4: Update Callers
+
+```scala
+// Before: Try-catch everywhere
+try {
+  val user = await(fetchUser(id))
+} catch {
+  case e => handleError(e)
+}
+
+// After: Pattern matching on Either
+val result = fetchUser(id)
+result.map {
+  case Right(user) => displayUser(user)
+  case Left(error) => handleError(error)
+}
+```
+
+---
+
+## Common Mistakes
+
+### ❌ Mistake 1: Catching Fatal Errors
+
+```scala
+// ❌ Bad: Catching fatal errors
+def unsafeOperation(): Future[Result] = {
+  riskyOperation().recover {
+    case e: Throwable => handleError(e)  // Catches OutOfMemoryError!
+  }
+}
+
+// ✅ Good: Only catch NonFatal errors
+def safeOperation(): Future[Result] = {
+  riskyOperation().recover {
+    case NonFatal(e) => handleError(e)
+    // Fatal errors propagate
+  }
+}
+```
+
+### ❌ Mistake 2: Mixing Business Errors and Defects
+
+```scala
+// ❌ Bad: Business errors thrown as exceptions
+def fetchUser(id: String): Future[User] = {
+  database.findUser(id).map {
+    case Some(user) => user
+    case None => throw new UserNotFoundException(id)  // Should be Either!
+  }
+}
+
+// ✅ Good: Business errors in types
+def fetchUser(id: String): Future[Either[AppError, User]] = {
+  database.findUser(id).map {
+    case Some(user) => Right(user)
+    case None => Left(UserNotFound(id))
+  }
+}
+```
+
+### ❌ Mistake 3: Inconsistent Error Handling
+
+```scala
+// ❌ Bad: Different error handling patterns
+def method1(): Future[User] = throw new Exception("Error")
+def method2(): Future[Either[Error, User]] = ???
+def method3(): Future[User] = Future.failed(new Exception("Error"))
+
+// ✅ Good: Consistent error handling convention
+def method1(): Future[Either[AppError, User]] = ???
+def method2(): Future[Either[AppError, User]] = ???
+def method3(): Future[Either[AppError, User]] = ???
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- **Adopt explicit error handling convention** - Decide on pattern and stick to it
+- **Distinguish business errors from defects** - Business errors in types, defects fail Future
+- **Use `Future[Either[E, A]]` or `EitherT`** - For business errors that need explicit handling
+- **Use `NonFatal`** - Only handle recoverable errors
+- **Provide utility functions** - For consistent error handling across codebase
+- **Document conventions** - Make error handling patterns clear to team
+
+### ❌ DON'T
+- **Mix error handling patterns** - Be consistent across codebase
+- **Catch fatal errors** - Use `NonFatal` to separate recoverable from fatal
+- **Throw business errors** - Model them in types instead
+- **Overuse `Throwable`** - Use ADTs for expected failures
+- **Hide error handling** - Make error handling explicit in types
+
+### Key Insight
+
+> **Adopt an error handling convention for Future. Differentiate between business errors (expected, model in types) and defects (unexpected, let Future fail). Use `Future[Either[E, A]]` or `EitherT[Future, E, A]` for business errors, and `NonFatal` to handle only recoverable errors. Consistency is key - ensure everyone follows the same pattern.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (explicit error types, distinguish expected vs unexpected errors)
+
+**Scala-Specific:**
+- [Error Handling Patterns](error-handling-patterns.mdc) - Foundation for error handling with Option, Either, Try
+- [Scala Efficient Future Management](../performance/scala-efficient-future-management.mdc) - Performance patterns for Future
+- [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) - Using sealed traits for error types
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - When Option loses domain semantics
+
+---
+
+## References
+
+- [Random Scala Tip #534: Adopt an Error Handling Convention for Future](https://blog.daniel-beskin.com/2025-09-08-random-scala-tip-534-future-error-handling) - Daniel Beskin's Blog

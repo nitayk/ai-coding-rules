@@ -1,0 +1,57 @@
+---
+description: "Comprehensive index of PHP development rules and best practices. Use when: (1) Discovering PHP patterns, (2) Modern PHP (PHP 8+), (3) Type safety/static analysis, (4) SOLID principles, (5) PHP best practices. Points to specific rules in language/ subdirectory. Auto-loads when PHP files are opened (via globs)."
+globs: ["**/*.php"]
+alwaysApply: false
+---
+
+# PHP Development Rules
+
+**PHP-Specific Rules**: Implementation details for PHP code.
+
+**How It Works**:
+- Generic rules (SOLID, DRY, KISS, correctness first) load **automatically** when you open PHP files
+- This index loads **automatically** when you open PHP files (via globs)
+- Use this to discover PHP-specific patterns (PHP 8+ features, type declarations, static analysis)
+
+**Key Principle**: This directory contains ONLY PHP-specific patterns. Universal principles are in `generic/` and load automatically - they're referenced from here.
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **php**, php language, modern php, php patterns, php style, php 8 | `language/modern-php-patterns.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Language Features (`language/`)
+- **[Modern PHP Patterns](language/modern-php-patterns.mdc)** - PHP 8+ features, type safety, static analysis, SOLID principles
+
+## Core Principles
+- **Type Safety**: Use type declarations everywhere
+- **Modern PHP**: Leverage PHP 8+ features (enums, readonly, match, named arguments)
+- **Static Analysis**: Use PHPStan or Psalm
+- **SOLID Principles**: Follow SOLID for maintainable code
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../generic/code-quality/core-principles.mdc) - Universal SOLID, DRY, KISS, YAGNI principles
+- [Generic Architecture Principles](../../generic/architecture/core-principles.mdc) - Universal architecture principles
+- [Generic Error Handling Principles](../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+
+**PHP-Specific:**
+- This directory contains PHP-specific implementations and examples
+
+---
+
+## Key Resources
+- [PHP The Right Way](https://phptherightway.com/)
+- [PHP Documentation](https://www.php.net/docs.php)
+- [PHPStan](https://phpstan.org/)
+- [Psalm](https://psalm.dev/)

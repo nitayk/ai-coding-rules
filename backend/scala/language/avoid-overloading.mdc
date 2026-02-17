@@ -1,0 +1,475 @@
+---
+description: "Avoid method overloading - prefer explicit naming, parametric polymorphism, and type classes. Use when: (1) Designing APIs, (2) Creating methods with similar signatures, (3) Improving code clarity, (4) Enabling better type inference, (5) Writing maintainable code. Covers alternatives to overloading and explicit naming patterns."
+globs: []
+alwaysApply: false
+---
+
+# Avoid Method Overloading
+
+This guide explains why **method overloading** (multiple methods with the same name but different signatures) should be avoided, and what to use instead.
+
+---
+
+## Core Principle
+
+> **ANY overloading considered evil** - Overloading introduces ambiguity, weakens the type system, complicates interactions with other language features, and increases cognitive load. Prefer explicit naming, parametric polymorphism, or type classes instead.
+
+---
+
+## Why Overloading is Problematic
+
+### 1. Ambiguity & Accident Proneness
+
+Overloading can lead to surprising method resolution where a small change in argument type picks a different overload.
+
+```scala
+// ❌ Bad: Overloaded methods with similar signatures
+class DataProcessor {
+  def process(data: String): ProcessedData = ???
+  def process(data: Int): ProcessedData = ???
+  def process(data: Double): ProcessedData = ???
+}
+
+val processor = new DataProcessor()
+
+// Which overload is called? Depends on type inference
+val result1 = processor.process("123")      // String overload
+val result2 = processor.process(123)        // Int overload
+val result3 = processor.process(123.0)      // Double overload
+
+// ❌ Problem: Type inference can pick wrong overload
+val value: Any = "123"
+processor.process(value)  // Compile error - ambiguous!
+
+// ❌ Problem: Small type change picks different overload
+def helper(x: String): ProcessedData = processor.process(x)  // String overload
+def helper(x: Int): ProcessedData = processor.process(x)      // Int overload
+// Same name, different behavior - confusing!
+```
+
+**Problems**:
+- **Ambiguous resolution**: Compiler can't always determine which overload
+- **Surprising behavior**: Small type changes pick different overloads
+- **Errors far from source**: Resolution happens at call site, errors appear later
+- **Hard to debug**: Which overload was actually called?
+
+### 2. Weakens the Type System
+
+Overloading makes types less informative - the same name maps to different operations depending on context.
+
+```scala
+// ❌ Bad: Type doesn't uniquely identify operation
+class Converter {
+  def convert(value: String): Int = value.toInt
+  def convert(value: Int): String = value.toString
+  def convert(value: Double): String = value.toString
+}
+
+val converter = new Converter()
+
+// What does convert do? Depends on input type!
+val result1: Int = converter.convert("123")     // String -> Int
+val result2: String = converter.convert(123)    // Int -> String
+val result3: String = converter.convert(123.0)  // Double -> String
+
+// ❌ Problem: Can't refer to method as value
+val convertFn = converter.convert  // Error: ambiguous reference
+```
+
+**Problems**:
+- **Types don't uniquely identify operations**: Same name, different behavior
+- **Can't use as values**: Can't pass overloaded methods as function values
+- **Less informative types**: Type signature doesn't tell you what it does
+- **Forces thinking about implementation**: Must consider which overload applies
+
+### 3. Interactions with Other Language Features
+
+Overloading interacts poorly with implicits, default parameters, and type inference.
+
+```scala
+// ❌ Bad: Overloading + implicits = confusion
+class Service {
+  def process(data: String): Result = ???
+  def process(data: Int)(implicit config: Config): Result = ???
+}
+
+implicit val config: Config = Config.default
+
+val service = new Service()
+
+// Which overload? Depends on implicit availability
+service.process("test")  // String overload (no implicit needed)
+service.process(123)     // Int overload (implicit used)
+
+// ❌ Problem: Adding implicit changes which overload is called!
+implicit val otherConfig: Config = Config.other
+service.process(123)  // Still Int overload, but different implicit!
+
+// ❌ Bad: Overloading + default parameters = problems
+class Builder {
+  def build(name: String): Product = build(name, defaultConfig)
+  def build(name: String, config: Config = defaultConfig): Product = ???
+}
+
+// Which overload? Both have defaults!
+val builder = new Builder()
+builder.build("test")  // Ambiguous - both overloads match!
+```
+
+**Problems**:
+- **Implicit resolution**: Changes which overload is called
+- **Default parameters**: Can't apply defaults uniformly across overloads
+- **Type inference**: Inference interacts with overload resolution
+- **Higher-order functions**: Can't easily pass overloaded methods
+
+### 4. Maintenance & Cognitive Load
+
+Every overload increases surface area and makes APIs harder to evolve.
+
+```scala
+// ❌ Bad: Many overloads increase cognitive load
+class ApiClient {
+  def request(url: String): Response = ???
+  def request(url: String, headers: Map[String, String]): Response = ???
+  def request(url: String, method: String): Response = ???
+  def request(url: String, method: String, headers: Map[String, String]): Response = ???
+  def request(url: String, body: String): Response = ???
+  def request(url: String, body: String, headers: Map[String, String]): Response = ???
+  // ... 10 more overloads
+}
+
+// ❌ Problem: Which overload should I use?
+val client = new ApiClient()
+client.request("https://api.example.com")  // Which one?
+client.request("https://api.example.com", "POST")  // Method or headers?
+
+// ❌ Problem: Adding new overload may break existing code
+// If we add: def request(url: String, timeout: Int): Response
+// Existing calls might now be ambiguous!
+```
+
+**Problems**:
+- **More surface area**: Each overload is another signature to consider
+- **Harder to evolve**: Adding overloads can break existing code
+- **Cognitive load**: Must remember which variant to use
+- **Binary compatibility**: Overloads complicate API evolution
+
+---
+
+## Alternatives to Overloading
+
+### ✅ Solution 1: Explicit Naming
+
+Use descriptive names that make the intent clear.
+
+```scala
+// ✅ Good: Explicit names make intent clear
+class DataProcessor {
+  def processString(data: String): ProcessedData = ???
+  def processInt(data: Int): ProcessedData = ???
+  def processDouble(data: Double): ProcessedData = ???
+}
+
+val processor = new DataProcessor()
+
+// Clear which method is called
+val result1 = processor.processString("123")
+val result2 = processor.processInt(123)
+val result3 = processor.processDouble(123.0)
+
+// ✅ Good: Can use as function values
+val processStringFn: String => ProcessedData = processor.processString
+val processIntFn: Int => ProcessedData = processor.processInt
+```
+
+**Benefits**:
+- **Clear intent**: Name tells you what it does
+- **No ambiguity**: Compiler always knows which method
+- **Usable as values**: Can pass methods as function values
+- **Self-documenting**: Code reads better
+
+### ✅ Solution 2: Parametric Polymorphism (Generics)
+
+Use type parameters to handle multiple types with one implementation.
+
+```scala
+// ✅ Good: Single method handles multiple types
+trait Processable[A] {
+  def process(data: A): ProcessedData
+}
+
+class DataProcessor[A: Processable] {
+  def process(data: A): ProcessedData = implicitly[Processable[A]].process(data)
+}
+
+// Type class instances
+implicit val stringProcessable: Processable[String] = new Processable[String] {
+  def process(data: String): ProcessedData = ProcessedData(data.toUpperCase)
+}
+
+implicit val intProcessable: Processable[Int] = new Processable[Int] {
+  def process(data: Int): ProcessedData = ProcessedData(data.toString)
+}
+
+// Usage
+val processor = new DataProcessor[String]()
+val result = processor.process("test")  // Clear type, clear behavior
+```
+
+**Benefits**:
+- **Single implementation**: One method handles multiple types
+- **Type-safe**: Compiler ensures correct type class instance
+- **Extensible**: Add new types by adding type class instances
+- **No ambiguity**: Type parameter determines behavior
+
+### ✅ Solution 3: Type Classes
+
+Use type classes to define behavior by type rather than by overloading.
+
+```scala
+// ✅ Good: Type class defines behavior
+trait Converter[A, B] {
+  def convert(value: A): B
+}
+
+object Converter {
+  implicit val stringToInt: Converter[String, Int] = new Converter[String, Int] {
+    def convert(value: String): Int = value.toInt
+  }
+  
+  implicit val intToString: Converter[Int, String] = new Converter[Int, String] {
+    def convert(value: Int): String = value.toString
+  }
+  
+  implicit val doubleToString: Converter[Double, String] = new Converter[Double, String] {
+    def convert(value: Double): String = value.toString
+  }
+}
+
+// Single method with type class
+def convert[A, B](value: A)(implicit converter: Converter[A, B]): B = 
+  converter.convert(value)
+
+// Usage - type parameters make it clear
+val result1: Int = convert[String, Int]("123")
+val result2: String = convert[Int, String](123)
+val result3: String = convert[Double, String](123.0)
+```
+
+**Benefits**:
+- **Type-driven**: Behavior determined by types, not overload resolution
+- **Composable**: Can combine type classes
+- **Extensible**: Add new conversions by adding instances
+- **Explicit**: Type parameters make conversion clear
+
+### ✅ Solution 4: Union Types (Sealed Traits)
+
+Use sealed traits to model alternative cases explicitly.
+
+```scala
+// ❌ Bad: Overloading for different input types
+class Validator {
+  def validate(value: String): Boolean = ???
+  def validate(value: Int): Boolean = ???
+  def validate(value: Double): Boolean = ???
+}
+
+// ✅ Good: Sealed trait models alternatives explicitly
+sealed trait Validatable
+case class StringValue(value: String) extends Validatable
+case class IntValue(value: Int) extends Validatable
+case class DoubleValue(value: Double) extends Validatable
+
+class Validator {
+  def validate(validatable: Validatable): Boolean = validatable match {
+    case StringValue(s) => s.nonEmpty
+    case IntValue(i) => i > 0
+    case DoubleValue(d) => d > 0.0
+    // Compiler ensures exhaustiveness!
+  }
+}
+
+// Usage - explicit about what we're validating
+val validator = new Validator()
+val result1 = validator.validate(StringValue("test"))
+val result2 = validator.validate(IntValue(123))
+val result3 = validator.validate(DoubleValue(123.0))
+```
+
+**Benefits**:
+- **Explicit alternatives**: Sealed trait shows all cases
+- **Exhaustive matching**: Compiler ensures all cases handled
+- **Type-safe**: Can't accidentally pass wrong type
+- **Self-documenting**: Type shows what's being validated
+
+### ✅ Solution 5: Builder Pattern with Fluent API
+
+For complex APIs with many parameters, use builders instead of overloads.
+
+```scala
+// ❌ Bad: Many overloads for different parameter combinations
+class ApiClient {
+  def request(url: String): Response = ???
+  def request(url: String, method: String): Response = ???
+  def request(url: String, headers: Map[String, String]): Response = ???
+  def request(url: String, method: String, headers: Map[String, String]): Response = ???
+  def request(url: String, body: String): Response = ???
+  // ... many more overloads
+}
+
+// ✅ Good: Builder pattern with fluent API
+case class RequestBuilder(
+  url: String,
+  method: String = "GET",
+  headers: Map[String, String] = Map.empty,
+  body: Option[String] = None
+) {
+  def withMethod(method: String): RequestBuilder = this.copy(method = method)
+  def withHeaders(headers: Map[String, String]): RequestBuilder = this.copy(headers = headers)
+  def withBody(body: String): RequestBuilder = this.copy(body = Some(body))
+  
+  def execute: Response = {
+    // Implementation
+  }
+}
+
+class ApiClient {
+  def request(url: String): RequestBuilder = RequestBuilder(url)
+}
+
+// Usage - clear and flexible
+val client = new ApiClient()
+val response = client.request("https://api.example.com")
+  .withMethod("POST")
+  .withHeaders(Map("Content-Type" -> "application/json"))
+  .withBody("""{"key": "value"}""")
+  .execute
+```
+
+**Benefits**:
+- **No ambiguity**: Builder methods have unique names
+- **Flexible**: Easy to add new parameters
+- **Readable**: Fluent API reads like English
+- **Type-safe**: Compiler catches missing required parameters
+
+---
+
+## When Overloading Might Be Acceptable
+
+While overloading should generally be avoided, there are some exceptions:
+
+### ✅ Standard Library Conventions
+
+Some standard library patterns use overloading for consistency:
+
+```scala
+// ✅ Acceptable: Standard library patterns
+List(1, 2, 3).map(_ * 2)      // map works for any type
+List("a", "b").map(_.toUpperCase)  // Same method name, different types
+
+// These are acceptable because:
+// 1. They're parametric (type parameter determines behavior)
+// 2. They follow established conventions
+// 3. They're in standard library where consistency matters
+```
+
+### ✅ Small Internal Helpers
+
+For small, internal helper methods with minor variations:
+
+```scala
+// ✅ Acceptable: Small internal helper
+object StringUtils {
+  private def trim(s: String): String = s.trim
+  private def trim(s: String, chars: String): String = s.dropWhile(chars.contains(_))
+  
+  // Overloading acceptable here because:
+  // 1. Private/internal - limited scope
+  // 2. Simple variations
+  // 3. Well-controlled context
+}
+```
+
+### ✅ Java Interop
+
+When interfacing with Java libraries that use overloading:
+
+```scala
+// ✅ Acceptable: Java interop
+import java.util.Arrays
+
+// Java's Arrays.asList has overloads - we must work with them
+val list1 = Arrays.asList(1, 2, 3)
+val list2 = Arrays.asList("a", "b", "c")
+
+// Acceptable because:
+// 1. External API constraint
+// 2. Well-documented Java API
+// 3. Limited to interop boundaries
+```
+
+**Key Point**: Treat these as **exceptions**, not norms. Always consider whether a clearer alternative exists.
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Overloads
+- Find methods with same name, different signatures
+- Look for overloads in public APIs (highest priority)
+- Identify overloads that cause confusion
+
+### Step 2: Choose Alternative
+- **Explicit naming**: For simple cases with few variants
+- **Parametric polymorphism**: For handling multiple types uniformly
+- **Type classes**: For type-driven behavior
+- **Union types**: For explicit alternatives
+- **Builder pattern**: For complex parameter combinations
+
+### Step 3: Refactor Gradually
+- Start with public APIs (most important)
+- Keep old overloads deprecated during transition
+- Update call sites incrementally
+- Remove deprecated overloads after migration
+
+---
+
+## Summary
+
+### ✅ DO
+- Use **explicit naming** for different behaviors
+- Use **parametric polymorphism** (generics) for type variations
+- Use **type classes** for type-driven behavior
+- Use **sealed traits** for explicit alternatives
+- Use **builder pattern** for complex parameter combinations
+- **Limit overloads** to internal helpers or Java interop
+
+### ❌ DON'T
+- Overload methods in **public APIs**
+- Use overloading when **explicit names** would be clearer
+- Overload methods that interact with **implicits** or **default parameters**
+- Create overloads that cause **ambiguity** or **surprising resolution**
+- Use overloading as a **substitute for proper design**
+
+### Key Insight
+
+> **Explicit is better than implicit. Clear names and type-driven design make code easier to understand, maintain, and reason about. Overloading introduces ambiguity and weakens the type system - avoid it in favor of clearer alternatives.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (explicit over implicit, meaningful names)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+- [Implicit Extension Methods](implicit-extension-methods.mdc) - Type classes and implicits
+- [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) - Sealed traits and union types
+- [Functional Composition and HOF](functional-composition-and-hof.mdc) - Higher-order functions
+
+---
+
+## References
+
+- [ANY Overloading Considered Evil](https://blog.daniel-beskin.com/2024-06-19-overloading) - Daniel Beskin's Blog

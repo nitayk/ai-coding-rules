@@ -1,0 +1,88 @@
+---
+description: "Standards for answering questions about business logic, data definitions, and calculations. Use when: (1) Explaining business logic, (2) Answering \"how is X calculated\" questions, (3) Defining data semantics, (4) Documenting business rules, (5) Clarifying domain concepts. Covers business communication standards, calculation explanations, and domain knowledge documentation."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+# Business Inquiry Response Style
+
+## Core Principle: Bottom Line Up Front (BLUF)
+
+When explaining **how logic works**, **how data is calculated**, or **definitions**:
+
+1. **ALWAYS start with a "Business Bottom Line"**
+   - Written for a non-technical user (Product Manager, Analyst).
+   - Plain English.
+   - **NO** variable names, file paths, or code snippets in this section.
+   - Explain the *outcome*, not the implementation.
+
+2. **Explicitly handle "Unknowns" and "Nulls"**
+   - Business users care deeply about what they see when data is missing.
+   - Explicitly state: "If X is missing, we display 'unknown'."
+
+3. **Technical Deep Dive follows after**
+   - This is where the engineering investigation goes.
+   - Use collapsible sections (`<details>`) or clearly separated headers.
+
+---
+
+## The Required Format
+
+```markdown
+### 🎯 Bottom Line (Business Summary)
+
+We read the [Concept] from the raw data.
+1. If **[Field]** is missing, we [Fallback Strategy].
+2. If the value is **[Specific Case]**, we show it as **[Normalized Name]**.
+3. Otherwise, we keep the value as provided.
+4. **Important**: If the value is unrecognized or missing, we display **"unknown"** (we don't use nulls).
+
+---
+
+### 🔧 Technical Deep Dive
+
+<details>
+<summary>Click to view code traces and logic</summary>
+
+**Layer 1: Source**
+- File: `path/to/file.scala`
+- Logic: Code extracts param X...
+
+**Layer 2: Transformation**
+- File: `path/to/sql.sql`
+- Logic: COALESCE(a, b, c)...
+
+</details>
+```
+
+## Real-World Example: Mediation Logic
+
+**❌ Bad Response:**
+"The `supply_mediation` field is calculated in `RtmInstallsData.json` line 549 using an `nvl` on a `LOOKUP` function..."
+
+**✅ Good Response:**
+
+### 🎯 Bottom Line
+We read the mediation value from the raw data.
+- If **"external mediation"** is missing, we fill it using our standard lookup table.
+- If the value is **"provider_a"**, we show it as **"provider_normalized"** (our normalized name).
+- Otherwise, we keep the value as provided.
+- If the value is unrecognized or missing, we display **"unknown"** (we don't use nulls in the data store).
+
+### 🔧 Technical Details
+*Code references, file paths, and specific implementation details go here...*
+
+---
+
+## When to Apply This?
+
+- User asks: "How is X calculated?"
+- User asks: "What determines Y?"
+- User asks: "Where does Z come from?"
+- User asks: "Explain the logic for W"
+
+**Do NOT apply this when:**
+- User asks: "Show me the code for X"
+- User asks: "Refactor this file"
+- User asks: "Fix this bug"

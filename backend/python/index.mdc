@@ -1,0 +1,98 @@
+---
+description: "Comprehensive index of Python development rules and best practices. Use when: (1) Discovering Python patterns, (2) Language features/async/type hints, (3) Testing/performance/architecture, (4) Data handling (Pandas/Pydantic), (5) Pythonic best practices. Points to specific rules in language/, architecture/, data/, performance/, testing/, meta/ subdirectories. Auto-loads when Python files are opened (via globs)."
+globs: ["**/*.py"]
+alwaysApply: false
+---
+
+# Python Development Rules
+
+**Python-Specific Rules**: Implementation details for Python code.
+
+**How It Works**:
+- Generic rules (SOLID, DRY, KISS, correctness first) load **automatically** when you open Python files
+- This index loads **automatically** when you open Python files (via globs)
+- Use this to discover Python-specific patterns (async/await, type hints, PEP 8)
+
+**Key Principle**: This directory contains ONLY Python-specific patterns. Universal principles are in `generic/` and load automatically - they're referenced from here.
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 1 nodes (subcategory indexes) based on keywords.
+
+---
+
+## Keyword → Subcategory Index Routing
+
+| Keywords/Intent | Load Subcategory Index |
+|----------------|----------------------|
+| **language**, python language, type hints, async, pythonic, error handling | `.cursor/rules/shared/backend/python/language/index.mdc` |
+| **testing**, pytest, python testing, mocking, property-based testing | `.cursor/rules/shared/backend/python/testing/index.mdc` |
+| **performance**, profiling, optimization, concurrency, memory management | `.cursor/rules/shared/backend/python/performance/index.mdc` |
+| **architecture**, design patterns, project structure, dependency injection | `.cursor/rules/shared/backend/python/architecture/index.mdc` |
+| **data**, pandas, pydantic, data handling, data processing | `.cursor/rules/shared/backend/python/data/index.mdc` |
+| **style**, pep8, python style, formatting, naming | `.cursor/rules/shared/backend/python/meta/pep8-style-guide.mdc` |
+
+---
+
+## Available Rules
+
+### 📝 Meta & Style (`meta/`)
+- **[PEP 8 Style Guide](meta/pep8-style-guide.mdc)** - Naming, formatting, imports, and code organization
+
+### 🔧 Language Features (`language/`)
+**Load**: `.cursor/rules/shared/backend/python/language/index.mdc` ← Points to specific language pattern files
+- **[Error Handling Patterns](language/error-handling-patterns.mdc)** - Exceptions, try/except, context managers, custom errors
+- **[Type Annotations Everywhere](language/type-annotations-everywhere.mdc)** - Use type annotations everywhere for static type checking
+- **[Pythonic Patterns](language/pythonic-patterns.mdc)** - Idiomatic Python: comprehensions, dataclasses, EAFP, generators
+- **[Async Patterns](language/async-patterns.mdc)** - Async/await best practices, structured concurrency, avoiding blocking
+
+### 🧪 Testing (`testing/`)
+**Load**: `.cursor/rules/shared/backend/python/testing/index.mdc` ← Points to specific testing pattern files
+- **[Python Testing Best Practices](testing/python-testing-best-practices.mdc)** - pytest patterns, testing behavior vs structure, common pitfalls
+
+## Planned Categories
+
+### 🔧 Language Features (Coming Soon)
+- Async/await patterns
+- Comprehensions and generators
+- Decorators and context managers
+
+### 🏗️ Architecture (`architecture/`)
+**Load**: `.cursor/rules/shared/backend/python/architecture/index.mdc` ← Points to specific architecture pattern files
+- **[Design Patterns](architecture/design-patterns.mdc)** - Project structure, dependency injection, API design
+
+### 📊 Data Handling (`data/`)
+**Load**: `.cursor/rules/shared/backend/python/data/index.mdc` ← Points to specific data pattern files
+- **[Data Handling](data/data-handling.mdc)** - Pandas optimizations and Pydantic validation patterns
+
+### 🚀 Performance (`performance/`)
+**Load**: `.cursor/rules/shared/backend/python/performance/index.mdc` ← Points to specific performance pattern files
+- **[Profiling and Optimization](performance/profiling-and-optimization.mdc)** - Profiling tools, memory management, vectorization
+
+### 🧪 Testing (Coming Soon)
+- Pytest patterns
+- Mocking strategies
+- Property-based testing
+
+### 📊 Data Handling (Coming Soon)
+- Pandas best practices
+- Pydantic models
+- Data validation
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, correctness first, pure functions)
+- [Generic Architecture Principles](../../generic/architecture/core-principles.mdc) - Universal architecture principles
+- [Generic Testing Principles](../../generic/testing/core-principles.mdc) - Universal testing principles
+- [Generic Error Handling Principles](../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+- [Generic Performance Principles](../../generic/performance/core-principles.mdc) - Universal performance principles
+
+**Python-Specific:**
+- This directory contains Python-specific implementations and examples
+
+---
+
+## References
+
+- [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/)
+- [Python Documentation](https://docs.python.org/3/)
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)

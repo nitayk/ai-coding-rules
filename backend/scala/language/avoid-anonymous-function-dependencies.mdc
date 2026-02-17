@@ -1,0 +1,455 @@
+---
+description: "Avoid anonymous function types as class dependencies - prefer named traits (SAM types) for better discoverability and tooling support. Use when: (1) Designing class dependencies, (2) Using function types in constructors, (3) Improving code discoverability, (4) Enabling better tooling support, (5) Writing testable code. Covers SAM types, named traits, and dependency design."
+globs: []
+alwaysApply: false
+---
+
+# Avoid Anonymous Function Dependencies
+
+This guide explains why **anonymous function types** (like `A => B`) should be avoided as class dependencies in production code, and what to use instead.
+
+---
+
+## Core Principle
+
+> **Avoid using anonymous function types as class dependencies in production code.** Prefer named traits (SAM types) for better discoverability, tooling support, and maintainability. Anonymous functions are fine for tests.
+
+---
+
+## Why Anonymous Function Dependencies Are Problematic
+
+### 1. Poor Discoverability & Tooling
+
+Anonymous function types make it hard to find implementations and understand dependencies.
+
+```scala
+// ❌ Bad: Anonymous function type as dependency
+class DoFinanceStuff(
+  processPayment: (MonetaryAmount, CardDetails) => TransactionId
+) {
+  def execute(amount: MonetaryAmount, card: CardDetails): TransactionId = {
+    processPayment(amount, card)
+  }
+}
+
+// Problems:
+// - Can't "Go to Implementation" in IDE
+// - Can't "Find Usages" easily
+// - Hard to discover what processPayment actually does
+// - No clear place to find production implementations
+```
+
+**Problems**:
+- **No IDE support**: Can't navigate to implementations
+- **Hard to find usages**: Tools can't track function type dependencies well
+- **Unclear intent**: Function type doesn't tell you what it does
+- **No documentation place**: Can't document behavior on function types
+
+### 2. Hard to Evolve
+
+Function types can't be extended without changing all call sites.
+
+```scala
+// ❌ Bad: Adding new behavior requires changing signature
+class Service(
+  process: String => Result
+) {
+  def execute(input: String): Result = process(input)
+}
+
+// Later: Need to add logging capability
+// Problem: Must change function signature everywhere!
+class Service(
+  process: (String, Logger) => Result  // Breaking change!
+) {
+  def execute(input: String): Result = process(input, logger)
+}
+```
+
+**Problems**:
+- **Breaking changes**: Adding parameters requires changing all call sites
+- **Can't extend**: Function types don't support adding methods
+- **Rigid**: Hard to evolve without breaking code
+
+### 3. No Documentation Place
+
+Function types don't provide a natural place for documentation.
+
+```scala
+// ❌ Bad: No place to document behavior
+class Processor(
+  validate: DataRecord => Boolean  // What are the validation rules?
+) {
+  // No way to document what validate should do
+}
+```
+
+**Problems**:
+- **No documentation**: Can't document expected behavior
+- **No contracts**: Can't specify preconditions/postconditions
+- **Unclear expectations**: Callers don't know what's expected
+
+---
+
+## ✅ The Solution: Named Traits (SAM Types)
+
+Use single-method traits (SAM - Single Abstract Method) for dependencies.
+
+### ✅ Basic Pattern: Single-Method Trait
+
+```scala
+// ✅ Good: Named trait for dependency
+trait PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId
+}
+
+class DoFinanceStuff(
+  paymentProcessor: PaymentProcessor
+) {
+  def execute(amount: MonetaryAmount, card: CardDetails): TransactionId = {
+    paymentProcessor.processPayment(amount, card)
+  }
+}
+
+// ✅ Good: Production implementation
+class CreditCardPaymentProcessor(creditCardService: CreditCardService) 
+    extends PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId = {
+    creditCardService.process(amount, card)
+  }
+}
+
+// ✅ Good: Default implementation helper
+object PaymentProcessor {
+  def Default(creditCardService: CreditCardService): PaymentProcessor = 
+    new CreditCardPaymentProcessor(creditCardService)
+}
+
+// Usage in production
+val processor = new DoFinanceStuff(
+  PaymentProcessor.Default(creditCardService)
+)
+```
+
+**Benefits**:
+- **Discoverable**: IDE can "Go to Implementation"
+- **Findable**: Can "Find Usages" of trait
+- **Documentable**: Trait can have documentation
+- **Evolvable**: Can add methods to trait later
+
+### ✅ Tests: Anonymous Implementations Are Fine
+
+Anonymous functions or anonymous class implementations are fine in tests:
+
+```scala
+// ✅ Good: Anonymous implementation in test
+class DoFinanceStuffSpec extends AnyFlatSpec with Matchers {
+  "DoFinanceStuff" should "process payment successfully" in {
+    val processor = new DoFinanceStuff(
+      new PaymentProcessor {
+        def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId = 
+          TransactionId("test-123")
+      }
+    )
+    
+    val result = processor.execute(MonetaryAmount(100), CardDetails("1234"))
+    result shouldBe TransactionId("test-123")
+  }
+  
+  // ✅ Also fine: Lambda for simple test cases
+  it should "handle payment failure" in {
+    val processor = new DoFinanceStuff(
+      (amount: MonetaryAmount, card: CardDetails) => 
+        throw new PaymentException("Insufficient funds")
+    )
+    
+    // Test implementation
+  }
+}
+```
+
+**Key Point**: Anonymous functions are **fine for tests** - the issue is using them as **production dependencies**.
+
+### ✅ Evolving Traits: Adding Methods
+
+Traits can evolve without breaking existing code:
+
+```scala
+// ✅ Good: Trait can be extended
+trait PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId
+  
+  // ✅ Can add new methods without breaking existing code
+  def validateCard(card: CardDetails): Boolean = {
+    // Default implementation - existing code still works
+    card.number.nonEmpty
+  }
+}
+
+// Existing implementations don't need to change
+class CreditCardPaymentProcessor(creditCardService: CreditCardService) 
+    extends PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId = {
+    creditCardService.process(amount, card)
+  }
+  // validateCard uses default implementation
+}
+
+// New implementations can override
+class AdvancedPaymentProcessor extends PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId = ???
+  
+  override def validateCard(card: CardDetails): Boolean = {
+    // Custom validation logic
+    card.number.length == 16 && card.cvv.nonEmpty
+  }
+}
+```
+
+**Benefits**:
+- **Backward compatible**: Existing code doesn't break
+- **Extensible**: Can add new methods with defaults
+- **Flexible**: Implementations can override new methods
+
+### ✅ Documentation & Contracts
+
+Traits provide a natural place for documentation:
+
+```scala
+// ✅ Good: Trait with documentation
+/**
+ * Processes payment transactions.
+ * 
+ * @param amount The monetary amount to charge
+ * @param card The card details for payment
+ * @return Transaction ID if successful
+ * @throws PaymentException if payment fails
+ * 
+ * Preconditions:
+ * - amount must be positive
+ * - card must be valid and not expired
+ * 
+ * Postconditions:
+ * - Returns valid transaction ID
+ * - Payment is recorded in system
+ */
+trait PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId
+}
+```
+
+**Benefits**:
+- **Documented**: Clear expectations and contracts
+- **Self-documenting**: Trait name and method signature convey intent
+- **Testable**: Contracts can be tested
+
+---
+
+## Alternatives Comparison
+
+### ❌ Anonymous Function Type
+
+```scala
+// ❌ Bad: Anonymous function type
+class Service(
+  process: String => Result
+)
+```
+
+**Problems**: No discoverability, can't evolve, no documentation
+
+### ⚠️ Type Alias
+
+```scala
+// ⚠️ Better but still not ideal
+type PaymentProcessor = (MonetaryAmount, CardDetails) => TransactionId
+
+class Service(
+  processor: PaymentProcessor
+)
+```
+
+**Benefits**: 
+- Better than raw function type (has a name)
+- Can find usages of type alias
+
+**Problems**:
+- Still no "Go to Implementation"
+- Still can't evolve easily
+- Still no documentation place
+
+### ✅ Named Trait (Best)
+
+```scala
+// ✅ Best: Named trait
+trait PaymentProcessor {
+  def processPayment(amount: MonetaryAmount, card: CardDetails): TransactionId
+}
+
+class Service(
+  processor: PaymentProcessor
+)
+```
+
+**Benefits**: 
+- Full IDE support
+- Can evolve
+- Can document
+- Can find implementations
+
+---
+
+## When Anonymous Functions Are Acceptable
+
+### ✅ Tests
+
+Anonymous functions are fine in tests for simplicity:
+
+```scala
+// ✅ Good: Anonymous function in test
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "work" in {
+    val service = new Service(
+      input => Result(input.toUpperCase)  // Fine in tests!
+    )
+    // Test implementation
+  }
+}
+```
+
+### ✅ Local/Private Helpers
+
+Anonymous functions are fine for local or private helpers:
+
+```scala
+// ✅ Good: Anonymous function as local helper
+class Service {
+  private def processItems(items: List[Item]): List[ProcessedItem] = {
+    val transform: Item => ProcessedItem = item => ProcessedItem(item.id)
+    items.map(transform)
+  }
+}
+```
+
+### ✅ Higher-Order Functions
+
+Anonymous functions are fine as parameters to higher-order functions:
+
+```scala
+// ✅ Good: Anonymous function as HOF parameter
+val numbers = List(1, 2, 3)
+val doubled = numbers.map(_ * 2)  // Fine - not a class dependency
+```
+
+**Key Point**: The issue is specifically with **class dependencies** - function types stored as fields or constructor parameters.
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Anonymous Function Dependencies
+
+Find classes with function type dependencies:
+
+```scala
+// Find patterns like:
+class X(fn: A => B)
+class Y(process: (A, B) => C)
+```
+
+### Step 2: Create Named Trait
+
+Extract function type to named trait:
+
+```scala
+// Before
+class Service(process: String => Result)
+
+// After
+trait Processor {
+  def process(input: String): Result
+}
+
+class Service(processor: Processor)
+```
+
+### Step 3: Create Production Implementation
+
+Implement trait for production:
+
+```scala
+class ProductionProcessor(service: BackendService) extends Processor {
+  def process(input: String): Result = {
+    service.process(input)
+  }
+}
+
+object Processor {
+  def Default(service: BackendService): Processor = 
+    new ProductionProcessor(service)
+}
+```
+
+### Step 4: Update Call Sites
+
+Update production code to use trait:
+
+```scala
+// Before
+val service = new Service(input => processInput(input))
+
+// After
+val service = new Service(Processor.Default(backendService))
+```
+
+### Step 5: Keep Tests Simple
+
+Tests can still use anonymous implementations:
+
+```scala
+// ✅ Fine: Anonymous implementation in test
+val service = new Service(
+  new Processor {
+    def process(input: String): Result = Result("test")
+  }
+)
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- Use **named traits (SAM types)** for class dependencies
+- Create **production implementations** with clear names
+- **Document traits** with expected behavior
+- Use **anonymous functions in tests** for simplicity
+- Use **anonymous functions** for local helpers and HOF parameters
+
+### ❌ DON'T
+- Use **anonymous function types** as class dependencies in production
+- Rely on **type aliases** for important dependencies
+- Use **function types** when you need to evolve the interface
+- Use **function types** when discoverability matters
+
+### Key Insight
+
+> **Named traits provide discoverability, tooling support, and evolution capabilities that anonymous function types lack. Use traits for production dependencies, anonymous functions for tests and local helpers.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, dependency injection)
+
+**Scala-Specific:**
+- [Pure Testing Patterns](../testing/pure-testing-patterns.mdc) - Using functional dependencies in tests
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+- [Avoid Overloading](avoid-overloading.mdc) - Prefer explicit naming
+
+---
+
+## References
+
+- [Random Scala Tip #697: Avoid Anonymous Functions as Dependencies](https://blog.daniel-beskin.com/2025-01-07-random-scala-tip-697-avoid-anon-func-deps) - Daniel Beskin's Blog

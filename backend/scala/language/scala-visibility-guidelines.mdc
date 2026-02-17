@@ -1,0 +1,237 @@
+---
+description: "Guidelines for proper visibility modifiers and access control in Scala code. Use when: (1) Setting class/object visibility, (2) Managing package-private access, (3) Controlling API surface, (4) Organizing code access, (5) Writing maintainable code. Covers private, protected, package-private, and visibility best practices."
+globs: []
+alwaysApply: false
+---
+
+# Scala Visibility Guidelines
+
+## Core Principles
+- Use the most restrictive visibility that meets your needs
+- Package-private for internal APIs that need testing
+- Private for implementation details
+- Public only for true external APIs
+
+## Visibility Modifiers
+
+### Public (Default)
+Use for true external APIs that other modules/packages should depend on:
+```scala
+// ✅ Good: Public API for external consumption
+trait DataProcessor {
+  def process(data: DataFrame): DataFrame
+}
+
+// ✅ Good: Public case classes for configuration
+case class TransformationConfig(
+  column: String,
+  transformation: String
+)
+```
+
+### Package-Private `private[packagename]`
+Use for internal APIs that need to be accessible for testing or cross-class coordination within the same package:
+```scala
+// ✅ Good: Internal method that needs testing
+private[mypackage] def maybeApplyTimestampFiltering(
+  sourceData: DataFrame, 
+  appConfigurations: AppConfigurations
+): DataFrame = {
+  // Implementation accessible to tests in same package
+}
+
+// ✅ Good: Internal utilities shared within package
+private[transformations] def validateTransformationArgs(
+  args: TransformationArgs
+): Either[ValidationError, ValidatedArgs] = {
+  // Shared validation logic
+}
+```
+
+### Private
+Use for implementation details that should not be accessible outside the class:
+```scala
+// ✅ Good: Private implementation details
+class SparkStreamingApp {
+  private def extractTimestampFilteringConfig(
+    appConfigurations: AppConfigurations
+  ): (Option[Long], Option[String], String) = {
+    // Internal configuration extraction
+  }
+  
+  private val isLocalRun = Option(System.getenv("LOG4J_ENV")) match {
+    case Some("local") => true
+    case _ => false
+  }
+}
+```
+
+### Protected
+Use sparingly, mainly for abstract base classes where subclasses need access:
+```scala
+// ✅ Good: Protected for inheritance
+abstract class BaseTransformation {
+  protected def validateInput(df: DataFrame): Boolean = {
+    // Validation logic for subclasses
+  }
+}
+```
+
+## IDP-Specific Patterns
+
+### Testing Access
+Methods that need to be tested but aren't public APIs should be package-private:
+```scala
+trait SparkStreamingApp {
+  // Public API
+  def runApplication(args: Array[String]): Unit = { ... }
+  
+  // Package-private for testing
+  private[mypackage] def maybeApplyTimestampFiltering(
+    sourceData: DataFrame, 
+    appConfigurations: AppConfigurations
+  ): DataFrame = { ... }
+  
+  // Private implementation detail
+  private def extractTimestampFilteringConfig(
+    appConfigurations: AppConfigurations
+  ): (Option[Long], Option[String], String) = { ... }
+}
+```
+
+### Testing Utilities
+Utility objects that provide testing and development aids should use package-private for testing-specific methods:
+```scala
+// ✅ Good: Mixed visibility for different purposes
+object PatternMatchingUtils {
+  // Package-private for production utilities (could become public later)
+  private[configurations] def exhaustiveReadMatch[T](config: ReadConfigurations)(
+    handleKafka: KafkaReadConfigurations => T,
+    handleMultiKafka: MultiClusterKafkaConfigurations => T,
+    handleIceberg: IcebergReadConfigurations => T,
+    handleBigQuery: BigQueryReadConfigurations => T
+  ): T = { ... }
+
+  // Package-private for testing-only methods
+  private[configurations] def validateReadConfigurationsExhaustiveness(): Unit = { ... }
+
+  // Package-private for debugging utilities
+  private[configurations] def describeReadConfig(config: ReadConfigurations): String = { ... }
+}
+```
+
+### Configuration Classes
+Configuration classes should generally be public since they're part of the API:
+```scala
+// ✅ Good: Public configuration classes
+case class KafkaReadConfigurations(
+  bootstrapServers: String,
+  topicName: String,
+  // ... other fields
+)
+
+// ✅ Good: Package-private internal configurations
+private[kafka] case class InternalKafkaMetrics(
+  connectionCount: Int,
+  lastHeartbeat: Long
+)
+```
+
+### Utility Methods
+Utility methods should match their intended scope:
+```scala
+object TimestampUtils {
+  // Public utility for external use
+  def applyTimestampFiltering(
+    df: DataFrame, 
+    startingTimestamp: Option[Long], 
+    timestampColumn: Option[String]
+  ): DataFrame = { ... }
+  
+  // Package-private for internal utilities
+  private[timeUtils] def validateTimestampColumn(
+    df: DataFrame, 
+    columnName: String
+  ): Boolean = { ... }
+  
+  // Private implementation detail
+  private def formatTimestamp(timestamp: Long): String = { ... }
+}
+```
+
+## Anti-Patterns
+
+### ❌ Overly Public APIs
+```scala
+// ❌ Bad: Making everything public
+class SparkStreamingApp {
+  def runApplication(args: Array[String]): Unit = { ... }
+  def extractTimestampFilteringConfig(...): (...) = { ... } // Should be private
+  def determineTimestampColumnForIceberg(...): Option[String] = { ... } // Should be private
+}
+```
+
+### ❌ Overly Private APIs
+```scala
+// ❌ Bad: Making testable methods private
+class SparkStreamingApp {
+  private def maybeApplyTimestampFiltering(...): DataFrame = { ... }
+  // Can't test this method directly!
+}
+```
+
+### ❌ Inconsistent Visibility
+```scala
+// ❌ Bad: Inconsistent visibility for similar methods
+trait DataProcessor {
+  def processData(df: DataFrame): DataFrame = { ... }
+  private[processor] def validateData(df: DataFrame): Boolean = { ... } // Should be private
+  def transformData(df: DataFrame): DataFrame = { ... }
+}
+```
+
+## Decision Framework
+
+When choosing visibility, ask these questions:
+
+1. **Is it used in production code outside this class?** → **Public**
+2. **Is it used only for testing or debugging?** → **Package-private** `private[packagename]`
+3. **Is it an internal implementation detail?** → **Private**
+4. **Are you unsure?** → **Start with package-private**, can always restrict to private later
+
+### Real-World Example Decision Process
+```scala
+// Example: PatternMatchingUtils methods
+object PatternMatchingUtils {
+
+  // ✅ DECISION: Package-private (not private)
+  // REASON: Could be useful for production code later, need to test it
+  private[configurations] def exhaustiveReadMatch[T](...): T = { ... }
+
+  // ✅ DECISION: Package-private (not private)
+  // REASON: Pure testing utility, but needs to be accessible from test files
+  private[configurations] def validateReadConfigurationsExhaustiveness(): Unit = { ... }
+
+  // ❌ MISTAKE: Making it public when only used for testing
+  // def validateReadConfigurationsExhaustiveness(): Unit = { ... }
+}
+```
+
+## Guidelines Summary
+
+1. **Start Private**: Begin with the most restrictive visibility and only open up as needed
+2. **Package-Private for Testing**: Use `private[packagename]` for methods that need testing but aren't public APIs
+3. **Public for APIs**: Only make methods public if they're intended for external consumption
+4. **Review Usage**: Regularly audit actual usage patterns and adjust visibility accordingly
+5. **Document Intent**: Use meaningful names and documentation to clarify the intended scope
+6. **Consistent Patterns**: Apply visibility consistently across similar methods and classes
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (encapsulation, information hiding)
+
+**Scala-Specific:**
+- This file provides Scala-specific visibility patterns (package-private, implicit parameters)

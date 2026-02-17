@@ -1,0 +1,384 @@
+---
+description: "Modern Java best practices - Effective Java principles, records, virtual threads, immutability. Use when: (1) Writing modern Java (17+), (2) Using records/sealed classes, (3) Virtual threads/concurrency, (4) Applying Effective Java principles, (5) Writing immutable code. Covers Java 17+ features, records, virtual threads, and modern patterns."
+globs: []
+alwaysApply: false
+---
+
+# Modern Java Patterns
+
+Follow Effective Java principles and modern Java features (Java 8+, records, virtual threads) for maintainable, safe code.
+
+---
+
+## Prefer Immutability
+
+**Use immutable objects and `final` fields:**
+
+```java
+// ✅ Good: Immutable class
+public final class User {
+    private final String name;
+    private final String email;
+    
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+}
+
+// ✅ Good: Use records for immutable data (Java 14+)
+public record User(String name, String email) {
+    // Automatically immutable, equals, hashCode, toString
+}
+
+// ❌ Bad: Mutable class
+public class User {
+    private String name;
+    private String email;
+    
+    public void setName(String name) {
+        this.name = name;  // Mutable - harder to reason about
+    }
+}
+```
+
+---
+
+## Use Records for Data Holders
+
+**Use `record` for simple data carriers:**
+
+```java
+// ✅ Good: Record for data holder
+public record Point(int x, int y) {
+    // Automatically provides:
+    // - Immutable fields
+    // - Constructor
+    // - equals(), hashCode(), toString()
+    // - Getters (x(), y())
+}
+
+// ✅ Good: Record with validation
+public record Email(String value) {
+    public Email {
+        if (value == null || !value.contains("@")) {
+            throw new IllegalArgumentException("Invalid email");
+        }
+    }
+}
+
+// ❌ Bad: Verbose class for simple data
+public class Point {
+    private final int x;
+    private final int y;
+    
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+    
+    public int getX() { return x; }
+    public int getY() { return y; }
+    
+    @Override
+    public boolean equals(Object o) { /* ... */ }
+    @Override
+    public int hashCode() { /* ... */ }
+    @Override
+    public String toString() { /* ... */ }
+}
+```
+
+---
+
+## Minimize Accessibility
+
+**Use the most restrictive access level possible:**
+
+```java
+// ✅ Good: Minimal accessibility
+class UserService {
+    private final UserRepository repository;  // private
+    
+    UserService(UserRepository repository) {  // package-private constructor
+        this.repository = repository;
+    }
+    
+    public User findUser(String id) {  // public API
+        return repository.findById(id);
+    }
+    
+    private User validateUser(User user) {  // private helper
+        // ...
+    }
+}
+
+// ❌ Bad: Too permissive
+public class UserService {
+    public UserRepository repository;  // public field!
+    
+    public UserService() {  // public no-arg constructor
+    }
+    
+    public User validateUser(User user) {  // should be private
+        // ...
+    }
+}
+```
+
+---
+
+## Use Static Factory Methods
+
+**Prefer static factory methods over constructors:**
+
+```java
+// ✅ Good: Static factory methods
+public class User {
+    private final String name;
+    private final String email;
+    
+    private User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    public static User create(String name, String email) {
+        return new User(name, email);
+    }
+    
+    public static User fromEmail(String email) {
+        String name = extractNameFromEmail(email);
+        return new User(name, email);
+    }
+    
+    public static User guest() {
+        return new User("Guest", "guest@example.com");
+    }
+}
+
+// ❌ Bad: Only constructors
+public class User {
+    public User(String name, String email) {
+        // Less flexible
+    }
+}
+```
+
+---
+
+## Use Nullability Annotations
+
+**Always use nullability annotations for Kotlin interop:**
+
+```java
+// ✅ Good: Nullability annotations
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+public class UserService {
+    @NonNull
+    public User findUser(@NonNull String id) {
+        User user = repository.findById(id);
+        if (user == null) {
+            throw new UserNotFoundException(id);
+        }
+        return user;  // NonNull
+    }
+    
+    @Nullable
+    public User findUserOrNull(@NonNull String id) {
+        return repository.findById(id);  // Nullable
+    }
+}
+
+// ❌ Bad: No annotations - Kotlin sees platform types
+public class UserService {
+    public User findUser(String id) {
+        // Kotlin can't tell if null is possible
+        return repository.findById(id);
+    }
+}
+```
+
+---
+
+## Use Streams and Lambdas Effectively
+
+**Use Streams for collection processing:**
+
+```java
+// ✅ Good: Stream API
+public List<String> getActiveUserEmails(List<User> users) {
+    return users.stream()
+        .filter(User::isActive)
+        .map(User::getEmail)
+        .filter(email -> email != null && email.contains("@"))
+        .collect(Collectors.toList());
+}
+
+// ✅ Good: Method references
+users.stream()
+    .map(User::getName)
+    .forEach(System.out::println);
+
+// ❌ Bad: Imperative style
+public List<String> getActiveUserEmails(List<User> users) {
+    List<String> emails = new ArrayList<>();
+    for (User user : users) {
+        if (user.isActive()) {
+            String email = user.getEmail();
+            if (email != null && email.contains("@")) {
+                emails.add(email);
+            }
+        }
+    }
+    return emails;
+}
+```
+
+---
+
+## Handle Exceptions Correctly
+
+**Catch specific exceptions, don't suppress:**
+
+```java
+// ✅ Good: Specific exception handling
+public User loadUser(String id) throws UserNotFoundException {
+    try {
+        return repository.findById(id);
+    } catch (SQLException e) {
+        logger.error("Database error loading user", e);
+        throw new UserNotFoundException(id, e);
+    } catch (IllegalArgumentException e) {
+        logger.warn("Invalid user ID: " + id);
+        throw e;  // Re-throw
+    }
+}
+
+// ✅ Good: Resource management with try-with-resources
+public String readFile(String path) throws IOException {
+    try (BufferedReader reader = Files.newBufferedReader(Paths.get(path))) {
+        return reader.lines().collect(Collectors.joining("\n"));
+    }
+}
+
+// ❌ Bad: Catching Exception or suppressing
+public User loadUser(String id) {
+    try {
+        return repository.findById(id);
+    } catch (Exception e) {  // Too broad!
+        return null;  // Suppressing exception
+    }
+}
+```
+
+---
+
+## Use Virtual Threads for Concurrency (Java 21+)
+
+**Use virtual threads for I/O-bound operations:**
+
+```java
+// ✅ Good: Virtual threads for I/O
+public CompletableFuture<List<User>> loadUsersAsync(List<String> ids) {
+    try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        List<CompletableFuture<User>> futures = ids.stream()
+            .map(id -> CompletableFuture.supplyAsync(() -> {
+                return repository.findById(id);  // I/O operation
+            }, executor))
+            .toList();
+        
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+            .thenApply(v -> futures.stream()
+                .map(CompletableFuture::join)
+                .toList());
+    }
+}
+
+// ❌ Bad: Platform threads for I/O (wasteful)
+public CompletableFuture<List<User>> loadUsersAsync(List<String> ids) {
+    ExecutorService executor = Executors.newFixedThreadPool(100);  // Limited threads
+    // ...
+}
+```
+
+---
+
+## Use Sealed Classes for Closed Hierarchies (Java 17+)
+
+**Use sealed classes when you have a fixed set of subtypes:**
+
+```java
+// ✅ Good: Sealed class
+public sealed class Result<T> 
+    permits Result.Success, Result.Error {
+    
+    public static final class Success<T> extends Result<T> {
+        private final T value;
+        
+        public Success(T value) {
+            this.value = value;
+        }
+        
+        public T getValue() {
+            return value;
+        }
+    }
+    
+    public static final class Error extends Result<Nothing> {
+        private final String message;
+        
+        public Error(String message) {
+            this.message = message;
+        }
+        
+        public String getMessage() {
+            return message;
+        }
+    }
+}
+
+// Usage with pattern matching (Java 21+)
+public void handleResult(Result<User> result) {
+    switch (result) {
+        case Result.Success<User> success -> 
+            System.out.println("User: " + success.getValue());
+        case Result.Error error -> 
+            System.err.println("Error: " + error.getMessage());
+    }
+}
+
+// ❌ Bad: Open class hierarchy
+public abstract class Result<T> {
+    // Can be extended anywhere - no exhaustiveness checking
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, immutability, pure functions)
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection)
+
+**Java-Specific:**
+- [Style Guide](style-guide.mdc) - Java style conventions
+
+---
+
+## References
+
+- [Effective Java - Joshua Bloch](https://www.oracle.com/technical-resources/articles/javase/bloch-effective-08-qa.html)
+- [Java Language Specification](https://docs.oracle.com/javase/specs/)
+- [Java Best Practices](https://google.github.io/styleguide/javaguide.html)

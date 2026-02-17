@@ -1,0 +1,77 @@
+---
+description: "JSON serialization patterns using Play JSON library. Use when: (1) Creating JSON formatters for case classes, (2) Handling single-parameter wrappers (valueOnlyJsonFormatter), (3) Serializing complex ADTs, (4) Working with Play JSON Format/Reads/Writes, (5) JSON naming conventions. Covers implicit formatters, custom reads/writes, and Play JSON best practices."
+globs: []
+alwaysApply: false
+---
+
+- **Always provide implicit JSON formatters for case classes**:  
+  ```scala
+  case class UserConfig(name: String, age: Int)
+  object UserConfig {
+    implicit val fmt: Format[UserConfig] = Json.format
+  }
+  ```
+
+- **Use `valueOnlyJsonFormatter` for single-parameter case classes** that should serialize to their contained value:  
+  ```scala
+  case class UserId(value: String)
+  object UserId {
+    implicit val fmt: Format[UserId] = valueOnlyJsonFormatter(apply, unapply)
+  }
+  // Serializes UserId("abc123") as "abc123", not {"value": "abc123"}
+  ```
+
+- **Consistent naming for JSON formatters**:  
+  - Use `fmt` for general Format instances  
+  - Use `format` for more specific Format instances  
+  - Use `reads`/`writes` when you need separate Read/Write instances
+
+- **Handle complex ADTs with custom reads/writes**:  
+  ```scala
+  sealed trait Response
+  case class Success(data: String) extends Response
+  case class Error(message: String) extends Response
+  
+  object Response {
+    implicit val reads: Reads[Response] = {
+      (__ \ "status").read[String].flatMap {
+        case "success" => implicitly[Reads[Success]].map(identity)
+        case "error" => implicitly[Reads[Error]].map(identity)
+        case other => Reads(_ => JsError(s"Unknown status: $other"))
+      }
+    }
+    
+    implicit val writes: Writes[Response] = {
+      case success: Success => Json.toJson(success)
+      case error: Error => Json.toJson(error)
+    }
+  }
+  ```
+
+- **Use `Either` for configuration polymorphism** with custom JSON handling:  
+  ```scala
+  // Support both simple string profiles and complex objects
+  implicit val eitherConfigReads: Reads[Either[Profile, FullConfig]] = 
+    new Reads[Either[Profile, FullConfig]] {
+      def reads(json: JsValue): JsResult[Either[Profile, FullConfig]] = {
+        json.validate[FullConfig] match {
+          case success @ JsSuccess(_, _) => success.map(Right(_))
+          case JsError(_) => json.validate[String].map(s => Left(Profile.fromString(s)))
+        }
+      }
+    }
+  ```
+
+- **Prefer `Json.format` for simple case classes** but be ready to write custom instances for complex scenarios.
+
+- **Always test JSON serialization/deserialization** for complex types, especially ADTs and Either types.
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Scala-Specific:**
+- [Play JSON Gotchas](play-json-gotchas.mdc) - Common pitfalls and anti-patterns when working with Play JSON

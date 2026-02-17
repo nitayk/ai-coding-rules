@@ -1,0 +1,426 @@
+---
+description: "Avoid leaking iterators - they are stateful and mutable, causing bugs when shared. Use when: (1) Working with iterators, (2) Returning iterator-like types, (3) Sharing iterator state, (4) Avoiding iterator-related bugs, (5) Converting iterators to collections. Covers iterator safety, stateful iterator pitfalls, and safe alternatives."
+globs: []
+alwaysApply: false
+---
+
+# Iterator Safety: Beware of Leaking Iterators
+
+This guide explains why **Scala's `Iterator` is dangerous** when leaked outside its creation scope, and how to avoid iterator-related bugs.
+
+---
+
+## Core Principle
+
+> **Scala's `Iterator` is stateful and mutable** - unlike immutable collections. Leaking iterators (using them in multiple places) causes bugs with unexpectedly consumed state, race conditions, and partial execution.
+
+---
+
+## Why Iterators Are Dangerous
+
+### Iterator Characteristics
+
+- **Stateful**: Iterator maintains internal state (current position)
+- **Mutable**: State changes as you iterate
+- **Consumable**: Can only be iterated once
+- **Not thread-safe**: Sharing across threads causes race conditions
+
+### ❌ The Problem: Leaked Iterator
+
+```scala
+// ❌ Bad: Iterator leaked and used multiple times
+def processData(datas: List[Data]): Unit = {
+  val batches = datas.map(enrich).grouped(100)  // Returns Iterator[List[Data]]
+  
+  // Problem: Both operations share the same iterator!
+  Future {
+    batches.foreach(monitor)  // Consumes iterator
+  }
+  
+  batches.foreach(storeToDB)  // Iterator already consumed - unpredictable!
+}
+
+// What happens:
+// - Sometimes monitoring works, storage fails
+// - Sometimes storage works partially
+// - Sometimes NullPointerException
+// - Race conditions between threads
+```
+
+**Problems**:
+- **Shared state**: Both operations consume the same iterator
+- **Race conditions**: Concurrent access to mutable iterator state
+- **Partial execution**: One operation consumes elements, other gets empty iterator
+- **Unpredictable**: Behavior depends on timing
+
+---
+
+## Common Iterator-Leaking Patterns
+
+### ❌ Pattern 1: Storing Iterator in Variable
+
+```scala
+// ❌ Bad: Iterator stored and reused
+val items = List(1, 2, 3, 4, 5)
+val iterator = items.iterator
+
+val first = iterator.take(2).toList  // Consumes first 2 elements
+val second = iterator.take(2).toList  // Gets next 2 elements (not first 2!)
+
+// Problem: iterator state changed, second call gets different elements
+```
+
+### ❌ Pattern 2: Methods Returning Iterators
+
+```scala
+// ❌ Bad: Method returns iterator that gets consumed multiple times
+def getBatches(data: List[Data]): Iterator[List[Data]] = {
+  data.grouped(100)  // Returns iterator
+}
+
+val batches = getBatches(data)
+
+// Problem: Multiple consumers
+batches.foreach(process)
+batches.foreach(log)  // Iterator already consumed!
+```
+
+### ❌ Pattern 3: Shared Iterator Across Threads
+
+```scala
+// ❌ Bad: Iterator shared across threads
+val iterator = largeData.iterator
+
+Future {
+  iterator.foreach(processInBackground)  // Race condition!
+}
+
+iterator.foreach(processInForeground)  // Race condition!
+```
+
+### ❌ Pattern 4: Iterator in Class Fields
+
+```scala
+// ❌ Bad: Iterator stored as class field
+class DataProcessor(data: List[Data]) {
+  private val batches = data.grouped(100)  // Iterator stored
+  
+  def process(): Unit = {
+    batches.foreach(store)  // First call works
+  }
+  
+  def monitor(): Unit = {
+    batches.foreach(log)  // Second call fails - iterator consumed!
+  }
+}
+```
+
+---
+
+## ✅ Solutions
+
+### ✅ Solution 1: Keep Iterators in Scope
+
+Don't store iterators - use them immediately:
+
+```scala
+// ✅ Good: Iterator used immediately, not stored
+def processData(datas: List[Data]): Unit = {
+  // Iterator created and consumed in same scope
+  datas.map(enrich).grouped(100).foreach(storeToDB)
+}
+
+// ✅ Good: Each operation gets its own iterator
+def processAndMonitor(datas: List[Data]): Unit = {
+  val enriched = datas.map(enrich)
+  
+  // Each gets its own iterator
+  Future {
+    enriched.grouped(100).foreach(monitor)  // New iterator
+  }
+  
+  enriched.grouped(100).foreach(storeToDB)  // New iterator
+}
+```
+
+**Benefits**:
+- No shared state
+- Each operation gets fresh iterator
+- Predictable behavior
+
+### ✅ Solution 2: Materialize Eagerly
+
+Convert iterator to strict collection if you need to reuse:
+
+```scala
+// ❌ Bad: Iterator reused
+val batches = datas.map(enrich).grouped(100)  // Iterator
+batches.foreach(monitor)
+batches.foreach(store)  // Problem!
+
+// ✅ Good: Materialize to List first
+val batches = datas.map(enrich).grouped(100).toList  // Strict collection
+batches.foreach(monitor)
+batches.foreach(store)  // Works - List is immutable and reusable
+```
+
+**Benefits**:
+- Immutable collection
+- Can be reused safely
+- No state mutation
+
+### ✅ Solution 3: Create Fresh Iterators
+
+Create new iterator for each consumer:
+
+```scala
+// ❌ Bad: Same iterator shared
+val iterator = data.iterator
+process1(iterator)
+process2(iterator)  // Problem!
+
+// ✅ Good: Fresh iterator for each consumer
+def processData(data: List[Data]): Unit = {
+  process1(data.iterator)  // Fresh iterator
+  process2(data.iterator)  // Fresh iterator
+}
+```
+
+### ✅ Solution 4: Use LazyList Instead
+
+For lazy evaluation without iterator problems, use `LazyList`:
+
+```scala
+// ❌ Bad: Iterator can be consumed only once
+val batches: Iterator[List[Data]] = data.grouped(100)
+
+// ✅ Good: LazyList can be reused (memoized)
+val batches: LazyList[List[Data]] = LazyList.from(data).grouped(100).to(LazyList)
+batches.foreach(monitor)
+batches.foreach(store)  // Works - LazyList memoizes computed values
+```
+
+**Note**: `LazyList` memoizes, so it can be reused, but be aware of memory implications.
+
+---
+
+## Methods That Return Iterators
+
+Be careful with methods that return `Iterator`:
+
+### Dangerous Methods
+
+```scala
+// These return Iterator - be careful!
+val grouped: Iterator[List[A]] = list.grouped(n)
+val sliding: Iterator[List[A]] = list.sliding(n)
+val iterator: Iterator[A] = collection.iterator
+val zip: Iterator[(A, B)] = iter1.zip(iter2)
+val zipWithIndex: Iterator[(A, Int)] = iter.zipWithIndex
+```
+
+### ✅ Safe Usage Pattern
+
+```scala
+// ✅ Good: Iterator used immediately
+data.grouped(100).foreach(process)
+
+// ✅ Good: Materialize if needed multiple times
+val batches = data.grouped(100).toList
+batches.foreach(monitor)
+batches.foreach(store)
+
+// ✅ Good: Create fresh iterator for each use
+def process(data: List[Data]): Unit = {
+  data.grouped(100).foreach(monitor)
+  data.grouped(100).foreach(store)  // Fresh iterator each time
+}
+```
+
+---
+
+## Real-World Example: The Evolution Bug
+
+This shows how a simple change can introduce iterator leaks:
+
+### Step 1: Initial Code (Safe)
+
+```scala
+// ✅ Good: Simple, safe
+def processData(datas: List[Data]): Unit = {
+  datas.map(enrich).foreach(storeToDB)
+}
+```
+
+### Step 2: Add Batching (Still Safe)
+
+```scala
+// ✅ Good: Iterator used immediately
+def processData(datas: List[Data]): Unit = {
+  datas.map(enrich).grouped(100).foreach(storeToDB)
+}
+```
+
+### Step 3: Add Monitoring (BUG!)
+
+```scala
+// ❌ Bad: Iterator leaked and shared
+def processData(datas: List[Data]): Unit = {
+  val batches = datas.map(enrich).grouped(100)  // Iterator stored
+  
+  Future {
+    batches.foreach(monitor)  // Consumes iterator
+  }
+  
+  batches.foreach(storeToDB)  // Iterator already consumed - BUG!
+}
+```
+
+### ✅ Fix: Materialize or Create Fresh
+
+```scala
+// ✅ Good: Materialize to List
+def processData(datas: List[Data]): Unit = {
+  val batches = datas.map(enrich).grouped(100).toList  // Strict collection
+  
+  Future {
+    batches.foreach(monitor)  // Safe - List is immutable
+  }
+  
+  batches.foreach(storeToDB)  // Safe - List is reusable
+}
+
+// ✅ Alternative: Create fresh iterators
+def processData(datas: List[Data]): Unit = {
+  val enriched = datas.map(enrich)
+  
+  Future {
+    enriched.grouped(100).foreach(monitor)  // Fresh iterator
+  }
+  
+  enriched.grouped(100).foreach(storeToDB)  // Fresh iterator
+}
+```
+
+---
+
+## Detecting Iterator Leaks
+
+### Red Flags
+
+1. **Iterator stored in `val`**: `val iter = collection.iterator`
+2. **Iterator as class field**: `class X { val iter = ... }`
+3. **Iterator passed to multiple functions**: `process1(iter); process2(iter)`
+4. **Iterator used in Future/async**: `Future { iter.foreach(...) }`
+5. **Methods returning Iterator**: `def getIter(): Iterator[A]`
+
+### ✅ Safe Patterns
+
+1. **Immediate use**: `collection.iterator.foreach(...)`
+2. **Materialize**: `collection.iterator.toList`
+3. **Fresh iterators**: `collection.iterator` called multiple times
+4. **Single consumer**: Iterator used only once
+
+---
+
+## Iterator vs LazyList vs List
+
+| Type | Mutability | Reusable | Memory | Use Case |
+|------|------------|----------|--------|----------|
+| **Iterator** | Mutable state | ❌ No | Low | Single-pass, immediate use |
+| **LazyList** | Immutable (memoized) | ✅ Yes | Medium | Lazy, multiple passes |
+| **List** | Immutable | ✅ Yes | High | Eager, multiple passes |
+
+### When to Use Each
+
+```scala
+// ✅ Use Iterator: Single pass, immediate consumption
+def processLargeFile(file: java.io.File): Unit = {
+  scala.io.Source.fromFile(file).getLines().foreach(processLine)
+  // Iterator consumed immediately, safe
+}
+
+// ✅ Use LazyList: Lazy evaluation, multiple passes needed
+def processLazy(data: LazyList[Data]): Unit = {
+  val processed = data.map(enrich)
+  processed.foreach(monitor)  // First pass
+  processed.foreach(store)    // Second pass - memoized
+}
+
+// ✅ Use List: Eager evaluation, multiple passes needed
+def processEager(data: List[Data]): Unit = {
+  val processed = data.map(enrich).toList  // Materialize
+  processed.foreach(monitor)  // Safe
+  processed.foreach(store)   // Safe
+}
+```
+
+---
+
+## Testing Iterator Safety
+
+### How to Test for Iterator Leaks
+
+```scala
+// ✅ Good: Test that iterator can be consumed
+def testIteratorConsumption(): Unit = {
+  val iterator = List(1, 2, 3).iterator
+  
+  val first = iterator.take(2).toList
+  first shouldBe List(1, 2)
+  
+  val second = iterator.take(2).toList
+  second shouldBe List(3)  // Only remaining element!
+}
+
+// ✅ Good: Test materialization prevents leaks
+def testMaterialization(): Unit = {
+  val materialized = List(1, 2, 3).grouped(2).toList
+  
+  val first = materialized.head
+  val second = materialized.head  // Same - List is immutable!
+  
+  first shouldBe second
+}
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- **Use iterators immediately** - don't store them
+- **Materialize to List** if you need to reuse data
+- **Create fresh iterators** for each consumer
+- **Keep iterators in scope** - don't leak them
+- **Use LazyList** for lazy evaluation with reuse
+
+### ❌ DON'T
+- **Store iterators** in variables or class fields
+- **Share iterators** across multiple consumers
+- **Use iterators** in concurrent contexts without synchronization
+- **Return iterators** from methods that might be consumed multiple times
+- **Assume iterators** can be reused like collections
+
+### Key Insight
+
+> **Iterators are stateful and mutable - they can only be consumed once. Leaking iterators (using them in multiple places) causes bugs. Materialize to strict collections if you need to reuse data, or create fresh iterators for each consumer.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (pure functions, referential transparency, immutability)
+
+**Scala-Specific:**
+- [Lazy Evaluation and Productivity](lazy-evaluation-and-productivity.mdc) - LazyList vs Iterator
+- [Referential Transparency](referential-transparency.mdc) - Iterator breaks referential transparency
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - Performance considerations
+
+---
+
+## References
+
+- [Random Scala Tip #568: Beware of Leaking Iterators](https://blog.daniel-beskin.com/2025-01-15-random-scala-tip-568-beware-of-leaking-iterators) - Daniel Beskin's Blog

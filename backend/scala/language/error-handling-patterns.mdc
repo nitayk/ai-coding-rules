@@ -1,0 +1,200 @@
+---
+description: "Error handling patterns using Option, Either, and Try for safe operations in Scala. Use when: (1) Handling optional values (Option), (2) Handling recoverable errors (Either), (3) Handling exceptions (Try), (4) Writing error handling code, (5) Designing APIs with error types. Covers when to use each type, composition patterns, and avoiding exceptions."
+globs: []
+alwaysApply: false
+---
+
+# Error Handling Patterns
+
+- **Use Option for potentially missing values**, never null:  
+  ```scala
+  // ✅ Good: Safe optional access - compiler tracks nullability
+  def findUser(id: String): Option[User] = ???
+  
+  // ❌ Bad: Nullable return - compiler can't track this!
+  def findUser(id: String): User = null // if not found
+  
+  // The compiler is your friend - don't lie to it by using null
+  ```
+  
+  **Note**: Avoid "Option blindness" - when `None` could mean different things, use domain-specific types instead. See [Avoid Option Blindness](avoid-option-blindness.mdc) for details.
+
+- **Use Try for operations that can fail** with exceptions:  
+  ```scala
+  // ✅ Good: Safe string conversion - compiler tracks exceptions
+  def parseToInt(s: String): Try[Int] = Try(s.toInt)
+  
+  // ❌ Bad: Unsafe conversion - hidden exception possibility
+  def parseToInt(s: String): Int = s.toInt // Can throw NumberFormatException
+  
+  // Make exceptions explicit in the type signature so the compiler can help
+  ```
+
+- **Chain operations safely** using flatMap/map instead of nested try-catch:  
+  ```scala
+  // ✅ Good: Functional error handling
+  for {
+    jsResult <- ZIO.attempt(Json.fromJson[Config](json))
+    config <- ZIO.fromEither(jsResult.asEither)
+  } yield config
+  
+  // ❌ Bad: Imperative error handling with nested try-catch
+  ```
+
+- **Use ZIO error channels** for effectful computations:  
+  ```scala
+  // ✅ Good: ZIO error handling
+  def processRequest(req: Request): ZIO[Any, CustomError, Response] = {
+    for {
+      parsed <- parseJson(req.body).mapError(e => CustomError("Parse failed", e.getMessage))
+      result <- processData(parsed).mapError(e => CustomError("Processing failed", e.getMessage))
+    } yield result
+  }
+  ```
+
+- **Create custom error types** with meaningful context:  
+  ```scala
+  // ✅ Good: Explicit error types - compiler tracks all error cases
+  sealed trait ProcessingError
+  case class ParseError(message: String, line: Int) extends ProcessingError
+  case class ValidationError(field: String, reason: String) extends ProcessingError
+  case class NetworkError(service: String, statusCode: Int) extends ProcessingError
+  
+  // Use sealed types for exhaustive error handling
+  def handleError(error: ProcessingError): String = error match {
+    case ParseError(msg, line) => s"Parse error at line $line: $msg"
+    case ValidationError(field, reason) => s"Invalid $field: $reason"
+    case NetworkError(service, code) => s"$service returned $code"
+    // Compiler ensures all cases are handled!
+  }
+  
+  // For JSON serialization
+  case class CustomError(shortMessage: String, detailedMessage: String) extends Throwable
+  object CustomError {
+    implicit val writes: Writes[CustomError] = Json.writes[CustomError]
+  }
+  ```
+
+- **Handle JSON parsing safely** with proper error propagation:  
+  ```scala
+  def parseJson[T: Reads](bodyStr: String): Task[T] = {
+    for {
+      jsResult <- ZIO.attempt(Json.fromJson[T](Json.parse(bodyStr)))
+      res <- ZIO.fromEither(jsResult.asEither)
+        .mapError(e => CustomError("JSON validation failed", e.toString()))
+    } yield res
+  }
+  ```
+
+- **Use `.toOption` for safe conversions**:  
+  ```scala
+  // Extension methods for safe string conversions
+  implicit class StringOps(s: String) {
+    def toDoubleOption: Option[Double] = Try(s.toDouble).toOption
+    def toLongOption: Option[Long] = Try(s.toLong).toOption
+    def toIntOption: Option[Int] = Try(s.toInt).toOption
+  }
+  ```
+
+- **Pattern match on Option/Either/Try** instead of using unsafe methods:  
+  ```scala
+  // ✅ Good: Safe pattern matching
+  config.getValue("key") match {
+    case Some(value) => processValue(value)
+    case None => handleMissingValue()
+  }
+  
+  // ❌ Bad: Unsafe access
+  val value = config.getValue("key").get // Can throw NoSuchElementException
+  ```
+
+- **Log errors before propagating** them, especially in service boundaries:  
+  ```scala
+  private def handleZIOError[T: Writes](zio: ZIO[Any, CustomError, T]): ZIO[Any, Throwable, Response] =
+    zio.map { result =>
+      Response.json(Json.toJson(result).toString())
+    }.catchAll { error =>
+      ZIO.attempt {
+        logger.error("Failed to process request", error)
+        Response.json(Json.toJson(error).toString()).withStatus(Status.InternalServerError)
+      }
+    }
+  ```
+
+- **Use LoggingUtil for exception handling** with proper Kibana tagging:  
+  ```scala
+  // ✅ Good: LoggingUtil with tags for Kibana filtering
+  LoggingUtil.logErrorAndThrowGeneralException(
+    "Timestamp column not found in DataFrame",
+    "column_name" -> sourceColumn,
+    "operation" -> "timestamp_conversion"
+  )
+  
+  // ❌ Bad: Direct exception throwing
+  throw new IllegalArgumentException(s"Timestamp column '$sourceColumn' not found")
+  
+  // ❌ Bad: Variables in message (hard to filter in Kibana)
+  LoggingUtil.logErrorAndThrowGeneralException(
+    s"Timestamp column '$sourceColumn' not found in DataFrame"
+  )
+  ```
+
+- **Kibana-friendly error patterns**:
+  - **Message**: Static, searchable text without variables
+  - **Tags**: All variable values for precise filtering  
+  - **Consistent naming**: Use snake_case for tag names
+  ```scala
+  // ✅ Example: Clean separation of static message and variable tags
+  LoggingUtil.logErrorAndThrowGeneralException(
+    "Custom partition column is missing - check transformation configuration",
+    "missing_custom_partition" -> customPartition,
+    "table_name" -> tableName,
+    "operation" -> "partition_preparation"
+  )
+  ```
+
+- **Pass loggers and similar tools implicitly** for clean function signatures and cross-cutting concerns:
+  ```scala
+  // ✅ Good: Logger passed implicitly
+  def processData(df: DataFrame, config: Config)(implicit logger: Logger): DataFrame = {
+    TimestampUtils.prepareEventTimestamp(df, config.timestampColumn) // Logger flows implicitly
+  }
+  
+  // ✅ Good: Implicit logger in utility functions
+  def convertTimestampColumn(df: DataFrame, sourceColumn: String)(implicit logger: Logger): DataFrame = {
+    LoggingUtil.logErrorAndThrowGeneralException(
+      "Timestamp column not found in DataFrame",
+      "column_name" -> sourceColumn
+    )
+  }
+  
+  // ❌ Bad: Explicit logger parameter pollution
+  def processData(df: DataFrame, config: Config, logger: Logger): DataFrame = {
+    TimestampUtils.prepareEventTimestamp(df, config.timestampColumn, logger) // Explicit passing
+  }
+  ```
+
+- **Use implicit parameters for cross-cutting concerns** like loggers, execution contexts, and configuration contexts that flow through multiple function calls:
+  ```scala
+  // ✅ Good: Context objects passed implicitly
+  def executeTransformation(df: DataFrame)(implicit 
+    logger: Logger, 
+    spark: SparkSession,
+    executionContext: ExecutionContext
+  ): DataFrame = {
+    // Function implementation can access all context implicitly
+  }
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (fail fast, explicit errors, proper propagation)
+
+**Scala-Specific:**
+- [Future Error Handling Conventions](future-error-handling-conventions.mdc) - **Adopt explicit error handling conventions for Future** - Distinguish business errors from defects, use Future[Either[E, A]] or EitherT
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - When Option loses domain semantics
+- [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) - Using sealed traits for error types
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Foundation for type-safe error handling

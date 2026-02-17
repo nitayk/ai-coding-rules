@@ -1,0 +1,71 @@
+---
+description: "Backend development rules index - routes to language-specific routers/indexes (Go, Python, Scala, Java, PHP). Use when: (1) Backend development, (2) Server-side code, (3) Language-specific patterns needed. Points to language routers/indexes which then route to specific rule files. Follows Router → Index → Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Backend Development Rules Index
+
+**Purpose**: Router for backend languages - detects keywords and routes to language-specific indexes.
+
+**Chaining**: Root Router → This Index (Router) → Language Index → (Subcategory Index →) Files
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 2 nodes (language indexes) based on keywords.
+
+**Hybrid Routing**:
+- **Large languages** (Scala, Python): Language index → Subcategory index → Files (3 hops total)
+- **Small languages** (Go, Java, PHP): Language index → Files directly (2 hops total)
+
+---
+
+## Keyword → Language Index Routing
+
+| Keywords/Intent | Load Language Index |
+|----------------|---------------------|
+| **go**, golang, go code, go patterns, go concurrency, goroutines, go error handling | `.cursor/rules/shared/backend/go/index.mdc` |
+| **python**, python code, python patterns, python async, python type hints, pep8, pythonic | `.cursor/rules/shared/backend/python/index.mdc` |
+| **scala**, scala code, scala patterns, scala functional, option either try, sealed traits | `.cursor/rules/shared/backend/scala/index.mdc` |
+| **java**, java code, java patterns, modern java, java best practices | `.cursor/rules/shared/backend/java/index.mdc` |
+| **php**, php code, php patterns, modern php, php best practices | `.cursor/rules/shared/backend/php/index.mdc` |
+
+---
+
+## Language Routers/Indexes (Layer 1 Nodes)
+
+| Language | Router/Index | Keywords |
+|----------|-------------|----------|
+| **Go** | `.cursor/rules/shared/backend/go/index.mdc` | go, golang, go code, go patterns, go concurrency, goroutines, go error handling |
+| **Python** | `.cursor/rules/shared/backend/python/index.mdc` | python, python code, python patterns, python async, python type hints, pep8, pythonic |
+| **Scala** | `.cursor/rules/shared/backend/scala/index.mdc` | scala, scala code, scala patterns, scala functional, option either try, sealed traits |
+| **Java** | `.cursor/rules/shared/backend/java/index.mdc` | java, java code, java patterns, modern java, java best practices |
+| **PHP** | `.cursor/rules/shared/backend/php/index.mdc` | php, php code, php patterns, modern php, php best practices |
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Language Router/Index → Subcategory Index → Files**
+
+1. Root Router detects "backend" or language keyword → loads this index
+2. This index routes to language router/index based on detected language
+3. Language router/index routes to subcategory indexes (language/, architecture/, data/, etc.)
+4. Subcategory indexes point to specific rule files
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Go patterns | `.cursor/rules/shared/backend/go/index.mdc` |
+| Python patterns | `.cursor/rules/shared/backend/python/index.mdc` |
+| Scala patterns | `.cursor/rules/shared/backend/scala/index.mdc` |
+| Java patterns | `.cursor/rules/shared/backend/java/index.mdc` |
+| PHP patterns | `.cursor/rules/shared/backend/php/index.mdc` |
+
+---
+
+## Related Resources
+
+- **Generic Rules**: See `.cursor/rules/shared/generic/index.mdc` for universal principles (SOLID, DRY, KISS, etc.)
+- **Tools**: See `.cursor/rules/shared/tools/index.mdc` for CLI tools

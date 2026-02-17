@@ -1,0 +1,44 @@
+---
+description: "Go architecture patterns index - project structure and organization. Use when: (1) Go project structure, (2) Directory organization, (3) Dependency patterns. Points to architecture pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Go Architecture Patterns Index
+
+**Purpose**: Router for Go architecture patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **project structure**, directory organization, go project layout | `project-structure.mdc` |
+
+---
+
+## Architecture Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Project Structure](project-structure.mdc) | Standard Go project layout and organization | project structure, directory organization |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Project structure | `project-structure.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Generic**: See `.cursor/rules/shared/generic/architecture/core-principles.mdc` for universal architecture principles

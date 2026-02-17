@@ -1,0 +1,287 @@
+---
+description: "Universal testing principles - test behavior not implementation, arrange-act-assert, isolation. Use when: (1) Writing tests, (2) Testing behavior vs implementation, (3) Structuring tests (AAA pattern), (4) Ensuring test isolation, (5) Following testing best practices. Covers arrange-act-assert pattern, test isolation, and universal testing principles. Auto-loads when test files are opened (via globs)."
+globs: ["**/*test*.scala", "**/*test*.py", "**/*test*.go", "**/*test*.java", "**/*test*.js", "**/*test*.ts", "**/*Test*.swift", "**/*Test*.kt"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["testing", "universal", "tdd", "unit-tests"]
+---
+
+# Universal Testing Principles
+
+**APPLY WHEN:** Writing, reviewing, or maintaining tests in any language.
+
+---
+
+## Core Principles
+
+### 1. Test Behavior, Not Implementation
+
+**DO**:
+- Test what the code does (outputs, side effects)
+- Test public interfaces/APIs
+- Test business requirements
+
+**STOP**:
+- Testing private methods directly
+- Testing implementation details (variable names, internal structure)
+- Asserting on intermediate values
+
+**Example**:
+```python
+# ✅ Good: Test behavior
+def test_user_registration():
+    result = register_user("alice@example.com", "password123")
+    assert result.success
+    assert result.user.email == "alice@example.com"
+
+# ❌ Bad: Test implementation
+def test_user_registration():
+    result = register_user("alice@example.com", "password123")
+    assert result._internal_state == "validated"  # Implementation detail!
+```
+
+---
+
+### 2. Arrange-Act-Assert (AAA) Pattern
+
+**DO**: Structure tests in three clear sections:
+1. **Arrange**: Set up test data, mocks, dependencies
+2. **Act**: Execute the code under test
+3. **Assert**: Verify expected outcomes
+
+**STOP**: Mixing setup, execution, and verification
+
+**Example**:
+```scala
+test("calculate total price") {
+  // Arrange
+  val items = List(Item(price = 10.0), Item(price = 20.0))
+  val calculator = PriceCalculator(taxRate = 0.1)
+  
+  // Act
+  val total = calculator.calculateTotal(items)
+  
+  // Assert
+  assert(total == 33.0)  // (10 + 20) * 1.1
+}
+```
+
+---
+
+### 3. One Assertion Per Test (When Possible)
+
+**DO**:
+- Test one behavior/concept per test
+- Use descriptive test names that explain what's tested
+- Group related assertions when testing a single behavior
+
+**STOP**:
+- Testing multiple unrelated behaviors in one test
+- Vague test names like `test1`, `test_function`
+
+**Example**:
+```go
+// ✅ Good: One concept per test
+func TestUserValidation_ValidEmail(t *testing.T) { ... }
+func TestUserValidation_InvalidEmail(t *testing.T) { ... }
+func TestUserValidation_MissingEmail(t *testing.T) { ... }
+
+// ❌ Bad: Multiple concepts
+func TestUserValidation(t *testing.T) {
+    // Tests valid, invalid, missing, duplicate... all in one
+}
+```
+
+---
+
+### 4. Test Isolation
+
+**DO**:
+- Each test is independent (can run in any order)
+- Tests don't share state
+- Clean up after tests (teardown)
+
+**STOP**:
+- Tests that depend on other tests
+- Shared mutable state between tests
+- Tests that leave side effects
+
+**Rule**: Running tests in isolation should produce same results as running together
+
+---
+
+### 5. Use Descriptive Test Names
+
+**DO**: Follow pattern: `test_[UnitUnderTest]_[Scenario]_[ExpectedResult]`
+
+**Examples**:
+- `test_calculateTotal_withEmptyCart_returnsZero`
+- `test_userRegistration_withInvalidEmail_throwsValidationError`
+- `test_processPayment_whenInsufficientFunds_returnsError`
+
+**STOP**: Names like `test1`, `test_function`, `test_works`
+
+---
+
+## Test Structure
+
+### Unit Tests (70% of tests)
+- **Scope**: Single function/class
+- **Speed**: Fast (< 10ms each)
+- **Dependencies**: Mocked/stubbed
+- **Purpose**: Verify logic correctness
+
+### Integration Tests (20% of tests)
+- **Scope**: Multiple components working together
+- **Speed**: Moderate (< 1s each)
+- **Dependencies**: Real databases/services (test doubles)
+- **Purpose**: Verify component interactions
+
+### E2E Tests (10% of tests)
+- **Scope**: Full system
+- **Speed**: Slow (< 30s each)
+- **Dependencies**: Real infrastructure
+- **Purpose**: Verify critical user flows
+
+---
+
+## Test Data Patterns
+
+### Use Test Fixtures
+**DO**: Create reusable test data builders/factories
+```python
+def create_user(email="test@example.com", active=True):
+    return User(email=email, active=active, created_at=datetime.now())
+```
+
+### Use Test Doubles Appropriately
+- **Stub**: Returns predefined data
+- **Mock**: Verifies interactions (expects calls)
+- **Fake**: Working implementation for testing (in-memory DB)
+- **Spy**: Records calls for verification
+
+**Prefer**: Stubs and fakes over mocks (test behavior, not interactions)
+
+---
+
+## Common Anti-Patterns
+
+**❌ Testing Implementation Details**
+```java
+@Test
+void test() {
+    // BAD: Testing private field
+    assertEquals("validated", user.getInternalState());
+}
+```
+
+**❌ Brittle Tests**
+```python
+# BAD: Tests break when implementation changes, not behavior
+assert len(service._cache) == 5  # Implementation detail
+```
+
+**❌ Flaky Tests**
+```scala
+// BAD: Depends on timing/randomness
+Thread.sleep(100)  // Race condition waiting to happen
+assert result.isReady
+```
+
+**❌ Test Duplication**
+```go
+// BAD: Same test logic repeated
+func TestUser1(t *testing.T) { testUser("user1", t) }
+func TestUser2(t *testing.T) { testUser("user2", t) }
+// Use table-driven tests instead
+```
+
+---
+
+## Test Coverage Philosophy
+
+**DO**:
+- Aim for high coverage of business logic (80-90%)
+- Test edge cases and error paths
+- Test critical paths thoroughly
+
+**STOP**:
+- Chasing 100% coverage (diminishing returns)
+- Testing getters/setters/trivial code
+- Writing tests just to increase coverage numbers
+
+**Focus**: Coverage of important code, not coverage percentage
+
+---
+
+## Pure Testing Patterns
+
+### Replace Mocks with Functional Dependencies
+
+**DO**:
+- Use simple functions instead of complex mock objects
+- Pass dependencies as functions/interfaces
+- Create pure test implementations (no framework overhead)
+
+**STOP**:
+- Using heavy mocking frameworks for simple cases
+- Verifying implementation details (interaction verification)
+- Creating complex mock setup/teardown
+
+**Benefits**: Lean tests, fast execution, clear intent, maintainable
+
+### Declarative Tests
+
+**DO**:
+- Use descriptive test names that express behavior
+- Structure tests as specifications (Given-When-Then)
+- Use test data builders with sensible defaults
+- Express test cases as data when possible
+
+**STOP**:
+- Imperative test names focusing on "how"
+- Complex imperative setup code
+- Tests that read like implementation steps
+
+### Test Isolation & Purity
+
+**DO**:
+- Make tests pure (no side effects, no global state)
+- Use immutable test data
+- Eliminate unnecessary dependencies
+- Test outcomes, not process
+
+**STOP**:
+- Tests with real I/O (file system, database)
+- Mutable test fixtures
+- Tests depending on other tests
+- Verifying internal implementation details
+
+---
+
+## Language-Specific Notes
+
+- **Scala**: Use ScalaTest or Specs2, prefer property-based testing (ScalaCheck), see pure testing patterns
+- **Python**: Use pytest, prefer fixtures over setUp/tearDown
+- **Go**: Use table-driven tests, prefer `t.Run()` for subtests
+- **Java**: Use JUnit 5, prefer parameterized tests
+- **JavaScript/TypeScript**: Use Jest/Vitest, prefer `describe`/`it` structure
+- **Swift**: Use XCTest, prefer `XCTAssert` family
+- **Kotlin**: Use JUnit 5 or Kotest, prefer data-driven tests
+
+**Reference**: Language-specific testing rules in `backend/` and `mobile/` directories.
+
+---
+
+## Testing Checklist
+
+Before committing tests:
+- [ ] Tests are isolated (no shared state)
+- [ ] Test names describe what's tested
+- [ ] Tests follow AAA pattern
+- [ ] Tests verify behavior, not implementation
+- [ ] Edge cases and error paths are tested
+- [ ] Tests are fast (< 100ms for unit tests)
+- [ ] No flaky tests (no timing dependencies)
+- [ ] Test data is clear and minimal

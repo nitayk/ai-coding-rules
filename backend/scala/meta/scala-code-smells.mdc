@@ -1,0 +1,570 @@
+---
+description: "Common code smells and refactoring patterns for Scala codebases. Use when: (1) Reviewing code, (2) Identifying anti-patterns, (3) Refactoring legacy code, (4) Improving code quality, (5) Learning what to avoid. Covers code smells, anti-patterns, and refactoring strategies."
+globs: []
+alwaysApply: false
+---
+
+# Code Smells & Refactoring Patterns
+
+Common code smells found in Scala codebases and how to refactor them.
+
+---
+
+## Structural Code Smells
+
+### 1. God Object (Class Does Too Much)
+
+**Symptoms**:
+- File > 1000 LOC
+- Class has 5+ distinct responsibilities
+- Hard to name the class without "and"
+
+**Example**:
+```scala
+// ❌ BAD: Multiple responsibilities
+class ServiceRunner {
+  // 1. Initialize 50+ external states
+  // 2. Initialize multiple clients
+  // 3. Initialize adapters
+  // 4. Build strategy runners
+  // 5. Build service instances
+  // 6. Handle configuration
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Single Responsibility
+class StateInitializer {
+  def initializeStates(): StateManager
+}
+
+class ClientFactory {
+  def createClients(): Clients
+}
+
+class ServiceFactory {
+  def createService(states: StateManager, clients: Clients): Service
+}
+
+// Orchestrate in main
+object ServiceMain {
+  def main(args: Array[String]): Unit = {
+    val states = new StateInitializer().initializeStates()
+    val clients = new ClientFactory().createClients()
+    val service = new ServiceFactory().createService(states, clients)
+  }
+}
+```
+
+---
+
+### 2. Feature Envy (Class Uses Another Class's Data Excessively)
+
+**Symptoms**:
+- Method calls 10+ methods on another object
+- Method knows too much about another class's internals
+
+**Example**:
+```scala
+// ❌ BAD: Feature envy
+class Evaluator {
+  def evaluate(item: Item, states: ApplicationStates): Double = {
+    val config = states.modelConfig.getRawData()
+    val splitter = states.abSplitter.getAdditionalData()
+    val lut = states.lookupTable.getConfigData()
+    val blacklist = states.blacklist.getConfigData()
+    // ... 10 more state accesses
+  }
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Inject specific dependencies
+class Evaluator(
+  modelConfigRepository: ModelConfigRepository,
+  lutRepository: LUTRepository
+) {
+  def evaluate(item: Item, context: EvaluationContext): Double = {
+    val config = modelConfigRepository.getConfig
+    val lut = lutRepository.getLUT
+    // Clean, no feature envy
+  }
+}
+```
+
+---
+
+### 3. Primitive Obsession (Using Primitives Instead of Domain Objects)
+
+**Symptoms**:
+- `Map[String, String]` for structured data
+- `Long` for timestamps instead of `Instant`
+- `Int` for IDs instead of typed wrapper
+
+**Example**:
+```scala
+// ❌ BAD: Primitive obsession
+def buildEntity(data: Map[String, String]): Entity = {
+  val userId = data("user_id")
+  val itemId = data("item_id")
+  val eventType = data("event_type")
+  // What if keys are wrong? Runtime error!
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Domain objects
+case class EntityData(
+  userId: UUID,
+  itemId: ItemID,
+  eventType: EventType
+)
+
+def buildEntity(data: EntityData): Entity = {
+  // Compile-time safety!
+}
+```
+
+---
+
+### 4. Long Parameter List
+
+**Symptoms**:
+- Function has 5+ parameters
+- Function has 3+ implicit parameters (excluding cross-cutting like Logger, Monitoring)
+
+**Example**:
+```scala
+// ❌ BAD: Too many parameters
+def build(
+  callbackData: CallbackData,
+  externalData: Option[ExternalData]
+)(implicit 
+  requestUri: EncodedUri,
+  serveData: ServeData,
+  augmentingData: AugmentingData,
+  request: Request,
+  displayRequestID: DisplayRequestID,
+  displayOpportunityID: DisplayOpportunityID,
+  platformType: PlatformType,
+  remoteAddress: Option[InetAddress],
+  userAgent: Option[UserAgentWrapper],
+  translations: Map[String, String],
+  monitoring: Monitoring,
+  logger: Logger,
+  config: Config
+  // ... 7 more!
+): Extension
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Group into case classes
+case class RequestContext(
+  requestUri: EncodedUri,
+  request: Request,
+  displayRequestID: DisplayRequestID,
+  displayOpportunityID: DisplayOpportunityID,
+  platformType: PlatformType,
+  remoteAddress: Option[InetAddress],
+  userAgent: Option[UserAgentWrapper]
+)
+
+case class BusinessData(
+  serveData: ServeData,
+  augmentingData: AugmentingData,
+  translations: Map[String, String]
+)
+
+def build(
+  requestContext: RequestContext,
+  businessData: BusinessData,
+  callbackData: CallbackData,
+  externalData: Option[ExternalData]
+)(implicit 
+  monitoring: Monitoring,
+  logger: Logger,
+  config: Config
+): Extension
+```
+
+---
+
+### 5. DRY Violations (Code Duplication)
+
+**Symptoms**:
+- Same logic repeated 3+ times
+- Copy-paste code with minor variations
+
+**Example**:
+```scala
+// ❌ BAD: Repeated pattern
+def evaluateModelA(item: Item): Double = {
+  val features = extractFeatures(item)
+  val prediction = mlClient.predict(modelNameA, features)
+  val adjusted = applyAdjustments(prediction, item)
+  adjusted
+}
+
+def evaluateModelB(item: Item): Double = {
+  val features = extractFeatures(item)  // DUPLICATE!
+  val prediction = mlClient.predict(modelNameB, features)  // DUPLICATE!
+  val adjusted = applyAdjustments(prediction, item)  // DUPLICATE!
+  adjusted
+}
+
+// ... 2 more duplicates
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Extract common pattern
+trait ModelEvaluator {
+  def modelName: String
+  
+  def evaluate(item: Item): Future[Double] = {
+    for {
+      features <- extractFeatures(item)
+      prediction <- mlClient.predict(modelName, features)
+      adjusted <- applyAdjustments(prediction, item)
+    } yield adjusted
+  }
+  
+  protected def extractFeatures(item: Item): Future[Features]
+  protected def applyAdjustments(prediction: Double, item: Item): Future[Double]
+}
+
+class ModelAEvaluator extends ModelEvaluator {
+  def modelName: String = "model_a_v3"
+  // Implement only the differences
+}
+```
+
+---
+
+### 6. Switch Statements (Type Code Pattern)
+
+**Symptoms**:
+- Large `match` statement on enum/type
+- Same pattern repeated in multiple places
+
+**Example**:
+```scala
+// ❌ BAD: Repeated switch logic
+def getEvaluator(strategyId: StrategyID): Evaluator = {
+  strategyId.modelType match {
+    case ModelType.ModelA => new ModelAEvaluator(...)
+    case ModelType.ModelB => new ModelBEvaluator(...)
+    case ModelType.ModelC => new ModelCEvaluator(...)
+    case ModelType.ModelD => new ModelDEvaluator(...)
+  }
+}
+
+// Another file, same switch!
+def getModelConfig(modelType: ModelType): ModelConfig = {
+  modelType match {
+    case ModelType.ModelA => modelAConfig
+    case ModelType.ModelB => modelBConfig
+    case ModelType.ModelC => modelCConfig
+    case ModelType.ModelD => modelDConfig
+  }
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Polymorphism + Factory
+trait ModelEvaluator {
+  def evaluate(item: Item): Future[Double]
+  def modelConfig: ModelConfig
+}
+
+class EvaluatorFactory(stateManager: StateManager) {
+  private val evaluators = Map(
+    ModelType.ModelA -> new ModelAEvaluator(...),
+    ModelType.ModelB -> new ModelBEvaluator(...),
+    ModelType.ModelC -> new ModelCEvaluator(...),
+    ModelType.ModelD -> new ModelDEvaluator(...)
+  )
+  
+  def getEvaluator(modelType: ModelType): ModelEvaluator = {
+    evaluators(modelType)
+  }
+}
+```
+
+---
+
+### 7. Data Clumps (Same Group of Data Passed Together)
+
+**Symptoms**:
+- Same 3+ parameters passed to multiple functions
+- Parameters always travel together
+
+**Example**:
+```scala
+// ❌ BAD: Data clump
+def evaluate(
+  item: Item,
+  counters: Counters,
+  history: History,
+  session: Session,
+  features: Features
+): Double
+
+def filter(
+  item: Item,
+  counters: Counters,
+  history: History,
+  session: Session,
+  features: Features
+): Boolean
+
+// ... 10 more functions with same 5 params
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Extract into object
+case class UserData(
+  counters: Counters,
+  history: History,
+  session: Session,
+  features: Features
+)
+
+def evaluate(item: Item, userData: UserData): Double
+def filter(item: Item, userData: UserData): Boolean
+```
+
+---
+
+### 8. Lazy Class (Class Does Almost Nothing)
+
+**Symptoms**:
+- Class < 50 LOC with no logic
+- Class is just a wrapper
+
+**Example**:
+```scala
+// ❌ BAD: Lazy class
+class ItemIDWrapper(val id: String) {
+  def getId: String = id
+}
+
+// Usage
+val itemId = new ItemIDWrapper("123")
+process(itemId.getId)
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Use type alias or opaque type
+type ItemID = String
+
+// Or for more type safety
+case class ItemID(value: String) extends AnyVal
+
+// Usage
+val itemId = ItemID("123")
+process(itemId.value)
+```
+
+---
+
+### 9. Temporary Field (Fields Used Only in Some Cases)
+
+**Symptoms**:
+- Class has fields that are `null` or `None` most of the time
+- Fields only used in specific scenarios
+
+**Example**:
+```scala
+// ❌ BAD: Temporary field
+class Decision(
+  items: List[Item],
+  var debugData: Option[DebugData] = None  // Only used in debug mode!
+) {
+  def addDebugData(data: DebugData): Unit = {
+    debugData = Some(data)
+  }
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Separate concerns
+case class Decision(items: List[Item])
+case class DecisionWithDebug(decision: Decision, debugData: DebugData)
+
+// Or use Either/sealed trait
+sealed trait DecisionResult
+case class ProductionDecision(items: List[Item]) extends DecisionResult
+case class DebugDecision(items: List[Item], debugData: DebugData) extends DecisionResult
+```
+
+---
+
+### 10. Middle Man (Class Just Delegates to Another Class)
+
+**Symptoms**:
+- Class with 80%+ methods just calling another class
+- No added value
+
+**Example**:
+```scala
+// ❌ BAD: Middle man
+class ItemService(itemRepository: ItemRepository) {
+  def getItem(id: String): Item = itemRepository.get(id)
+  def saveItem(item: Item): Unit = itemRepository.save(item)
+  def deleteItem(id: String): Unit = itemRepository.delete(id)
+  // 10 more methods, all just delegating
+}
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Remove middle man, use repository directly
+// In main:
+val itemRepository = new ItemRepository()
+// Use itemRepository directly, no wrapper needed
+```
+
+---
+
+### 11. Type Casts (Lying to the Compiler)
+
+**Symptoms**:
+- Use of `asInstanceOf` or unsafe casts
+- Comments explaining "we know this is actually X"
+- Runtime `ClassCastException` errors
+
+**Example**:
+```scala
+// ❌ BAD: Type cast hides design issues
+def processAnimal(animal: Animal): String = {
+  val dog = animal.asInstanceOf[Dog]  // "I know better than the compiler"
+  dog.bark()
+}
+
+// Later: Someone passes a Cat, code crashes at runtime!
+```
+
+**Refactoring**:
+```scala
+// ✅ GOOD: Use sealed types with exhaustive matching
+sealed trait Animal
+case class Dog(name: String) extends Animal {
+  def bark(): String = s"$name barks!"
+}
+case class Cat(name: String) extends Animal {
+  def meow(): String = s"$name meows!"
+}
+
+def processAnimal(animal: Animal): String = animal match {
+  case dog: Dog => dog.bark()
+  case cat: Cat => cat.meow()
+  // Compiler ensures all cases are handled!
+}
+
+// ✅ GOOD: Add methods to parent trait when possible
+sealed trait Animal {
+  def makeSound(): String
+}
+case class Dog(name: String) extends Animal {
+  def makeSound(): String = s"$name barks!"
+}
+case class Cat(name: String) extends Animal {
+  def makeSound(): String = s"$name meows!"
+}
+
+def processAnimal(animal: Animal): String = animal.makeSound()
+```
+
+**When Casts Are Acceptable**:
+- Interfacing with external libraries that require casts
+- Performance-critical code where sealed types add overhead (rare)
+- Always document why a cast is necessary
+
+**Questions to Ask**:
+1. Why isn't the type precise enough to begin with?
+2. Can I add methods to the parent interface instead?
+3. Can I use sealed types with exhaustive matching?
+4. Can I start with a more specific type from the beginning?
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal code smells (God Object, Feature Envy, Data Clumps, etc.) and SOLID/DRY/KISS/YAGNI principles
+
+**Scala-Specific Anti-Patterns:**
+For Scala-specific anti-patterns (var vs val, null vs Option, return statements, exception handling, type casts), see:
+- [Scala Code Style Guide](scala-code-style.mdc)
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Comprehensive guide on avoiding casts and other compiler lies
+
+---
+
+## Detection Checklist
+
+Use this checklist during code reviews:
+
+### Structural Smells
+- [ ] Files > 1000 LOC → God Object
+- [ ] Classes with 5+ responsibilities → Split by concern
+- [ ] Methods > 50 LOC → Extract submethods
+- [ ] Cyclomatic complexity > 15 → Simplify logic
+
+### Coupling Smells
+- [ ] Class uses 10+ methods from another class → Feature Envy
+- [ ] Function has 5+ parameters → Extract parameter object
+- [ ] Function has 3+ implicit params (non-cross-cutting) → Fix implicits
+- [ ] Same 3+ params passed to multiple functions → Data Clump
+
+### Duplication Smells
+- [ ] Same logic in 3+ places → DRY violation
+- [ ] Switch statement repeated → Replace with polymorphism
+- [ ] Similar classes with minor differences → Extract abstraction
+
+### Scala-Specific Smells
+See [Scala Code Style Guide](scala-code-style.mdc) and [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) for patterns like:
+- var vs val, null vs Option, return statements, exception handling
+- Type casts (`asInstanceOf`) → Use sealed types instead
+- Primitive obsession → Use typed wrappers
+- Hidden side-effects → Separate pure functions
+
+---
+
+## Tools for Detection
+
+### Automated Analysis
+```bash
+# Cyclomatic complexity
+scalastyle -c scalastyle-config.xml src/main/scala
+
+# Code coverage
+sbt clean coverage test coverageReport
+
+# LOC per file
+find . -name "*.scala" -exec wc -l {} \; | sort -rn
+
+# Dead code detection (via code analysis)
+# See your investigation workspace for graph-based analysis
+```
+
+### Manual Review
+- Code review checklist
+- Pair programming sessions
+- Architecture review meetings
+
+---
+
+## References
+
+- **[Refactoring: Improving the Design of Existing Code](https://refactoring.com/)** - Martin Fowler
+- **[Clean Code](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882)** - Robert C. Martin
+- **[Scala Code Style](../scala-code-style.mdc)** - Scala coding standards

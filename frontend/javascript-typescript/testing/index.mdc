@@ -1,0 +1,48 @@
+---
+description: "Frontend testing patterns index - Vitest best practices and Vue component testing. Use when: (1) Frontend testing, (2) Vitest patterns, (3) Vue component testing, (4) Testing best practices. Points to testing pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Frontend Testing Patterns Index
+
+**Purpose**: Router for frontend testing patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **vitest**, vue testing, component testing, frontend testing | `vitest-best-practices.mdc` |
+| **vue component testing**, test utils, vue test utils | `vue-component-testing.mdc` |
+
+---
+
+## Testing Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Vitest Best Practices](vitest-best-practices.mdc) | Vitest testing patterns and best practices | vitest, vue testing, component testing |
+| [Vue Component Testing](vue-component-testing.mdc) | @vue/test-utils patterns | vue component testing, test utils |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Vitest patterns | `vitest-best-practices.mdc` |
+| Vue component testing | `vue-component-testing.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for language patterns
+- **Frameworks**: See `../frameworks/index.mdc` for framework patterns
+- **Generic**: See `.cursor/rules/shared/generic/testing/core-principles.mdc` for universal testing principles

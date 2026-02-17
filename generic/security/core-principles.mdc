@@ -1,0 +1,245 @@
+---
+description: "Universal security principles - input validation, least privilege, defense in depth, secure defaults. Use when: (1) Implementing security features, (2) Handling user input, (3) Reviewing security, (4) Designing secure systems, (5) Preventing vulnerabilities. Covers input validation, least privilege, defense in depth, and secure defaults."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+tags: ["security", "universal", "validation", "authentication"]
+---
+
+# Universal Security Principles
+
+**APPLY WHEN:** Writing code that handles user input, authentication, authorization, or sensitive data.
+
+---
+
+## Core Principles
+
+### 1. Input Validation
+
+**DO**:
+- Validate ALL input at system boundaries (API endpoints, file uploads)
+- Validate type, format, length, range
+- Reject invalid input immediately
+- Use allowlists (whitelist) over blocklists when possible
+
+**STOP**:
+- Trusting user input
+- Validating only in the UI
+- Assuming "internal" APIs are safe
+
+**Example**:
+```python
+# ✅ Good: Validate at boundary
+def create_user(email: str, age: int):
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        raise ValueError("Invalid email format")
+    if age < 0 or age > 150:
+        raise ValueError("Invalid age")
+    # Process...
+
+# ❌ Bad: Trust input
+def create_user(email: str, age: int):
+    # No validation - SQL injection, XSS waiting to happen
+    db.execute(f"INSERT INTO users VALUES ('{email}', {age})")
+```
+
+---
+
+### 2. Least Privilege
+
+**DO**:
+- Grant minimum permissions needed
+- Run services with minimal privileges
+- Use separate accounts for different services
+- Limit database user permissions
+
+**STOP**:
+- Running everything as root/admin
+- Sharing credentials across services
+- Overly permissive IAM roles
+
+---
+
+### 3. Defense in Depth
+
+**DO**:
+- Layer security (network, application, data)
+- Don't rely on single security control
+- Assume any layer can be compromised
+- Validate at multiple layers when appropriate
+
+**STOP**:
+- Relying solely on one security measure
+- Assuming "it's behind a firewall" is enough
+
+---
+
+### 4. Secure Defaults
+
+**DO**:
+- Default to secure (require explicit opt-in for insecure)
+- Use secure configurations by default
+- Fail securely (deny access on error)
+
+**STOP**:
+- Insecure defaults "for convenience"
+- Permissive defaults that require opt-out
+
+**Example**:
+```scala
+// ✅ Good: Secure by default
+case class DatabaseConfig(
+  ssl: Boolean = true,  // Secure default
+  allowUnencrypted: Boolean = false  // Must explicitly enable
+)
+
+// ❌ Bad: Insecure default
+case class DatabaseConfig(
+  ssl: Boolean = false  // Insecure by default!
+)
+```
+
+---
+
+### 5. Never Trust, Always Verify
+
+**DO**:
+- Verify authentication on every request
+- Verify authorization for every operation
+- Verify data integrity
+- Use cryptographic signatures when appropriate
+
+**STOP**:
+- Caching authentication results indefinitely
+- Assuming "internal" requests are authenticated
+- Trusting data without verification
+
+---
+
+## Common Vulnerabilities
+
+### Injection Attacks (SQL, NoSQL, Command, LDAP)
+
+**Prevention**:
+- Use parameterized queries/prepared statements
+- Use ORM query builders (don't concatenate strings)
+- Validate and sanitize input
+- Use least privilege database users
+
+**Example**:
+```java
+// ✅ Good: Parameterized query
+PreparedStatement stmt = conn.prepareStatement(
+    "SELECT * FROM users WHERE email = ?"
+);
+stmt.setString(1, email);
+
+// ❌ Bad: String concatenation
+String query = "SELECT * FROM users WHERE email = '" + email + "'";
+```
+
+---
+
+### Cross-Site Scripting (XSS)
+
+**Prevention**:
+- Escape output (HTML, JavaScript, CSS)
+- Use Content Security Policy (CSP)
+- Validate and sanitize user input
+- Use framework's built-in escaping
+
+**Example**:
+```python
+# ✅ Good: Escape output
+from markupsafe import escape
+user_input = request.form['comment']
+return f"<div>{escape(user_input)}</div>"
+
+# ❌ Bad: Direct output
+return f"<div>{user_input}</div>"  # XSS vulnerability
+```
+
+---
+
+### Authentication & Session Management
+
+**DO**:
+- Use strong, unique passwords (enforce policy)
+- Hash passwords with bcrypt/argon2 (never plaintext)
+- Use secure session tokens (random, long, expire)
+- Implement proper logout (invalidate sessions)
+- Use HTTPS for all authentication
+
+**STOP**:
+- Storing passwords in plaintext
+- Weak session tokens
+- Session fixation vulnerabilities
+- HTTP for authentication
+
+---
+
+### Sensitive Data Exposure
+
+**DO**:
+- Encrypt sensitive data at rest
+- Use HTTPS for data in transit
+- Don't log sensitive data (passwords, tokens, PII)
+- Mask sensitive data in logs/UI
+- Use secure key management
+
+**STOP**:
+- Logging passwords, tokens, credit cards
+- Storing secrets in code/config files
+- Transmitting sensitive data over HTTP
+
+---
+
+### Insecure Direct Object References
+
+**DO**:
+- Verify user has permission to access resource
+- Use indirect references (IDs that can't be guessed)
+- Check authorization, not just authentication
+
+**STOP**:
+- Assuming authenticated = authorized
+- Using predictable IDs (1, 2, 3...)
+
+---
+
+## Security Checklist
+
+Before deploying code that handles:
+- **User Input**: [ ] Validated at boundary, [ ] Sanitized, [ ] Type checked
+- **Authentication**: [ ] Strong passwords, [ ] Secure sessions, [ ] HTTPS only
+- **Authorization**: [ ] Verified on every request, [ ] Least privilege
+- **Sensitive Data**: [ ] Encrypted at rest, [ ] HTTPS in transit, [ ] Not logged
+- **Database**: [ ] Parameterized queries, [ ] Least privilege user, [ ] Input validated
+- **API**: [ ] Rate limiting, [ ] Authentication required, [ ] Input validated
+- **Secrets**: [ ] Not in code/config, [ ] Secure storage, [ ] Rotated regularly
+
+---
+
+## Language-Specific Notes
+
+- **Scala**: Use type-safe SQL libraries (Slick, Doobie), avoid string interpolation in queries
+- **Python**: Use `sqlalchemy` ORM, `markupsafe` for escaping, `bcrypt` for passwords
+- **Go**: Use `database/sql` with placeholders, `html/template` auto-escapes
+- **Java**: Use `PreparedStatement`, Spring Security for auth, OWASP ESAPI
+- **JavaScript/TypeScript**: Use parameterized queries, sanitize DOM manipulation, CSP headers
+- **Swift**: Use `Keychain` for secrets, validate URL schemes, use `URLSession` securely
+- **Kotlin**: Use parameterized queries, Android Keystore, validate intents
+
+**Reference**: Language-specific security rules in `backend/` and `mobile/` directories.
+
+---
+
+## Security Resources
+
+- **OWASP Top 10**: Common web vulnerabilities
+- **CWE Top 25**: Common software weaknesses
+- **Security Headers**: CSP, HSTS, X-Frame-Options
+- **Dependency Scanning**: Check for vulnerable dependencies regularly
+
+**Remember**: Security is everyone's responsibility, not just security team's.

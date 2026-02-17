@@ -1,0 +1,314 @@
+---
+description: "Python performance optimization - profiling, memory management, vectorization, avoiding bottlenecks. Use when: (1) Profiling Python code, (2) Optimizing performance, (3) Managing memory, (4) Using vectorization (NumPy), (5) Identifying bottlenecks. Covers profiling tools, memory optimization, vectorization, and performance tuning."
+globs: []
+alwaysApply: false
+---
+
+# Python Performance Optimization
+
+Profile first, optimize second. Use appropriate profiling tools and optimize based on actual measurements.
+
+---
+
+## Profile Before Optimizing
+
+**Always measure performance before optimizing:**
+
+```python
+# ✅ Good: Profile to find bottlenecks
+import cProfile
+import pstats
+
+def profile_function():
+    profiler = cProfile.Profile()
+    profiler.enable()
+    
+    # Your code here
+    process_large_dataset()
+    
+    profiler.disable()
+    stats = pstats.Stats(profiler)
+    stats.sort_stats('cumulative')
+    stats.print_stats(20)  # Top 20 functions
+
+# ✅ Good: Use line_profiler for line-by-line analysis
+# Add @profile decorator and run: kernprof -l -v script.py
+@profile
+def slow_function():
+    for i in range(1000):
+        result = expensive_computation(i)  # See time per line
+        process(result)
+
+# ❌ Bad: Optimizing without profiling
+def slow_function():
+    # Optimized this function, but it's not the bottleneck!
+    result = [x * 2 for x in range(100)]
+    return result
+```
+
+---
+
+## Use Vectorization for Numeric Operations
+
+**Use NumPy/Pandas vectorization instead of Python loops:**
+
+```python
+# ✅ Good: Vectorized operations
+import numpy as np
+
+def calculate_distances_vectorized(points1, points2):
+    """Vectorized distance calculation."""
+    diff = points1 - points2  # NumPy vectorized
+    distances = np.sqrt(np.sum(diff ** 2, axis=1))
+    return distances
+
+# ✅ Good: Pandas vectorized operations
+import pandas as pd
+
+def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Vectorized DataFrame operations."""
+    df['total'] = df['price'] * df['quantity']  # Vectorized
+    df['discounted'] = df['total'] * 0.9  # Vectorized
+    return df
+
+# ❌ Bad: Python loops for numeric operations
+def calculate_distances_loop(points1, points2):
+    """Slow loop-based calculation."""
+    distances = []
+    for p1, p2 in zip(points1, points2):
+        dist = math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+        distances.append(dist)  # Slow!
+    return distances
+```
+
+---
+
+## Use Generators for Memory Efficiency
+
+**Use generators for large datasets:**
+
+```python
+# ✅ Good: Generator for memory efficiency
+def read_large_file(filename: str):
+    """Yield lines one at a time."""
+    with open(filename) as f:
+        for line in f:
+            yield process_line(line)
+
+# Process without loading entire file
+for processed_line in read_large_file("huge.txt"):
+    handle(processed_line)
+
+# ✅ Good: Generator expression
+large_sum = sum(x**2 for x in range(1000000))  # Memory efficient
+
+# ❌ Bad: Loading everything into memory
+def read_large_file(filename: str):
+    """Loads entire file into memory."""
+    with open(filename) as f:
+        lines = f.readlines()  # All in memory!
+    return [process_line(line) for line in lines]
+```
+
+---
+
+## Use __slots__ for Many Instances
+
+**Use `__slots__` when creating many instances:**
+
+```python
+# ✅ Good: __slots__ for memory efficiency
+class Point:
+    __slots__ = ('x', 'y', 'z')
+    
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
+
+# Creates many instances - saves memory
+points = [Point(i, i+1, i+2) for i in range(1000000)]
+
+# ❌ Bad: Regular class with __dict__
+class Point:
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z  # Each instance has __dict__ overhead
+```
+
+---
+
+## Cache Expensive Computations
+
+**Use `functools.lru_cache` for expensive pure functions:**
+
+```python
+# ✅ Good: Cache expensive computation
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def expensive_computation(n: int) -> int:
+    """Expensive pure function - cache results."""
+    # Complex calculation
+    result = sum(i**2 for i in range(n))
+    return result
+
+# First call computes, subsequent calls use cache
+result1 = expensive_computation(1000)  # Computes
+result2 = expensive_computation(1000)  # Uses cache
+
+# ✅ Good: Cache with custom key function
+@lru_cache(maxsize=256)
+def process_user(user_id: int, include_history: bool = False) -> dict:
+    """Cache based on user_id and include_history."""
+    # Expensive database query
+    return fetch_user_data(user_id, include_history)
+
+# ❌ Bad: No caching - recomputes every time
+def expensive_computation(n: int) -> int:
+    """Recomputes every time."""
+    result = sum(i**2 for i in range(n))
+    return result
+```
+
+---
+
+## Avoid Unnecessary Object Creation
+
+**Reuse objects and avoid temporary allocations:**
+
+```python
+# ✅ Good: Reuse objects
+class DataProcessor:
+    def __init__(self):
+        self.buffer = bytearray(1024)  # Reusable buffer
+    
+    def process(self, data: bytes):
+        # Reuse buffer instead of creating new one
+        self.buffer[:len(data)] = data
+        return self.buffer[:len(data)]
+
+# ❌ Bad: Creating temporary objects in loop
+def process_data(items: list[bytes]):
+    results = []
+    for item in items:
+        buffer = bytearray(1024)  # New buffer every iteration!
+        buffer[:len(item)] = item
+        results.append(buffer)
+    return results
+```
+
+---
+
+## Use Appropriate Data Structures
+
+**Choose the right data structure for the operation:**
+
+```python
+# ✅ Good: Use set for membership testing
+def find_duplicates(items: list[str]) -> list[str]:
+    seen = set()  # O(1) lookup
+    duplicates = []
+    for item in items:
+        if item in seen:  # Fast!
+            duplicates.append(item)
+        seen.add(item)
+    return duplicates
+
+# ✅ Good: Use deque for queue operations
+from collections import deque
+
+queue = deque()
+queue.append(item)  # O(1)
+item = queue.popleft()  # O(1)
+
+# ❌ Bad: Using list for membership testing
+def find_duplicates(items: list[str]) -> list[str]:
+    seen = []  # O(n) lookup
+    duplicates = []
+    for item in items:
+        if item in seen:  # Slow!
+            duplicates.append(item)
+        seen.append(item)
+    return duplicates
+```
+
+---
+
+## Use Memory-Mapped Files for Large Files
+
+**Use `mmap` for large files:**
+
+```python
+# ✅ Good: Memory-mapped file
+import mmap
+
+def process_large_file(filename: str):
+    """Process large file without loading into memory."""
+    with open(filename, 'r+b') as f:
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            # Access file as if it's in memory, but OS manages it
+            for line in iter(mm.readline, b''):
+                process_line(line)
+
+# ❌ Bad: Loading entire file
+def process_large_file(filename: str):
+    """Loads entire file into memory."""
+    with open(filename) as f:
+        content = f.read()  # All in memory!
+    for line in content.split('\n'):
+        process_line(line)
+```
+
+---
+
+## Use Autorelease Pools for Loops
+
+**Use `@autoreleasepool` in loops creating many objects:**
+
+```python
+# ✅ Good: Autorelease pool in loop (if using PyObjC)
+# For Python, use context managers for resource cleanup
+def process_many_items(items: list[dict]):
+    results = []
+    for item in items:
+        # Process creates temporary objects
+        processed = expensive_processing(item)
+        results.append(processed)
+        # Garbage collector can clean up temporary objects
+    return results
+
+# ✅ Good: Explicit cleanup in loops
+def process_with_cleanup(items: list[dict]):
+    results = []
+    temp_objects = []
+    for item in items:
+        temp = create_temp_object(item)
+        temp_objects.append(temp)
+        if len(temp_objects) > 1000:
+            # Periodic cleanup
+            temp_objects.clear()
+            import gc
+            gc.collect()
+    return results
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Performance Principles](../../../../generic/performance/core-principles.mdc) - Universal performance principles (measure first, optimize bottlenecks, avoid premature optimization)
+
+**Python-Specific:**
+- [Async Patterns](../language/async-patterns.mdc) - Async performance
+- [Pythonic Patterns](../language/pythonic-patterns.mdc) - General Python patterns
+
+---
+
+## References
+
+- [Python Profiling Tools](https://docs.python.org/3/library/profile.html)
+- [Scalene Profiler](https://github.com/plasma-umass/scalene)
+- [Memray Memory Profiler](https://bloomberg.github.io/memray/)

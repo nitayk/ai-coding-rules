@@ -1,0 +1,158 @@
+---
+description: "Functional composition and higher-order function patterns for reusable logic in Scala. Use when: (1) Composing functions, (2) Writing higher-order functions, (3) Creating reusable abstractions, (4) Building functional pipelines, (5) Reducing code duplication. Covers function composition, HOF patterns, and functional abstractions."
+globs: []
+alwaysApply: false
+---
+
+# Functional Composition and Higher-Order Functions
+
+- **Use higher-order functions for reusable logic**:  
+  ```scala
+  // ✅ Good: Higher-order function for retry logic
+  def withRetry[A](maxAttempts: Int)(operation: () => Try[A]): Try[A] = {
+    def attempt(attemptsLeft: Int): Try[A] = {
+      operation() match {
+        case Success(value) => Success(value)
+        case Failure(_) if attemptsLeft > 0 => attempt(attemptsLeft - 1)
+        case failure => failure
+      }
+    }
+    attempt(maxAttempts)
+  }
+  
+  // Usage
+  val result = withRetry(3)(() => Try(fetchFromAPI()))
+  ```
+
+- **Compose functions using `andThen` and `compose`**:  
+  ```scala
+  val parseUser: String => Option[User] = ???
+  val validateUser: User => Either[Error, User] = ???
+  val saveUser: User => Try[UserId] = ???
+  
+  // ✅ Good: Function composition
+  val pipeline: String => Option[Try[UserId]] = parseUser
+    .andThen(_.map(user => validateUser(user).fold(_ => None, Some(_))))
+    .andThen(_.flatten.map(saveUser))
+  ```
+
+- **Use `pipe` method for data transformation pipelines**:  
+  ```scala
+  // ✅ Good: Readable pipeline with pipe
+  val result = rawData
+    .pipe(cleanData)
+    .pipe(transform)
+    .pipe(validate)
+    .pipe(save)
+  
+  def cleanData(data: RawData): CleanData = ???
+  def transform(data: CleanData): TransformedData = ???
+  ```
+
+- **Create combinators for domain-specific operations**:  
+  ```scala
+  // ✅ Good: Combinators for configuration building
+  type ConfigTransform = SparkConfig => SparkConfig
+  
+  def withMemory(memory: String): ConfigTransform = 
+    _.copy(memory = memory)
+    
+  def withCores(cores: Int): ConfigTransform = 
+    _.copy(cores = cores)
+    
+  def withTimeout(timeout: Duration): ConfigTransform = 
+    _.copy(timeout = Some(timeout))
+  
+  // Compose configurations
+  val prodConfig = SparkConfig.default
+    .pipe(withMemory("16g"))
+    .pipe(withCores(8))
+    .pipe(withTimeout(30.minutes))
+  ```
+
+- **Use function lifting for Option/Either operations** (context-aware):  
+  ```scala
+  def add(a: Int, b: Int): Int = a + b
+  
+  // ✅ Standard library approach (no external dependencies)
+  def addOptions(a: Option[Int], b: Option[Int]): Option[Int] = {
+    for {
+      x <- a
+      y <- b
+    } yield add(x, y)
+  }
+  
+  // If already using Cats, leverage applicative style
+  // import cats.implicits._
+  // def addOptionsAp(a: Option[Int], b: Option[Int]): Option[Int] = 
+  //   (a, b).mapN(add)
+  
+  // If using ZIO, use ZIO combinators
+  def addZIO(a: UIO[Int], b: UIO[Int]): UIO[Int] = 
+    a.zipWith(b)(add)
+  ```
+
+- **Create type-safe builders using function composition**:  
+  ```scala
+  case class DatabaseConfig(host: String, port: Int, timeout: Duration)
+  
+  object DatabaseConfig {
+    type Builder = DatabaseConfig => DatabaseConfig
+    
+    def host(h: String): Builder = _.copy(host = h)
+    def port(p: Int): Builder = _.copy(port = p)  
+    def timeout(t: Duration): Builder = _.copy(timeout = t)
+    
+    def build(builders: Builder*): DatabaseConfig = {
+      val base = DatabaseConfig("localhost", 5432, 30.seconds)
+      builders.foldLeft(base)((config, builder) => builder(config))
+    }
+  }
+  
+  // Usage
+  val config = DatabaseConfig.build(
+    DatabaseConfig.host("prod.db.com"),
+    DatabaseConfig.port(3306),
+    DatabaseConfig.timeout(60.seconds)
+  )
+  ```
+
+- **Use partial application for configuration**:  
+  ```scala
+  def processData(config: ProcessConfig)(data: DataFrame): DataFrame = ???
+  
+  // ✅ Good: Partially applied function
+  val processWithProdConfig = processData(ProductionConfig) _
+  
+  // Now you can reuse this configured function
+  val result1 = processWithProdConfig(dataset1)
+  val result2 = processWithProdConfig(dataset2)
+  ```
+
+- **Create functional error handling combinators**:  
+  ```scala
+  implicit class EitherOps[E, A](either: Either[E, A]) {
+    def orElse(alternative: => Either[E, A]): Either[E, A] = 
+      either.fold(_ => alternative, Right(_))
+      
+    def mapError[E2](f: E => E2): Either[E2, A] = 
+      either.left.map(f)
+  }
+  
+  // Usage in validation chains
+  val result = validateEmail(email)
+    .orElse(useDefaultEmail)
+    .mapError(ValidationError.apply)
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (pure functions, functional composition, DRY)
+
+**Scala-Specific:**
+- [Lazy Evaluation and Productivity](lazy-evaluation-and-productivity.mdc) - Composing lazy operations for infinite sequences
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - Performance considerations for function composition
+- [Referential Transparency](referential-transparency.mdc) - Pure functions and composition

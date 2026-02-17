@@ -1,0 +1,429 @@
+---
+description: "Modern Vue.js patterns for component development, reactivity, and lifecycle management. Use when: (1) Writing Vue components, (2) Managing reactivity, (3) Component lifecycle, (4) Vue 3 Composition API, (5) Vue best practices. Covers component patterns, reactivity system, lifecycle hooks, and Vue.js conventions."
+globs: ["**/*.vue", "**/*.ts", "**/*.js"]
+alwaysApply: false
+---
+
+# Vue.js 3 Best Practices
+
+---
+
+## Triggers
+**APPLY WHEN**: Writing Vue components, composables, or directives
+
+---
+
+## Core Principles
+
+### 1. Prefer Composition API for New Code
+```vue
+<script setup lang="ts">
+// ✅ GOOD: Composition API with <script setup>
+import { ref, computed, onMounted } from 'vue';
+
+interface Props {
+  initialCount?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  initialCount: 0,
+});
+
+const count = ref(props.initialCount);
+const doubled = computed(() => count.value * 2);
+
+function increment() {
+  count.value++;
+}
+
+onMounted(() => {
+  console.log('Component mounted');
+});
+</script>
+```
+
+### 2. Use Typed Props and Emits
+```typescript
+// ✅ GOOD: Fully typed component interface
+<script setup lang="ts">
+interface Props {
+  modelValue: string;
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+interface Emits {
+  (e: 'update:modelValue', value: string): void;
+  (e: 'submit', payload: { value: string; timestamp: number }): void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: 'Enter text...',
+  disabled: false,
+});
+
+const emit = defineEmits<Emits>();
+
+function handleSubmit() {
+  emit('submit', {
+    value: props.modelValue,
+    timestamp: Date.now(),
+  });
+}
+</script>
+
+// ❌ BAD: Untyped props
+<script setup>
+const props = defineProps(['modelValue', 'placeholder']);
+</script>
+```
+
+### 3. Extract Reusable Logic into Composables
+```typescript
+// ✅ GOOD: Composable for reusable logic
+// composables/useClickOutside.ts
+import { onMounted, onBeforeUnmount, Ref } from 'vue';
+
+export function useClickOutside(
+  elementRef: Ref<HTMLElement | null>,
+  callback: () => void
+) {
+  function handleClick(event: MouseEvent) {
+    if (elementRef.value && !elementRef.value.contains(event.target as Node)) {
+      callback();
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClick);
+  });
+
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClick);
+  });
+
+  return {
+    // Expose any needed state/methods
+  };
+}
+
+// Usage in component
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useClickOutside } from '@/composables/useClickOutside';
+
+const dropdownRef = ref<HTMLElement | null>(null);
+const isOpen = ref(false);
+
+useClickOutside(dropdownRef, () => {
+  isOpen.value = false;
+});
+</script>
+```
+
+### 4. Avoid `any` - Use Proper Types
+```typescript
+// ❌ BAD: Using 'any' loses type safety
+const handleData = (data: any) => {
+  return data.someProperty;  // No type checking
+};
+
+// ✅ GOOD: Define proper interfaces
+interface ApiResponse {
+  id: string;
+  data: {
+    items: Array<{ name: string; value: number }>;
+  };
+}
+
+const handleData = (response: ApiResponse) => {
+  return response.data.items;  // Fully type-checked
+};
+```
+
+---
+
+## Component Organization
+
+### Template Structure
+```vue
+<template>
+  <!-- 1. Conditional rendering first -->
+  <div v-if="loading">Loading...</div>
+  <div v-else-if="error">Error: {{ error.message }}</div>
+  
+  <!-- 2. Main content -->
+  <div v-else class="component">
+    <!-- 3. Use semantic HTML -->
+    <header class="component__header">
+      <h1>{{ title }}</h1>
+    </header>
+    
+    <main class="component__content">
+      <!-- 4. Extract complex sections to child components -->
+      <UserList :users="filteredUsers" @select="handleUserSelect" />
+    </main>
+    
+    <footer class="component__footer">
+      <button @click="handleSubmit">Submit</button>
+    </footer>
+  </div>
+</template>
+```
+
+### Script Organization
+```typescript
+<script setup lang="ts">
+// 1. Imports
+import { ref, computed, watch, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import ChildComponent from './ChildComponent.vue';
+
+// 2. Type Definitions
+interface User {
+  id: string;
+  name: string;
+}
+
+// 3. Props & Emits
+const props = defineProps<{ users: User[] }>();
+const emit = defineEmits<{ (e: 'select', user: User): void }>();
+
+// 4. Composables
+const store = useStore();
+
+// 5. Reactive State
+const searchQuery = ref('');
+const selectedUser = ref<User | null>(null);
+
+// 6. Computed Properties
+const filteredUsers = computed(() => {
+  return props.users.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// 7. Watchers
+watch(searchQuery, (newValue) => {
+  console.log('Search query changed:', newValue);
+});
+
+// 8. Methods
+function handleUserSelect(user: User) {
+  selectedUser.value = user;
+  emit('select', user);
+}
+
+// 9. Lifecycle Hooks
+onMounted(() => {
+  console.log('Component mounted');
+});
+</script>
+```
+
+---
+
+## Reactivity Best Practices
+
+### Use `ref` vs `reactive` Correctly
+```typescript
+// ✅ GOOD: Use ref for primitives and single values
+const count = ref(0);
+const name = ref('John');
+const user = ref<User | null>(null);
+
+// ✅ GOOD: Use reactive for objects with many properties
+const state = reactive({
+  loading: false,
+  error: null,
+  data: [],
+});
+
+// ❌ BAD: Don't destructure reactive()
+const { loading } = reactive({ loading: false });  // Loses reactivity!
+
+// ✅ GOOD: Use toRefs to destructure
+const state = reactive({ loading: false });
+const { loading } = toRefs(state);  // Maintains reactivity
+```
+
+### Avoid Mutating Props
+```typescript
+// ❌ BAD: Mutating props directly
+const props = defineProps<{ count: number }>();
+function increment() {
+  props.count++;  // ERROR! Props are readonly
+}
+
+// ✅ GOOD: Emit events to parent
+const props = defineProps<{ count: number }>();
+const emit = defineEmits<{ (e: 'update:count', value: number): void }>();
+
+function increment() {
+  emit('update:count', props.count + 1);
+}
+
+// ✅ ALSO GOOD: Use v-model pattern
+const props = defineProps<{ modelValue: number }>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>();
+```
+
+---
+
+## Performance Optimization
+
+### 1. Use `v-once` for Static Content
+```vue
+<template>
+  <!-- ✅ GOOD: Static content rendered once -->
+  <div v-once>
+    <h1>{{ staticTitle }}</h1>
+    <p>This content never changes</p>
+  </div>
+</template>
+```
+
+### 2. Use `v-memo` for Conditional Re-rendering
+```vue
+<template>
+  <!-- ✅ GOOD: Only re-render when dependencies change -->
+  <div v-memo="[user.id, user.lastUpdated]">
+    <UserCard :user="user" />
+  </div>
+</template>
+```
+
+### 3. Lazy Load Components
+```typescript
+// ✅ GOOD: Lazy load heavy components
+const HeavyChart = defineAsyncComponent(() =>
+  import('./components/HeavyChart.vue')
+);
+
+// With loading/error states
+const HeavyChart = defineAsyncComponent({
+  loader: () => import('./components/HeavyChart.vue'),
+  loadingComponent: LoadingSpinner,
+  errorComponent: ErrorDisplay,
+  delay: 200,
+  timeout: 3000,
+});
+```
+
+---
+
+## Common Pitfalls
+
+### ❌ DON'T: Access Lifecycle Too Early
+```typescript
+// ❌ BAD: Accessing DOM in setup (not mounted yet)
+<script setup>
+const myElement = ref<HTMLElement | null>(null);
+console.log(myElement.value);  // null! Not mounted yet
+
+// ✅ GOOD: Wait for onMounted
+onMounted(() => {
+  console.log(myElement.value);  // Now available
+});
+</script>
+```
+
+### ❌ DON'T: Create Reactive State in Computed
+```typescript
+// ❌ BAD: Side effects in computed
+const doubledAndLogged = computed(() => {
+  console.log('Computing...');  // Side effect!
+  return count.value * 2;
+});
+
+// ✅ GOOD: Use watch for side effects
+const doubled = computed(() => count.value * 2);
+
+watch(doubled, (newValue) => {
+  console.log('Doubled value changed:', newValue);
+});
+```
+
+### ❌ DON'T: Forget to Clean Up Listeners
+```typescript
+// ❌ BAD: No cleanup
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+// ✅ GOOD: Clean up in onBeforeUnmount
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
+```
+
+---
+
+## Testing Vue Components
+
+```typescript
+// ✅ GOOD: Test user interactions, not implementation
+import { mount } from '@vue/test-utils';
+import { describe, it, expect } from 'vitest';
+import MyButton from './MyButton.vue';
+
+describe('MyButton', () => {
+  it('emits click event when clicked', async () => {
+    const wrapper = mount(MyButton, {
+      props: { label: 'Click me' },
+    });
+
+    await wrapper.find('button').trigger('click');
+
+    expect(wrapper.emitted()).toHaveProperty('click');
+    expect(wrapper.emitted('click')).toHaveLength(1);
+  });
+
+  it('disables button when disabled prop is true', () => {
+    const wrapper = mount(MyButton, {
+      props: { disabled: true },
+    });
+
+    expect(wrapper.find('button').attributes('disabled')).toBeDefined();
+  });
+});
+```
+
+---
+
+## Vuex Integration
+
+See [@Vuex Patterns](vuex-state-management.mdc) for detailed Vuex patterns.
+
+```typescript
+// ✅ GOOD: Type-safe Vuex access
+import { useStore } from 'vuex';
+import { RootState } from '@/store/types';
+
+const store = useStore<RootState>();
+
+const user = computed(() => store.state.user.currentUser);
+const isAuthenticated = computed(() => store.getters['user/isAuthenticated']);
+
+function login(credentials: Credentials) {
+  store.dispatch('user/login', credentials);
+}
+```
+
+---
+
+## See Also
+
+- [@Vuex State Management](vuex-state-management.mdc)
+- [@Vue Component Testing](../testing/vue-component-testing.mdc)
+- [@TypeScript Type Safety](../language/typescript-type-safety.mdc)
+- [@Modern JavaScript Patterns](../language/modern-javascript-patterns.mdc)
+
+---
+
+**Last Updated**: 2026-01-06
+**Reference**: Vue 3 Official Docs, Vue Composition API RFC

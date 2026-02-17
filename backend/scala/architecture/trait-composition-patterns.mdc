@@ -1,0 +1,99 @@
+---
+description: "Trait composition patterns and mixin strategies in Scala. Use when: (1) Designing with traits, (2) Creating mixin compositions, (3) Building modular components, (4) Sharing behavior across classes, (5) Implementing multiple interfaces. Covers trait stacking, linearization, and mixin best practices."
+globs: []
+alwaysApply: false
+---
+
+- **Use trait composition for enumeratum enums with behavior mixins**:  
+  ```scala
+  sealed trait LogLevel extends EnumEntry with Uppercase
+  object LogLevel extends Enum[LogLevel] with PlayUppercaseJsonEnum[LogLevel] {
+    case object OFF extends LogLevel
+    case object ERROR extends LogLevel
+    val values: immutable.IndexedSeq[LogLevel] = findValues
+  }
+  
+  sealed trait BasePartition extends EnumEntry with Lowercase  
+  object BasePartition extends Enum[BasePartition] with PlayLowercaseJsonEnum[BasePartition] {
+    case object Hourly extends BasePartition
+    case object Daily extends BasePartition
+    val values: immutable.IndexedSeq[BasePartition] = findValues
+  }
+  ```
+
+- **Use trait composition for behavior variants** in transformation patterns:  
+  ```scala
+  trait MandatoryInputMandatoryOutput extends Transformations {
+    def code(df: DataFrame, inputColumnName: String, outputColumnName: String, 
+             arguments: TransformationArgs): DataFrame
+  }
+  
+  trait MandatoryInputNoOutput extends Transformations {
+    def code(df: DataFrame, inputColumnName: String, 
+             arguments: TransformationArgs): DataFrame
+  }
+  
+  trait NoInputMandatoryOutput extends Transformations {
+    def code(df: DataFrame, outputColumnName: String, 
+             arguments: TransformationArgs): DataFrame
+  }
+  ```
+
+- **Always specify the `values` collection** for enumeratum enums:  
+  ```scala
+  object MyEnum extends Enum[MyEnum] with PlayLowercaseJsonEnum[MyEnum] {
+    case object Value1 extends MyEnum
+    case object Value2 extends MyEnum
+    
+    val values: immutable.IndexedSeq[MyEnum] = findValues
+  }
+  ```
+
+- **Use specific enum entry mixins** for naming conventions:  
+  ```scala
+  // For snake_case JSON serialization
+  sealed trait Transformations extends EnumEntry with Snakecase
+  
+  // For lowercase JSON serialization  
+  sealed trait Environment extends EnumEntry with Lowercase
+  
+  // For uppercase JSON serialization
+  sealed trait LogLevel extends EnumEntry with Uppercase
+  ```
+
+- **Combine enum behavior with JSON serialization traits**:  
+  ```scala
+  sealed trait FallbackMode extends EnumEntry with Lowercase
+  object FallbackMode extends Enum[FallbackMode] with PlayLowercaseJsonEnum[FallbackMode] {
+    case object CastToString extends FallbackMode
+    case object RenameCastToString extends FallbackMode
+    case object CastToOldType extends FallbackMode
+    case object Fail extends FallbackMode
+    
+    val values: immutable.IndexedSeq[FallbackMode] = findValues
+  }
+  ```
+
+- **Use abstract classes with mixins** for value-based enums:  
+  ```scala
+  sealed abstract class AnonymousIpDataBitMask(val value: Long) 
+    extends LongEnumEntry with Product with Serializable
+    
+  case object AnonymousIpDataBitMask 
+    extends LongEnum[AnonymousIpDataBitMask] with LongPlayJsonValueEnum[AnonymousIpDataBitMask] {
+    case object IsAnonymous extends AnonymousIpDataBitMask(0x1L)
+    case object IsAnonymousVpn extends AnonymousIpDataBitMask(0x2L)
+  override val values: immutable.IndexedSeq[AnonymousIpDataBitMask] = findValues
+  }
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID - Interface Segregation Principle, composition over inheritance)
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design)
+
+**Scala-Specific:**
+- This file provides Scala-specific trait composition patterns (mixins, enumeratum enums)

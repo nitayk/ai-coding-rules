@@ -1,0 +1,56 @@
+---
+description: "Go language patterns index - error handling, concurrency, context patterns, and small interfaces. Use when: (1) Go language features, (2) Error handling, (3) Concurrency (goroutines, channels), (4) Context patterns. Points to specific language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Go Language Patterns Index
+
+**Purpose**: Router for Go language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **error handling**, errors, error wrapping, custom errors | `error-handling-patterns.mdc` |
+| **idiomatic errors**, guard clauses, explicit checks, error wrapping | `idiomatic-error-handling.mdc` |
+| **concurrency**, goroutines, channels, worker pools, errgroup | `concurrency-patterns.mdc` |
+| **context**, cancellation, deadlines, context propagation | `context-patterns.mdc` |
+| **interfaces**, small interfaces, interface design | `small-interfaces.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Error Handling Patterns](error-handling-patterns.mdc) | Error creation, wrapping, custom errors | error handling, errors, error wrapping |
+| [Idiomatic Error Handling](idiomatic-error-handling.mdc) | Explicit checks, guard clauses, error wrapping | idiomatic errors, guard clauses |
+| [Concurrency Patterns](concurrency-patterns.mdc) | Goroutines, channels, worker pools, errgroup | concurrency, goroutines, channels |
+| [Context Patterns](context-patterns.mdc) | Cancellation, deadlines, context propagation | context, cancellation, deadlines |
+| [Small Interfaces](small-interfaces.mdc) | Design small, focused interfaces | interfaces, interface design |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Error handling | `error-handling-patterns.mdc`, `idiomatic-error-handling.mdc` |
+| Concurrency | `concurrency-patterns.mdc` |
+| Context | `context-patterns.mdc` |
+| Interfaces | `small-interfaces.mdc` |
+
+---
+
+## Related Resources
+
+- **Architecture**: See `../architecture/index.mdc` for architectural patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns
+- **Performance**: See `../performance/index.mdc` for performance patterns

@@ -1,0 +1,59 @@
+---
+description: "Referential transparency principles and practices - write pure functions, use immutable data, encode errors in types. Use when: (1) Writing pure functions, (2) Ensuring referential transparency, (3) Handling errors functionally, (4) Using immutable data, (5) Writing testable code. Covers referential transparency, pure functions, and functional error handling."
+globs: []
+alwaysApply: false
+---
+
+# Referential Transparency
+
+- **Write referentially transparent functions**  
+  Replaceable expressions: any function or expression should be safely replaceable with its value, without altering program behavior.[1][3][4][6]  
+  - Must always return the same output for the same input.  
+  - Must not depend on or mutate external state.[4][6]
+
+- **Avoid side effects**  
+  - No I/O, shared state mutation, or external interaction within core logic.[4][6]  
+  - Encapsulate side effects at the application boundaries using effect types (`IO`, `Task`, `ZIO`, etc.).
+
+- **Use immutable data**  
+  - Favor `val` over `var`.  
+  - Use immutable collections to preserve transparency.[4]
+
+- **Understand the benefits**  
+  - Simpler reasoning and debugging.  
+  - Safer refactoring, easier testing.[1][3][4]  
+  - Enables parallelism, memoization, and compiler optimization.[6]
+
+- **Avoid anti-patterns**  
+  - Functions depending on random values, time, logging, or global state.[3][4][6]  
+  - Avoid `Future` for referential transparency — it introduces hidden side effects and timing.[7]
+
+---
+
+### ✅ Good Example
+```scala
+def add(a: Int, b: Int): Int = a + b // referentially transparent
+```
+
+### ❌ Bad Example
+```scala
+def logAndAdd(a: Int, b: Int): Int = {
+  println(s"Adding $a and $b") // side effect
+  a + b
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal pure functions and referential transparency principles (this file provides Scala-specific implementation)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Comprehensive guide on separating pure functions from side-effects, avoiding null, exceptions, and casts
+- [Iterator Safety](iterator-safety.mdc) - Iterators break referential transparency (stateful and mutable)
+- [Lazy Evaluation and Productivity](lazy-evaluation-and-productivity.mdc) - Lazy evaluation and working with infinite sequences
+- [Error Handling Patterns](error-handling-patterns.mdc) - Using Option, Either, Try for explicit error handling
+- [Validation and Safe Operations](validation-and-safe-operations.mdc) - Safe validation patterns
+- [Pure Testing Patterns](../testing/pure-testing-patterns.mdc) - Making tests pure and side-effect-free

@@ -1,0 +1,104 @@
+---
+description: "Comprehensive index of Go development rules and best practices. Use when: (1) Discovering Go patterns, (2) Concurrency/error handling, (3) Testing/performance/architecture, (4) Project structure/interface design, (5) Idiomatic Go practices. Points to specific rules in language/, architecture/, performance/, testing/, meta/ subdirectories. Auto-loads when Go files are opened (via globs)."
+globs: ["**/*.go"]
+alwaysApply: false
+---
+
+# Go Development Rules
+
+**Go-Specific Rules**: Implementation details for Go code.
+
+**How It Works**:
+- Generic rules (SOLID, DRY, KISS, correctness first) load **automatically** when you open Go files
+- This index loads **automatically** when you open Go files (via globs)
+- Use this to discover Go-specific patterns (error wrapping, goroutines, interfaces)
+
+**Key Principle**: This directory contains ONLY Go-specific patterns. Universal principles are in `generic/` and load automatically - they're referenced from here.
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **error handling**, errors, error wrapping, custom errors | `language/error-handling-patterns.mdc` |
+| **idiomatic errors**, guard clauses, explicit checks, error wrapping | `language/idiomatic-error-handling.mdc` |
+| **concurrency**, goroutines, channels, worker pools, errgroup | `language/concurrency-patterns.mdc` |
+| **context**, cancellation, deadlines, context propagation | `language/context-patterns.mdc` |
+| **interfaces**, small interfaces, interface design | `language/small-interfaces.mdc` |
+| **architecture**, project structure, directory organization | `architecture/project-structure.mdc` |
+| **performance**, profiling, optimization, escape analysis, PGO | `performance/profiling-and-optimization.mdc` |
+| **testing**, table-driven tests, go testing | `testing/table-driven-tests.mdc` |
+| **style**, naming, formatting, go style | `meta/naming-and-formatting.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Meta & Style (`meta/`)
+- **[Naming and Formatting](meta/naming-and-formatting.mdc)** - Naming conventions, code organization, and idiomatic Go style
+
+### 🔧 Language Features (`language/`)
+- **[Error Handling Patterns](language/error-handling-patterns.mdc)** - Error creation, wrapping, custom errors, panic/recover
+- **[Idiomatic Error Handling](language/idiomatic-error-handling.mdc)** - Explicit checks, guard clauses, error wrapping patterns
+- **[Small Interfaces](language/small-interfaces.mdc)** - Design small, focused interfaces - prefer single-method interfaces
+- **[Context Patterns](language/context-patterns.mdc)** - Cancellation, deadlines, context propagation
+- **[Concurrency Patterns](language/concurrency-patterns.mdc)** - Goroutines, channels, worker pools, errgroup
+
+### 🏗️ Architecture (`architecture/`)
+- **[Project Structure](architecture/project-structure.mdc)** - Standard project layout, directory organization, dependency patterns
+
+### 🚀 Performance (`performance/`)
+- **[Profiling and Optimization](performance/profiling-and-optimization.mdc)** - Profiling, escape analysis, memory allocation, PGO
+
+### 🧪 Testing (`testing/`)
+- **[Table-Driven Tests](testing/table-driven-tests.mdc)** - Idiomatic Go testing pattern for multiple test cases
+
+## Planned Categories
+
+### 🔧 Language Features (Coming Soon)
+- Defer, panic, and recover
+- Package design patterns
+
+### 🧪 Testing (Coming Soon)
+- Mocking patterns
+- Benchmarking
+- Integration testing
+
+### 📊 Data Handling (Coming Soon)
+- JSON serialization
+- Database patterns
+- Validation
+
+### 🧪 Testing (Coming Soon)
+- Mocking patterns
+- Benchmarking
+- Integration testing
+
+### 📊 Data Handling (Coming Soon)
+- JSON serialization
+- Database patterns
+- Validation
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, correctness first, pure functions)
+- [Generic Architecture Principles](../../generic/architecture/core-principles.mdc) - Universal architecture principles
+- [Generic Testing Principles](../../generic/testing/core-principles.mdc) - Universal testing principles
+- [Generic Error Handling Principles](../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+- [Generic Performance Principles](../../generic/performance/core-principles.mdc) - Universal performance principles
+
+**Go-Specific:**
+- This directory contains Go-specific implementations and examples
+
+---
+
+## References
+
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- [Standard Go Project Layout](https://github.com/golang-standards/project-layout)
+- [Go Security Best Practices](https://go.dev/doc/security/best-practices)

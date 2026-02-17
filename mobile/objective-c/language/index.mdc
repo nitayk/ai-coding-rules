@@ -1,0 +1,46 @@
+---
+description: "Objective-C language patterns index - style guide and ARC memory management. Use when: (1) Objective-C language features, (2) ARC memory management, (3) Objective-C style, (4) Memory management. Points to language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Objective-C Language Patterns Index
+
+**Purpose**: Router for Objective-C language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **objective-c style**, objc style, objc formatting, style guide | `style-guide.mdc` |
+| **arc**, memory management, retain cycles, weak strong, arc memory | `arc-memory-management.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Style Guide](style-guide.mdc) | Objective-C naming conventions, formatting, code organization | objective-c style, objc style, objc formatting |
+| [ARC Memory Management](arc-memory-management.mdc) | Strong/weak references, retain cycles, property attributes | arc, memory management, retain cycles |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Style guide | `style-guide.mdc` |
+| ARC memory management | `arc-memory-management.mdc` |
+
+---
+
+## Related Resources
+
+- **iOS**: See `../ios/index.mdc` for iOS patterns

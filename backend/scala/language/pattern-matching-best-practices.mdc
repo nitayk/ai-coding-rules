@@ -1,0 +1,257 @@
+---
+description: "Pattern matching best practices for readable and maintainable Scala code. Use when: (1) Writing pattern matches, (2) Matching on sealed traits, (3) Destructuring case classes, (4) Handling multiple cases, (5) Writing exhaustive matches. Covers pattern matching patterns, exhaustiveness, and readability best practices."
+globs: []
+alwaysApply: false
+---
+
+# Pattern Matching Best Practices
+
+## Core Principles
+- Prefer binding objects over destructuring when you need multiple fields
+- Use descriptive variable names that indicate the object type
+- Avoid excessive use of underscores in destructuring
+- Make pattern matching readable and maintainable
+
+## Preferred Patterns
+
+### ✅ Bind Objects and Access Fields
+When you need to access multiple fields from a case class, bind the entire object and access fields directly:
+
+```scala
+// ✅ Good: Bind the object and access fields
+def processTableIdentifier(tableId: TableIdentifier): String = tableId match {
+  case local: LocalTableIdentifier => s"${local.db.value}.${local.table.value}"
+  case prod: ProdTableIdentifier => s"${prod.catalog.value}.${prod.db.value}.${prod.table.value}"
+}
+
+// ✅ Good: Clear and maintainable
+def getTableInfo(tableId: TableIdentifier): (Database, TableName, Boolean) = tableId match {
+  case local: LocalTableIdentifier => (local.db, local.table, false)
+  case prod: ProdTableIdentifier => (prod.db, prod.table, prod.isRestricted)
+}
+```
+
+### ❌ Avoid Excessive Destructuring with Underscores
+Don't destructure case classes when you need multiple fields or when it makes the code less readable:
+
+```scala
+// ❌ Bad: Destructuring with underscores is hard to read and maintain
+def processTableIdentifier(tableId: TableIdentifier): String = tableId match {
+  case LocalTableIdentifier(db, table) => s"${db.value}.${table.value}"
+  case ProdTableIdentifier(catalog, db, table, _) => s"${catalog.value}.${db.value}.${table.value}"
+}
+
+// ❌ Bad: When you need many fields, destructuring becomes unwieldy
+def getTableInfo(tableId: TableIdentifier): (Database, TableName, Boolean) = tableId match {
+  case LocalTableIdentifier(db, table) => (db, table, false)
+  case ProdTableIdentifier(_, db, table, isRestricted) => (db, table, isRestricted)
+}
+```
+
+## When to Use Each Pattern
+
+### Use Object Binding When:
+- You need to access multiple fields from the case class
+- The case class has many parameters (3+ fields)
+- You want to make the code more maintainable and less brittle to field additions
+- The field names are self-documenting
+
+### Use Destructuring When:
+- You only need 1-2 specific fields
+- The case class is simple (2-3 fields max)
+- You're extracting values for immediate use without further object access
+- Pattern matching on nested structures where partial extraction makes sense
+
+```scala
+// ✅ Good: Simple destructuring for immediate value extraction
+def getFirstName(person: Person): String = person match {
+  case Person(firstName, _) => firstName
+}
+
+// ✅ Good: Destructuring simple case classes
+def processCoordinate(coord: Coordinate): String = coord match {
+  case Coordinate(x, y) => s"($x, $y)"
+}
+```
+
+## Complex Pattern Matching
+
+### Nested Patterns
+For complex nested patterns, prefer binding at appropriate levels:
+
+```scala
+// ✅ Good: Bind complex objects, destructure simple ones
+def processRequest(request: ApiRequest): Response = request match {
+  case ApiRequest(SimpleAuth(token), payload: ComplexPayload) =>
+    // Bind complex payload, destructure simple auth
+    processWithAuth(token, payload.data, payload.metadata, payload.timestamp)
+  case ApiRequest(auth: ComplexAuth, SimplePayload(data)) =>
+    // Bind complex auth, destructure simple payload
+    processWithComplexAuth(auth.credentials, auth.permissions, auth.expiry, data)
+}
+```
+
+### Guard Conditions
+Combine object binding with guard conditions for readable logic:
+
+```scala
+// ✅ Good: Object binding with guards
+def validateTable(tableId: TableIdentifier): Boolean = tableId match {
+  case prod: ProdTableIdentifier if prod.isRestricted => 
+    hasRestrictedAccess(prod.catalog, prod.db)
+  case prod: ProdTableIdentifier => 
+    hasStandardAccess(prod.catalog, prod.db)
+  case local: LocalTableIdentifier => 
+    hasLocalAccess(local.db)
+}
+```
+
+## Benefits of Object Binding
+
+1. **Maintainability**: Adding new fields to case classes doesn't break existing pattern matches
+2. **Readability**: Clear what object you're working with and what fields you're accessing
+3. **IDE Support**: Better autocomplete and refactoring support
+4. **Type Safety**: Compiler catches field access errors more clearly
+5. **Self-Documenting**: Variable names indicate the type being matched
+
+## Migration Strategy
+
+When refactoring existing code:
+
+1. **Identify** pattern matches with multiple underscores or complex destructuring
+2. **Replace** destructuring with object binding
+3. **Update** field access to use the bound object
+4. **Test** to ensure behavior is preserved
+5. **Review** for improved readability
+
+```scala
+// Before refactoring
+case ProdTableIdentifier(catalog, db, table, isRestricted) => 
+  if (isRestricted) processRestricted(catalog, db, table)
+  else processStandard(catalog, db, table)
+
+// After refactoring  
+case prod: ProdTableIdentifier =>
+  if (prod.isRestricted) processRestricted(prod.catalog, prod.db, prod.table)
+  else processStandard(prod.catalog, prod.db, prod.table)
+```
+
+This approach makes the code more maintainable and easier to understand while preserving all functionality.
+
+## Compiler Protection Against Missing Cases
+
+### ✅ Never Use Catch-All Patterns for ADTs
+```scala
+// ✅ Good: Exhaustive pattern matching for compile-time safety
+def processReadConfig(readConfig: ReadConfigurations): String = readConfig match {
+  case kafka: KafkaReadConfigurations => s"Kafka: ${kafka.topicName}"
+  case iceberg: IcebergReadConfigurations => s"Iceberg: ${iceberg.tableIdentifier}"
+  case multiKafka: MultiClusterKafkaConfigurations => s"Multi-cluster: ${multiKafka.clusterConfigs.size} clusters"
+  case bigQuery: BigQueryReadConfigurations => s"BigQuery: ${bigQuery.tableIdentifier}"
+}
+
+// ❌ BAD: Catch-all patterns hide missing cases from compiler
+def processReadConfig(readConfig: ReadConfigurations): String = readConfig match {
+  case kafka: KafkaReadConfigurations => s"Kafka: ${kafka.topicName}"
+  case _ => "Other"  // DANGEROUS - hides MultiClusterKafkaConfigurations!
+}
+```
+
+### When Catch-All Is Acceptable
+```scala
+// ✅ Acceptable: JSON parsing with error handling
+implicit val reads: Reads[ReadConfigurations] = (json: JsValue) => {
+  (json \ "format").validate[String].flatMap {
+    case "iceberg" => json.validate[IcebergReadConfigurations]
+    case "kafka" => json.validate[KafkaReadConfigurations]
+    case "multiclusterkafka" => json.validate[MultiClusterKafkaConfigurations]
+    case _ => JsError("Invalid format configurations") // Input validation - OK
+  }
+}
+
+// ✅ Acceptable: String parsing with exceptions
+def parseFormat(formatStr: String): StreamFormat = formatStr match {
+  case "kafka" => StreamFormat.Kafka
+  case "iceberg" => StreamFormat.Iceberg
+  case "multiclusterkafka" => StreamFormat.MultiClusterKafka
+  case _ => throw new IllegalArgumentException(s"Unknown format: $formatStr") // User input - OK
+}
+```
+
+### Protection Strategy
+- **Use specific types** in pattern matching instead of catch-all `case _ =>`
+- **Let the compiler warn** you when new cases are added to ADTs
+- **Handle each case explicitly** even if it returns `None` or throws an exception
+- **Document why** when you must use catch-all patterns
+- **Only use catch-all** for input validation, JSON parsing, or truly open-ended scenarios
+
+## Non-Sealed ADT Safety Patterns
+
+For ADTs that can't be sealed (like `ReadConfigurations` with subclasses across modules), use these safety patterns:
+
+### ✅ Exhaustive Helper Utilities
+```scala
+// Use PatternMatchingUtils for complex matches
+import com.example.configurations.PatternMatchingUtils._
+
+val result = exhaustiveReadMatch(readConfig)(
+  handleKafka = kafka => s"Kafka: ${kafka.topicName}",
+  handleMultiCluster = multi => s"MultiCluster: ${multi.clusterConfigs.size} clusters",
+  handleIceberg = iceberg => s"Iceberg: ${iceberg.tableIdentifier}",
+  handleBigQuery = bq => s"BigQuery: ${bq.tableIdentifier}"
+)
+```
+
+### ✅ Fail-Fast with Context
+```scala
+// Good: Detailed error message for unmapped cases
+def processConfig(config: ReadConfigurations): String = config match {
+  case kafka: KafkaReadConfigurations => processKafka(kafka)
+  case multiKafka: MultiClusterKafkaConfigurations => processMultiCluster(multiKafka)
+  case iceberg: IcebergReadConfigurations => processIceberg(iceberg)
+  case bigQuery: BigQueryReadConfigurations => processBigQuery(bigQuery)
+  case unknown =>
+    throw new IllegalStateException(
+      s"Unhandled ReadConfigurations type: ${unknown.getClass.getSimpleName}. " +
+      s"Format: ${unknown.format}. Please add handling for this type."
+    )
+}
+```
+
+### ✅ Development-Time Verification
+```scala
+// Add to test suites to catch missing cases early
+"should handle all ReadConfigurations types" in {
+  PatternMatchingUtils.validateReadConfigurationsExhaustiveness() // Throws if incomplete
+}
+```
+
+### ✅ When Adding New ADT Cases
+When adding a new `ReadConfigurations` subclass:
+
+1. **Update PatternMatchingUtils**: Add the new type to `exhaustiveReadMatch`
+2. **Search for pattern matches**: `grep -r "ReadConfigurations.*match" --include="*.scala"`
+3. **Update all matches**: Add explicit handling for the new type
+4. **Run tests**: The validation utility will catch any missed cases
+5. **Update JSON parsing**: Add the new format to the `reads` method
+
+### ❌ Never Do This for Non-Sealed ADTs
+```scala
+// ❌ BAD: Silent catch-all hides new types
+def processConfig(config: ReadConfigurations): String = config match {
+  case kafka: KafkaReadConfigurations => processKafka(kafka)
+  case _ => "unknown" // DANGEROUS - new types will silently fall through
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, exhaustive pattern matching)
+
+**Scala-Specific:**
+- [Prefer Case Classes Over Tuples](prefer-case-classes-over-tuples.mdc) - Use case classes instead of tuples for pattern matching
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles
+- [Scala Complex Enum Best Practices](../data/scala-complex-enum-best-practices.mdc) - Sealed types and ADTs

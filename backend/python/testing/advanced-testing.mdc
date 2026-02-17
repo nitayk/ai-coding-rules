@@ -1,0 +1,121 @@
+---
+description: "Advanced Python testing - Mocking strategies and property-based testing. Use when: (1) Writing advanced tests, (2) Using mocks/fixtures, (3) Property-based testing, (4) Testing complex scenarios, (5) Improving test coverage. Covers mocking patterns, property-based testing, and advanced pytest features."
+globs: []
+alwaysApply: false
+---
+
+# Advanced Python Testing
+
+Best practices for mocking, patching, and property-based testing.
+
+## Mocking Strategies
+
+Use `unittest.mock` to isolate the code under test.
+
+### Where to Patch
+**CRITICAL**: Patch where the object is *looked up*, not where it is defined.
+
+```python
+# module_a.py
+class Helper:
+    def work(self):
+        return "done"
+
+# module_b.py
+from module_a import Helper
+
+def do_task():
+    h = Helper()
+    return h.work()
+
+# test_module_b.py
+from unittest.mock import patch
+import module_b
+
+# ✅ GOOD: Patch Helper in module_b (where it's imported)
+@patch('module_b.Helper')
+def test_do_task(MockHelper):
+    MockHelper.return_value.work.return_value = "mocked"
+    assert module_b.do_task() == "mocked"
+
+# ❌ BAD: Patching module_a.Helper (won't affect module_b's import)
+@patch('module_a.Helper')
+def test_fail(MockHelper):
+    pass
+```
+
+### Using `autospec`
+Always use `autospec=True` to ensure your mocks have the same API as the real objects (prevents calling non-existent methods).
+
+```python
+@patch('module_b.Helper', autospec=True)
+def test_with_autospec(MockHelper):
+    # MockHelper will raise error if you try to call method_that_doesnt_exist()
+    pass
+```
+
+## Property-Based Testing
+
+Use `hypothesis` to test properties rather than specific examples. This helps find edge cases.
+
+### Basic Example
+
+```python
+from hypothesis import given, strategies as st
+
+def add(x, y):
+    return x + y
+
+# ✅ GOOD: Test that order doesn't matter (commutative property)
+@given(st.integers(), st.integers())
+def test_add_commutative(x, y):
+    assert add(x, y) == add(y, x)
+```
+
+### Testing Logic Invariants
+
+```python
+def encode(s):
+    # ... implementation ...
+    return s
+
+def decode(s):
+    # ... implementation ...
+    return s
+
+# ✅ GOOD: Round-trip property
+@given(st.text())
+def test_decode_inverts_encode(s):
+    assert decode(encode(s)) == s
+```
+
+## Pytest Fixtures
+
+Use fixtures for setup/teardown and dependency injection in tests.
+
+```python
+import pytest
+
+@pytest.fixture
+def db_connection():
+    # Setup
+    conn = connect_db()
+    yield conn
+    # Teardown
+    conn.close()
+
+def test_query(db_connection):
+    # db_connection is automatically passed
+    assert db_connection.query("SELECT 1")
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (test behavior not implementation, AAA pattern, isolation, pure testing patterns)
+
+**Python-Specific:**
+- This file provides Python-specific advanced testing patterns (mocking, property-based testing with hypothesis, fixtures)
+- [Python Testing Best Practices](../python-testing-best-practices.mdc) - General Python testing practices

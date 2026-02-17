@@ -1,0 +1,467 @@
+---
+description: "AWS CLI for managing S3, EC2, CloudWatch Logs, SSM, and other AWS services from the command line. Use when: (1) Managing AWS services, (2) S3 operations, (3) EC2 management, (4) CloudWatch Logs, (5) SSM/other AWS services. Covers AWS CLI commands, S3/EC2 operations, CloudWatch, and AWS service management."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["aws", "cli", "basics", "s3", "ec2", "cloudwatch", "logs"]
+---
+
+# AWS CLI Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to investigate AWS resources, query CloudWatch logs, manage S3 buckets, inspect EC2 instances, or debug AWS services
+**SKIP WHEN:** Using AWS Console or AWS SDK programmatically
+
+## Core Directive
+**Use AWS CLI for AWS operations** - Query logs, inspect resources, manage services, and debug AWS infrastructure from the command line.
+
+## Installation
+
+```bash
+# macOS
+brew install awscli
+
+# Linux (pip)
+pip install awscli
+
+# Verify installation
+aws --version
+
+# Configure credentials
+aws configure
+```
+
+## Configuration
+
+**Configure AWS credentials:**
+```bash
+aws configure
+# AWS Access Key ID: YOUR_ACCESS_KEY
+# AWS Secret Access Key: YOUR_SECRET_KEY
+# Default region name: us-east-1
+# Default output format: json
+```
+
+**Use profiles:**
+```bash
+aws configure --profile prod
+aws s3 ls --profile prod
+export AWS_PROFILE=prod
+```
+
+**Check configuration:**
+```bash
+aws configure list
+aws sts get-caller-identity
+```
+
+## Common Operations
+
+### S3 (Simple Storage Service)
+
+**List buckets:**
+```bash
+aws s3 ls
+aws s3 ls --profile prod
+```
+
+**List objects in bucket:**
+```bash
+aws s3 ls s3://bucket-name/
+aws s3 ls s3://bucket-name/path/to/prefix/ --recursive
+aws s3 ls s3://bucket-name/ --human-readable --summarize
+```
+
+**Copy files:**
+```bash
+aws s3 cp local-file.txt s3://bucket-name/
+aws s3 cp s3://bucket-name/file.txt ./
+aws s3 cp s3://bucket-name/path/ ./local-dir/ --recursive
+```
+
+**Sync directories:**
+```bash
+aws s3 sync ./local-dir s3://bucket-name/path/
+aws s3 sync s3://bucket-name/path/ ./local-dir
+aws s3 sync s3://source-bucket/ s3://dest-bucket/
+```
+
+**Get object metadata:**
+```bash
+aws s3api head-object --bucket bucket-name --key path/to/file.txt
+```
+
+**List bucket with details:**
+```bash
+aws s3api list-objects-v2 --bucket bucket-name --prefix path/to/
+aws s3api list-objects-v2 --bucket bucket-name --query 'Contents[].{Key:Key,Size:Size,Modified:LastModified}'
+```
+
+### EC2 (Elastic Compute Cloud)
+
+**List instances:**
+```bash
+aws ec2 describe-instances
+aws ec2 describe-instances --query 'Reservations[].Instances[].{ID:InstanceId,Type:InstanceType,State:State.Name,IP:PrivateIpAddress}'
+```
+
+**Filter instances:**
+```bash
+aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"
+aws ec2 describe-instances --filters "Name=tag:Name,Values=my-server"
+```
+
+**Get instance details:**
+```bash
+aws ec2 describe-instances --instance-ids i-1234567890abcdef0
+```
+
+**Start/stop instances:**
+```bash
+aws ec2 start-instances --instance-ids i-1234567890abcdef0
+aws ec2 stop-instances --instance-ids i-1234567890abcdef0
+```
+
+**Get instance console output:**
+```bash
+aws ec2 get-console-output --instance-id i-1234567890abcdef0
+```
+
+### CloudWatch Logs
+
+**List log groups:**
+```bash
+aws logs describe-log-groups
+aws logs describe-log-groups --log-group-name-prefix /aws/lambda/
+```
+
+**List log streams:**
+```bash
+aws logs describe-log-streams --log-group-name /aws/lambda/my-function
+aws logs describe-log-streams --log-group-name /aws/lambda/my-function --order-by LastEventTime --descending
+```
+
+**Get log events:**
+```bash
+aws logs get-log-events --log-group-name /aws/lambda/my-function --log-stream-name 2024/01/20/[$LATEST]abc123
+```
+
+**Tail logs:**
+```bash
+aws logs tail /aws/lambda/my-function --follow
+aws logs tail /aws/lambda/my-function --since 1h --follow
+aws logs tail /aws/lambda/my-function --filter-pattern "ERROR"
+```
+
+**Filter log events:**
+```bash
+aws logs filter-log-events --log-group-name /aws/lambda/my-function --filter-pattern "ERROR"
+aws logs filter-log-events --log-group-name /aws/lambda/my-function --start-time 1640000000000 --filter-pattern "ERROR"
+```
+
+### CloudWatch Metrics
+
+**List metrics:**
+```bash
+aws cloudwatch list-metrics --namespace AWS/EC2
+aws cloudwatch list-metrics --namespace AWS/Lambda --metric-name Duration
+```
+
+**Get metric statistics:**
+```bash
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/EC2 \
+  --metric-name CPUUtilization \
+  --dimensions Name=InstanceId,Value=i-1234567890abcdef0 \
+  --start-time 2025-01-20T00:00:00Z \
+  --end-time 2025-01-20T01:00:00Z \
+  --period 300 \
+  --statistics Average,Maximum
+```
+
+### SSM (Systems Manager)
+
+**List parameters:**
+```bash
+aws ssm describe-parameters
+aws ssm describe-parameters --parameter-filters "Key=Name,Option=BeginsWith,Values=/my-app/"
+```
+
+**Get parameter:**
+```bash
+aws ssm get-parameter --name /my-app/config/database-url
+aws ssm get-parameter --name /my-app/secrets/api-key --with-decryption
+```
+
+**Send command to instance:**
+```bash
+aws ssm send-command \
+  --instance-ids i-1234567890abcdef0 \
+  --document-name "AWS-RunShellScript" \
+  --parameters "commands=['df -h','free -m']"
+```
+
+**Get command output:**
+```bash
+aws ssm get-command-invocation \
+  --command-id abc123-def456 \
+  --instance-id i-1234567890abcdef0
+```
+
+### Lambda
+
+**List functions:**
+```bash
+aws lambda list-functions
+aws lambda list-functions --query 'Functions[].{Name:FunctionName,Runtime:Runtime,Modified:LastModified}'
+```
+
+**Get function details:**
+```bash
+aws lambda get-function --function-name my-function
+aws lambda get-function-configuration --function-name my-function
+```
+
+**Invoke function:**
+```bash
+aws lambda invoke --function-name my-function output.json
+aws lambda invoke --function-name my-function --payload '{"key":"value"}' output.json
+```
+
+**Get function logs:**
+```bash
+aws logs tail /aws/lambda/my-function --follow
+```
+
+### IAM (Identity and Access Management)
+
+**List users:**
+```bash
+aws iam list-users
+```
+
+**Get user details:**
+```bash
+aws iam get-user --user-name username
+```
+
+**List roles:**
+```bash
+aws iam list-roles
+```
+
+**Get caller identity:**
+```bash
+aws sts get-caller-identity
+```
+
+## Common Patterns
+
+### Investigate Lambda Errors
+
+```bash
+# Step 1: Check recent invocations
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name Errors \
+  --dimensions Name=FunctionName,Value=my-function \
+  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 300 \
+  --statistics Sum
+
+# Step 2: Tail logs for errors
+aws logs tail /aws/lambda/my-function --filter-pattern "ERROR" --follow
+```
+
+### Find S3 Files by Date
+
+```bash
+# List recent files
+aws s3api list-objects-v2 \
+  --bucket bucket-name \
+  --prefix path/to/prefix/ \
+  --query 'reverse(sort_by(Contents, &LastModified))[:10].{Key:Key,Modified:LastModified,Size:Size}'
+```
+
+### Monitor EC2 Instance Health
+
+```bash
+# Get instance status
+aws ec2 describe-instance-status --instance-ids i-1234567890abcdef0
+
+# Get CPU metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/EC2 \
+  --metric-name CPUUtilization \
+  --dimensions Name=InstanceId,Value=i-1234567890abcdef0 \
+  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 300 \
+  --statistics Average
+```
+
+### Search Logs Across Streams
+
+```bash
+# Filter events across all streams in log group
+aws logs filter-log-events \
+  --log-group-name /aws/lambda/my-function \
+  --filter-pattern "ERROR" \
+  --start-time $(($(date +%s) - 3600))000
+```
+
+## Advanced Options
+
+### Output Formatting
+
+```bash
+# JSON (default)
+aws ec2 describe-instances --output json
+
+# Table
+aws ec2 describe-instances --output table
+
+# Text
+aws ec2 describe-instances --output text
+
+# YAML
+aws ec2 describe-instances --output yaml
+```
+
+### JQ Filtering
+
+```bash
+# Extract specific fields
+aws ec2 describe-instances | jq '.Reservations[].Instances[].{ID:.InstanceId,State:.State.Name}'
+
+# Filter running instances
+aws ec2 describe-instances | jq '.Reservations[].Instances[] | select(.State.Name=="running")'
+
+# Count instances
+aws ec2 describe-instances | jq '[.Reservations[].Instances[]] | length'
+```
+
+### Pagination
+
+```bash
+# Automatic pagination
+aws s3api list-objects-v2 --bucket large-bucket --page-size 100
+
+# Manual pagination
+aws s3api list-objects-v2 --bucket large-bucket --max-items 1000 --starting-token TOKEN
+```
+
+### Query Syntax
+
+```bash
+# Use --query for filtering
+aws ec2 describe-instances --query 'Reservations[].Instances[?State.Name==`running`].InstanceId'
+
+# Select specific fields
+aws ec2 describe-instances --query 'Reservations[].Instances[].[InstanceId,InstanceType,State.Name]'
+```
+
+## Examples
+
+### ✅ Positive Pattern: Investigate Service Issues
+
+```bash
+# Step 1: Check service status
+aws ecs describe-services --cluster my-cluster --services my-service
+
+# Step 2: Check logs
+aws logs tail /aws/ecs/my-service --follow --filter-pattern "ERROR"
+
+# Step 3: Check metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/ECS \
+  --metric-name CPUUtilization \
+  --dimensions Name=ServiceName,Value=my-service \
+  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 300 \
+  --statistics Average
+```
+
+### ✅ Positive Pattern: Debug Lambda Function
+
+```bash
+# Get recent errors
+aws logs filter-log-events \
+  --log-group-name /aws/lambda/my-function \
+  --filter-pattern "ERROR" \
+  --start-time $(($(date +%s) - 3600))000 \
+  | jq -r '.events[].message'
+```
+
+### ❌ Negative Pattern: Not Specifying Region
+
+```bash
+# ❌ BAD: May use wrong region
+aws ec2 describe-instances
+
+# ✅ GOOD: Specify region explicitly
+aws ec2 describe-instances --region us-east-1
+# Or set default region
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+### ❌ Negative Pattern: Not Using Query/Filters
+
+```bash
+# ❌ BAD: Download all data then filter
+aws s3api list-objects-v2 --bucket huge-bucket | jq '...'
+
+# ✅ GOOD: Filter on server side
+aws s3api list-objects-v2 --bucket huge-bucket --prefix path/to/data/ --query 'Contents[?Size>`100000`]'
+```
+
+## Troubleshooting
+
+### Authentication Errors
+
+```bash
+# Check credentials
+aws sts get-caller-identity
+
+# Verify profile
+aws configure list
+
+# Check environment variables
+echo $AWS_ACCESS_KEY_ID
+echo $AWS_SECRET_ACCESS_KEY
+echo $AWS_DEFAULT_REGION
+```
+
+### Region Issues
+
+```bash
+# Check default region
+aws configure get region
+
+# Set region
+aws configure set region us-east-1
+
+# Use region flag
+aws ec2 describe-instances --region us-west-2
+```
+
+### Permission Denied
+
+```bash
+# Check IAM permissions
+aws iam get-user
+aws sts get-caller-identity
+
+# Simulate policy
+aws iam simulate-principal-policy \
+  --policy-source-arn arn:aws:iam::123456789012:user/username \
+  --action-names s3:GetObject \
+  --resource-arns arn:aws:s3:::bucket-name/*
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/skills/argocd-deployment/SKILL.md` for ArgoCD MCP usage

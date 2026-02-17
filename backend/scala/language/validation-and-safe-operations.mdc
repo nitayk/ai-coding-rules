@@ -1,0 +1,344 @@
+---
+description: "Validation patterns and safe operation practices for data validation, input processing, and business rules. Use when: (1) Validating input data, (2) Processing user input, (3) Enforcing business rules, (4) Creating safe APIs, (5) Handling validation errors. Covers validation patterns, safe operations, and error handling in validation."
+globs: []
+alwaysApply: false
+---
+
+# Validation and Safe Operations
+
+This guide focuses on validation patterns and safe operation practices specific to data validation, input processing, and business rule validation.
+
+## Core Validation Patterns
+
+### Component-Level Validation
+Use validation methods that provide safe defaults when validation fails.
+
+```scala
+// ✅ Good: Component validation with safe defaults
+trait ConfigurableComponent {
+  protected def validateArguments(maybeArgs: Option[Arguments]): Arguments = {
+    maybeArgs.foreach(validateRequiredArguments)
+    maybeArgs.getOrElse(Arguments.empty)
+  }
+  
+  private def validateRequiredArguments(args: Arguments): Unit = {
+    require(args.inputColumn.nonEmpty, "Input column name cannot be empty")
+    require(args.outputColumn.nonEmpty, "Output column name cannot be empty")
+  }
+}
+
+// ✅ IDP Example: Transformation validation
+case class CastTransformation(targetType: DataType) extends ConfigurableComponent {
+  def validateCastArguments(args: CastArguments): CastArguments = {
+    require(args.targetType != null, "Target type cannot be null")
+    require(args.nullHandling != null, "Null handling strategy cannot be null")
+    args
+  }
+}
+```
+
+### Validation Strategy Selection
+Choose the appropriate validation strategy based on your error handling needs and user experience requirements.
+
+```scala
+// ✅ Use Either for fail-fast validation (sequential, stops at first error)
+// Good for: API validation, server-side processing
+def validateUserFast(email: String, age: Int): Either[String, User] = {
+  for {
+    validEmail <- validateEmail(email)
+    validAge <- validateAge(age)
+  } yield User(validEmail, validAge)
+}
+
+// ✅ Use Validated for error accumulation (collect all errors)
+// Good for: Form validation, comprehensive error reporting
+import cats.data.ValidatedNec
+import cats.implicits._
+
+def validateUserComplete(email: String, age: Int): ValidatedNec[String, User] = {
+  (validateEmailV(email), validateAgeV(age)).mapN(User.apply)
+}
+
+def validateEmailV(email: String): ValidatedNec[String, String] = 
+  if (email.contains("@")) email.validNec 
+  else "Invalid email format".invalidNec
+
+def validateAgeV(age: Int): ValidatedNec[String, Int] = 
+  if (age >= 0 && age <= 150) age.validNec
+  else "Age must be between 0 and 150".invalidNec
+```
+
+### Business Rule Validation
+Implement complex business rule validation with clear error messaging.
+
+```scala
+// ✅ Good: Business rule validation with context
+case class OrderValidation(order: Order) {
+  def validateBusinessRules(): Either[List[ValidationError], Order] = {
+    val errors = List(
+      validateOrderAmount(),
+      validateCustomerCredit(),
+      validateInventoryAvailability(),
+      validateShippingAddress()
+    ).flatten
+    
+    if (errors.isEmpty) Right(order)
+    else Left(errors)
+  }
+  
+  private def validateOrderAmount(): Option[ValidationError] = {
+    if (order.totalAmount <= 0) 
+      Some(ValidationError("order.amount", "Order amount must be positive"))
+    else None
+  }
+  
+  private def validateCustomerCredit(): Option[ValidationError] = {
+    if (order.customer.creditLimit < order.totalAmount)
+      Some(ValidationError("customer.credit", "Insufficient credit limit"))
+    else None
+  }
+}
+```
+
+## Safe Operation Patterns
+
+### Multiple Option Validation
+Handle multiple optional values safely using pattern matching.
+
+```scala
+// ✅ Good: Pattern matching for multiple Options
+def processRequest(maybeUrl: Option[String], maybeStrategy: Option[Strategy]): ProcessingResult = {
+  (maybeUrl, maybeStrategy) match {
+    case (Some(url), Some(strategy)) => processRequest(url, strategy)
+    case (None, _) => ProcessingResult.error("Missing URL")
+    case (_, None) => ProcessingResult.error("Missing strategy")
+  }
+}
+
+// ❌ Bad: Multiple isDefined checks
+def processRequestBad(maybeUrl: Option[String], maybeStrategy: Option[Strategy]): ProcessingResult = {
+  if (maybeUrl.isDefined && maybeStrategy.isDefined) {
+    processRequest(maybeUrl.get, maybeStrategy.get) // Unsafe get calls
+  } else {
+    ProcessingResult.error("Missing parameters")
+  }
+}
+```
+
+### Validation Chains
+Use for-comprehensions for sequential validation with short-circuiting.
+
+```scala
+// ✅ Good: Validation chain with clear error messages
+def validateDataProcessingConfig(config: Map[String, String]): Either[String, ProcessingConfig] = {
+  for {
+    inputTopic <- config.get("input.topic").toRight("Missing input topic")
+    outputTopic <- config.get("output.topic").toRight("Missing output topic")
+    batchSize <- config.get("batch.size").toRight("Missing batch size")
+    validBatchSize <- Try(batchSize.toInt).toEither.left.map(_ => "Invalid batch size format")
+    _ <- Either.cond(validBatchSize > 0, (), "Batch size must be positive")
+    _ <- Either.cond(validBatchSize <= 10000, (), "Batch size too large")
+  } yield ProcessingConfig(inputTopic, outputTopic, validBatchSize)
+}
+```
+
+## Performance-Conscious Validation
+
+### Hot Path Validation
+For high-frequency validation in serving/online computation, prefer simple, allocation-light validation.
+
+```scala
+// ✅ Good: Fast validation for hot paths
+def fastValidateId(id: String): Boolean = {
+  id.nonEmpty && id.length <= 50 && id.forall(_.isLetterOrDigit)
+}
+
+def fastValidateEmail(email: String): Boolean = {
+  email.nonEmpty && email.contains("@") && email.length <= 320
+}
+
+// ✅ Good: Simple validation with early returns
+def validateRequestFast(req: Request): Option[String] = {
+  if (req.id.isEmpty) return Some("Missing ID")
+  if (req.id.length > 50) return Some("ID too long")
+  if (!req.id.forall(_.isLetterOrDigit)) return Some("Invalid ID format")
+  None // Valid
+}
+
+// ❌ Bad: Complex validation in hot paths
+def validateRequestSlow(req: Request): Either[List[ValidationError], Request] = {
+  // Creates many intermediate objects - avoid in hot paths
+  val errors = List(
+    validateId(req.id),
+    validateTimestamp(req.timestamp),
+    validatePayload(req.payload)
+  ).flatten
+  
+  if (errors.isEmpty) Right(req) else Left(errors)
+}
+```
+
+### Cold Path Validation
+For startup/configuration validation, use comprehensive validation with detailed error reporting.
+
+```scala
+// ✅ Good: Comprehensive validation for cold paths
+def validateApplicationConfig(config: AppConfig): Either[List[ConfigError], ValidatedConfig] = {
+  val validations = List(
+    validateDatabaseConfig(config.database),
+    validateKafkaConfig(config.kafka),
+    validateLoggingConfig(config.logging),
+    validateSecurityConfig(config.security)
+  )
+  
+  val errors = validations.collect { case Left(error) => error }
+  val successes = validations.collect { case Right(config) => config }
+  
+  if (errors.nonEmpty) Left(errors)
+  else Right(ValidatedConfig(successes))
+}
+```
+
+## Context-Aware Effect Management
+
+### ZIO-Based Validation
+When using ZIO, leverage ZIO's validation capabilities.
+
+```scala
+// ✅ Good: ZIO validation with proper error handling
+def validateUserZIO(email: String, age: Int): ZIO[Any, ValidationError, User] = {
+  for {
+    validEmail <- ZIO.fromEither(validateEmail(email))
+      .mapError(msg => ValidationError("email", msg))
+    validAge <- ZIO.fromEither(validateAge(age))
+      .mapError(msg => ValidationError("age", msg))
+  } yield User(validEmail, validAge)
+}
+
+// ✅ Good: ZIO validation with accumulation
+def validateUserZIOParallel(email: String, age: Int): ZIO[Any, List[ValidationError], User] = {
+  val emailValidation = ZIO.fromEither(validateEmail(email))
+    .mapError(msg => List(ValidationError("email", msg)))
+  
+  val ageValidation = ZIO.fromEither(validateAge(age))
+    .mapError(msg => List(ValidationError("age", msg)))
+  
+  emailValidation.zipPar(ageValidation)
+    .map { case (email, age) => User(email, age) }
+}
+```
+
+### Future-Based Validation
+When using Future, keep validation simple and consistent.
+
+```scala
+// ✅ Good: Simple Future-based validation
+def validateUserFuture(email: String, age: Int): Future[Either[ValidationError, User]] = {
+  Future.successful(validateUser(email, age))
+}
+
+// ✅ Good: Async validation with external services
+def validateUserAsync(email: String, age: Int): Future[Either[ValidationError, User]] = {
+  for {
+    emailValid <- emailValidationService.validate(email)
+    ageValid <- ageValidationService.validate(age)
+  } yield {
+    (emailValid, ageValid) match {
+      case (true, true) => Right(User(email, age))
+      case (false, _) => Left(ValidationError("email", "Invalid email"))
+      case (_, false) => Left(ValidationError("age", "Invalid age"))
+    }
+  }
+}
+```
+
+## Domain-Specific Validation
+
+### Business Rule Validation
+Apply validation patterns to domain-specific business rules.
+
+```scala
+// ✅ Good: Domain-specific validation
+case class OrderValidator(businessRules: BusinessRules) {
+  def validateOrder(order: Order): Either[ValidationError, Order] = {
+    for {
+      _ <- validateCustomerExists(order.customerId)
+      _ <- validateProductAvailability(order.products)
+      _ <- validateOrderTotal(order.total, order.products)
+    } yield order
+  }
+  
+  private def validateCustomerExists(customerId: String): Either[ValidationError, Unit] = {
+    if (businessRules.customerExists(customerId)) Right(())
+    else Left(ValidationError("customer", s"Customer '$customerId' not found"))
+  }
+  
+  private def validateProductAvailability(products: List[Product]): Either[ValidationError, Unit] = {
+    products.find(!businessRules.isAvailable(_)) match {
+      case Some(product) => Left(ValidationError("product", s"Product '${product.name}' not available"))
+      case None => Right(())
+    }
+  }
+}
+
+## Common Patterns to Avoid
+
+### Don't Use Exceptions for Validation
+```scala
+// ❌ Bad: Using exceptions for validation
+def validateAge(age: Int): Int = {
+  if (age < 0 || age > 150) throw new IllegalArgumentException("Invalid age")
+  age
+}
+
+// ✅ Good: Use Either for validation
+def validateAge(age: Int): Either[String, Int] = {
+  if (age < 0 || age > 150) Left("Age must be between 0 and 150")
+  else Right(age)
+}
+```
+
+### Don't Mix Validation Strategies
+```scala
+// ❌ Bad: Mixing validation approaches
+def validateUserMixed(email: String, age: Int): Either[String, User] = {
+  val emailValid = validateEmail(email) // Returns Either
+  val ageValid = Try(validateAge(age)) // Uses Try - inconsistent
+  
+  // Complex conversion logic needed
+  ???
+}
+
+// ✅ Good: Consistent validation approach
+def validateUserConsistent(email: String, age: Int): Either[String, User] = {
+  for {
+    validEmail <- validateEmail(email)
+    validAge <- validateAge(age)
+  } yield User(validEmail, validAge)
+}
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (fail fast, explicit errors, input validation)
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Scala-Specific:**
+- [Error Handling Patterns](error-handling-patterns.mdc) - Option, Either, Try patterns
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - When Option loses domain semantics
+- [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.mdc) - Using sealed traits for validation
+
+---
+
+## References
+
+### Scala-Specific References
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - **Core principles: Stop lying to the compiler** - comprehensive guide on null, exceptions, casts, typed wrappers
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - **Use domain-specific types for validation errors** - Don't use Option when absence has meaning
+- [Error Handling Patterns](error-handling-patterns.mdc) - For basic error handling patterns with Option, Either, and Try
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - For performance considerations when validating in hot paths
+- [Implicit Extension Methods](implicit-extension-methods.mdc) - For safe extension methods and parsing utilities
+- [Functional Integration Patterns](../architecture/functional-integration-in-facade.mdc) - For validation in facade architectures
+- [Core Structural Guidelines](../architecture/core-structural-guidelines.mdc) - For validation in structured applications
+- [Scala Testing Best Practices](../testing/scala-testing-best-practices.mdc) - For testing validation logic

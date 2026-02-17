@@ -1,0 +1,274 @@
+---
+description: "Kotlin sealed classes and interfaces - modeling closed hierarchies, exhaustive when expressions. Use when: (1) Creating sealed classes, (2) Modeling closed hierarchies, (3) Exhaustive when expressions, (4) Type-safe enums, (5) Kotlin sealed patterns. Covers sealed classes, sealed interfaces, exhaustive when, and sealed type patterns."
+globs: ["**/*.kt", "**/*.kts"]
+alwaysApply: false
+---
+
+# Sealed Classes and Interfaces Patterns
+
+Use sealed classes and interfaces to model closed hierarchies with compile-time exhaustiveness checking.
+
+---
+
+## Use Sealed Classes for Closed Hierarchies
+
+**Use sealed classes/interfaces when you have a fixed set of variants:**
+
+```kotlin
+// ✅ Good: Sealed class for UI state
+sealed class UiState<out T> {
+    object Loading : UiState<Nothing>()
+    data class Success<T>(val data: T) : UiState<T>()
+    data class Error(val message: String) : UiState<Nothing>()
+}
+
+fun handleState(state: UiState<User>) {
+    when (state) {
+        is UiState.Loading -> showLoading()
+        is UiState.Success -> showUser(state.data)
+        is UiState.Error -> showError(state.message)
+        // Compiler ensures all cases handled
+    }
+}
+
+// ✅ Good: Sealed interface for API responses
+sealed interface ApiResponse<out T> {
+    data class Success<T>(val data: T) : ApiResponse<T>
+    data class Error(val code: Int, val message: String) : ApiResponse<Nothing>
+    object NetworkError : ApiResponse<Nothing>
+}
+
+// ❌ Bad: Open class for closed hierarchy
+open class UiState  // Can be extended anywhere!
+class Loading : UiState()
+class Success(val data: Any) : UiState()
+// Missing exhaustiveness checking
+```
+
+---
+
+## Use Sealed Interfaces for Multiple Implementations
+
+**Use sealed interfaces when types can implement multiple sealed interfaces:**
+
+```kotlin
+// ✅ Good: Sealed interface allows multiple implementations
+sealed interface PaymentMethod
+sealed interface Refundable
+
+data class CreditCard(val number: String) : PaymentMethod, Refundable
+data class PayPal(val email: String) : PaymentMethod, Refundable
+data class BankTransfer(val account: String) : PaymentMethod  // Not refundable
+
+fun processRefund(method: Refundable) {
+    when (method) {
+        is CreditCard -> refundToCard(method.number)
+        is PayPal -> refundToPayPal(method.email)
+        // Compiler ensures all Refundable cases handled
+    }
+}
+
+// ❌ Bad: Sealed class doesn't allow multiple inheritance
+sealed class PaymentMethod
+sealed class Refundable  // Can't implement both!
+```
+
+---
+
+## Use Data Objects for Singleton Variants
+
+**Use `data object` for singleton variants in sealed hierarchies:**
+
+```kotlin
+// ✅ Good: Data object for singleton variant
+sealed class Result<out T> {
+    data object Loading : Result<Nothing>()
+    data class Success<T>(val data: T) : Result<T>()
+    data object Error : Result<Nothing>()  // Singleton error state
+}
+
+// data object provides equals, hashCode, toString
+val result1 = Result.Loading
+val result2 = Result.Loading
+println(result1 == result2)  // true
+println(result1)  // Loading
+
+// ❌ Bad: Regular object (pre-Kotlin 1.9)
+sealed class Result<out T> {
+    object Loading : Result<Nothing>()  // No data semantics
+    data class Success<T>(val data: T) : Result<T>()
+}
+```
+
+---
+
+## Ensure Exhaustive When Expressions
+
+**Always use exhaustive `when` expressions with sealed types:**
+
+```kotlin
+// ✅ Good: Exhaustive when expression
+fun processState(state: UiState<User>): String {
+    return when (state) {
+        is UiState.Loading -> "Loading..."
+        is UiState.Success -> "User: ${state.data.name}"
+        is UiState.Error -> "Error: ${state.message}"
+        // Compiler error if case missing
+    }
+}
+
+// ✅ Good: Exhaustive when as statement
+fun handleState(state: UiState<User>) {
+    when (state) {
+        is UiState.Loading -> showLoading()
+        is UiState.Success -> showUser(state.data)
+        is UiState.Error -> showError(state.message)
+    }
+    // All cases handled
+}
+
+// ❌ Bad: Non-exhaustive when
+fun processState(state: UiState<User>): String {
+    return when (state) {
+        is UiState.Loading -> "Loading..."
+        is UiState.Success -> "User: ${state.data.name}"
+        // Missing Error case - compiler warning/error
+    }
+}
+```
+
+---
+
+## Keep Sealed Hierarchies Small and Cohesive
+
+**Keep variants simple and related - avoid deep nesting:**
+
+```kotlin
+// ✅ Good: Small, cohesive sealed hierarchy
+sealed class NetworkResult<out T> {
+    data class Success<T>(val data: T) : NetworkResult<T>()
+    data class HttpError(val code: Int) : NetworkResult<Nothing>()
+    object NetworkError : NetworkResult<Nothing>()
+    object Timeout : NetworkResult<Nothing>()
+}
+
+// ✅ Good: Variants in same file when cohesive
+sealed class PaymentStatus {
+    object Pending : PaymentStatus()
+    object Processing : PaymentStatus()
+    data class Completed(val transactionId: String) : PaymentStatus()
+    data class Failed(val reason: String) : PaymentStatus()
+}
+
+// ❌ Bad: Too many variants or deep nesting
+sealed class Result {
+    sealed class Success {
+        data class Data(val value: Any) : Success()
+        object Cached : Success()
+    }
+    sealed class Error {
+        data class Network(val code: Int) : Error()
+        data class Server(val message: String) : Error()
+        data class Client(val validation: Map<String, String>) : Error()
+    }
+    // Too complex - hard to maintain
+}
+```
+
+---
+
+## Combine Sealed Types with Flow/StateFlow
+
+**Use sealed types with Flow for reactive state management:**
+
+```kotlin
+// ✅ Good: Sealed type with StateFlow
+class ViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow<UiState<User>>(UiState.Loading)
+    val uiState: StateFlow<UiState<User>> = _uiState.asStateFlow()
+    
+    fun loadUser(id: String) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val user = repository.getUser(id)
+                _uiState.value = UiState.Success(user)
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+}
+
+// UI observes state
+viewModel.uiState.collect { state ->
+    when (state) {
+        is UiState.Loading -> showLoading()
+        is UiState.Success -> showUser(state.data)
+        is UiState.Error -> showError(state.message)
+    }
+}
+
+// ❌ Bad: Mutable state without sealed type
+class ViewModel : ViewModel() {
+    var isLoading = false
+    var user: User? = null
+    var error: String? = null
+    // Multiple nullable states - can have impossible combinations!
+}
+```
+
+---
+
+## Use Sealed Types for API Boundaries
+
+**Model API responses with sealed types:**
+
+```kotlin
+// ✅ Good: Sealed type for API response
+sealed interface ApiResponse<out T> {
+    data class Success<T>(val data: T) : ApiResponse<T>
+    sealed class Error : ApiResponse<Nothing> {
+        data class HttpError(val code: Int, val message: String) : Error()
+        data class NetworkError(val cause: Throwable) : Error()
+        data class ParseError(val cause: Throwable) : Error()
+    }
+}
+
+suspend fun fetchUser(id: String): ApiResponse<User> {
+    return try {
+        val user = api.getUser(id)
+        ApiResponse.Success(user)
+    } catch (e: IOException) {
+        ApiResponse.Error.NetworkError(e)
+    } catch (e: HttpException) {
+        ApiResponse.Error.HttpError(e.code(), e.message())
+    } catch (e: JsonDecodingException) {
+        ApiResponse.Error.ParseError(e)
+    }
+}
+
+// ❌ Bad: Throwing exceptions or nullable return
+suspend fun fetchUser(id: String): User? {  // What does null mean?
+    return try {
+        api.getUser(id)
+    } catch (e: Exception) {
+        null  // Lost error information
+    }
+}
+```
+
+---
+
+## Related Rules
+
+- [Coroutines Patterns](coroutines-patterns.mdc) - Using sealed types with coroutines
+- [Style Guide](style-guide.mdc) - Kotlin style conventions
+
+---
+
+## References
+
+- [Kotlin Sealed Classes](https://kotlinlang.org/docs/sealed-classes.html)
+- [Kotlin Sealed Interfaces](https://kotlinlang.org/docs/sealed-classes.html#sealed-interfaces)
+- [JetBrains Kotlin Blog](https://blog.jetbrains.com/kotlin/)

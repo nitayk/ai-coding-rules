@@ -1,0 +1,324 @@
+---
+description: "Functional integration patterns in facade design for Scala services. Use when: (1) Designing facades, (2) Integrating functional and OO code, (3) Creating service layers, (4) Managing dependencies, (5) Building clean APIs. Covers facade patterns, functional integration, and dependency management."
+globs: []
+alwaysApply: false
+---
+
+# Functional Integration in Facade Design
+
+## Core Principles
+- **Immutable Data Flow**: Use immutable data structures throughout facade boundaries
+- **Async First**: Design facades to be non-blocking and effect-typed
+- **Layer Isolation**: Enforce clean boundaries between subsystems
+- **Error Transparency**: Make error handling explicit and composable
+- **Resource Safety**: Manage resources safely across facade boundaries
+
+## Immutable Data Flow
+
+### Use Case Classes for DTOs
+```scala
+// ✅ Good: Immutable DTOs with clear domain types
+case class BidRequest(
+  userId: UUID,
+  adSpace: AdSpace,
+  context: Map[String, String],
+  timestamp: Instant = Instant.now()
+)
+
+case class BidResponse(
+  bidId: UUID,
+  amount: BigDecimal,
+  currency: String,
+  metadata: Map[String, String] = Map.empty
+)
+
+class BiddingFacade {
+  def process(req: BidRequest): IO[BidResponse] = ???
+}
+```
+
+### Avoid Mutable State Across Boundaries
+```scala
+// ❌ Bad: Mutable state shared across facade
+class BadBiddingFacade {
+  private var currentBids = mutable.Map[UUID, Bid]()
+  
+  def addBid(bid: Bid): Unit = {
+    currentBids.put(bid.id, bid)
+  }
+}
+
+// ✅ Good: Immutable state, pure functions
+class GoodBiddingFacade {
+  def addBid(currentBids: Map[UUID, Bid], bid: Bid): Map[UUID, Bid] = {
+    currentBids + (bid.id -> bid)
+  }
+  
+  def processBids(bids: Map[UUID, Bid]): IO[List[BidResult]] = ???
+}
+```
+
+## Async First Design
+
+### Effect-Typed Facades
+```scala
+// ✅ Good: Async, effect-typed facades
+trait ReportingFacade {
+  def generateDailyReport(date: LocalDate): Future[Report]
+  def getRealTimeMetrics(): ZIO[Clock, MetricError, Metrics]
+  def streamLiveData(): ZStream[Any, StreamError, DataPoint]
+}
+
+// ✅ Good: Consistent error handling across async operations
+trait DataProcessingFacade {
+  def processDataStream(input: Stream[DataRecord]): ZIO[Clock with Logging, ProcessingError, ProcessedData]
+  def validateData(data: DataRecord): ZIO[Any, ValidationError, ValidatedData]
+  def enrichData(data: ValidatedData): ZIO[EnrichmentService, EnrichmentError, EnrichedData]
+}
+```
+
+### Compose Async Operations
+```scala
+// ✅ Good: Composable async operations
+class DataPipelineFacade(
+  validator: DataValidator,
+  enricher: DataEnricher,
+  processor: DataProcessor
+) {
+  def processRecord(record: DataRecord): ZIO[Any, ProcessingError, ProcessedData] = {
+    for {
+      validated <- validator.validate(record)
+      enriched <- enricher.enrich(validated)
+      processed <- processor.process(enriched)
+    } yield processed
+  }
+  
+  def processBatch(records: List[DataRecord]): ZIO[Any, ProcessingError, List[ProcessedData]] = {
+    ZIO.collectAll(records.map(processRecord))
+  }
+}
+```
+
+## Layer Isolation
+
+### Enforce Facade Boundaries
+```scala
+// ❌ Bad: Direct subsystem coupling
+class BadBiddingService {
+  private val clickTracker = new ClickTracker() // Direct dependency
+  private val paymentService = new PaymentService() // Direct dependency
+  
+  def executeBid(): Unit = {
+    // Business logic mixed with infrastructure
+    clickTracker.record()
+    paymentService.processPayment()
+  }
+}
+
+// ✅ Good: Clean facade boundaries
+trait ClickTracking {
+  def recordClick(event: ClickEvent): IO[Unit]
+}
+
+trait PaymentProcessing {
+  def processPayment(payment: Payment): IO[PaymentResult]
+}
+
+class BiddingFacade(
+  clickTracker: ClickTracking,
+  paymentProcessor: PaymentProcessing
+) {
+  def executeBid(bidRequest: BidRequest): IO[BidResult] = {
+    for {
+      bidResult <- processBid(bidRequest)
+      _ <- clickTracker.recordClick(ClickEvent.fromBid(bidResult))
+      paymentResult <- paymentProcessor.processPayment(Payment.fromBid(bidResult))
+    } yield BidResult(bidResult, paymentResult)
+  }
+  
+  private def processBid(request: BidRequest): IO[Bid] = ???
+}
+```
+
+### Module Composition
+```scala
+// ✅ Good: Modular facade composition
+trait UserManagementFacade {
+  def createUser(userData: UserData): IO[User]
+  def updateUser(userId: UUID, updates: UserUpdates): IO[User]
+  def deleteUser(userId: UUID): IO[Unit]
+}
+
+trait ProfileManagementFacade {
+  def createProfile(userId: UUID, profileData: ProfileData): IO[Profile]
+  def updateProfile(profileId: UUID, updates: ProfileUpdates): IO[Profile]
+}
+
+// Composed facade that uses other facades
+class UserServiceFacade(
+  userManagement: UserManagementFacade,
+  profileManagement: ProfileManagementFacade
+) {
+  def createUserWithProfile(userData: UserData, profileData: ProfileData): IO[UserWithProfile] = {
+    for {
+      user <- userManagement.createUser(userData)
+      profile <- profileManagement.createProfile(user.id, profileData)
+    } yield UserWithProfile(user, profile)
+  }
+}
+```
+
+## Error Handling Integration
+
+### Explicit Error Types
+```scala
+// ✅ Good: Explicit error modeling
+sealed trait ProcessingError
+case class ValidationError(message: String, field: String) extends ProcessingError
+case class EnrichmentError(message: String, cause: Throwable) extends ProcessingError
+case class PersistenceError(message: String, operation: String) extends ProcessingError
+
+trait DataProcessingFacade {
+  def processData(data: RawData): ZIO[Any, ProcessingError, ProcessedData]
+}
+```
+
+### Error Recovery Patterns
+```scala
+// ✅ Good: Graceful error recovery
+class ResilientDataFacade(
+  primaryProcessor: DataProcessor,
+  fallbackProcessor: DataProcessor
+) {
+  def processWithFallback(data: RawData): ZIO[Any, ProcessingError, ProcessedData] = {
+    primaryProcessor.process(data)
+      .catchAll { error =>
+        ZIO.logWarning(s"Primary processor failed: $error, trying fallback") *>
+        fallbackProcessor.process(data)
+      }
+  }
+}
+```
+
+## Circuit Breaker Integration
+
+### Resilience Patterns
+```scala
+// ✅ Good: Circuit breaker integration
+import akka.pattern.CircuitBreaker
+
+class ResilientAdFacade(
+  biddingService: BiddingService,
+  circuitBreaker: CircuitBreaker
+) {
+  def safeBid(request: BidRequest): Future[Either[BidError, BidResponse]] = {
+    circuitBreaker.withCircuitBreaker(
+      biddingService.submitBid(request)
+    ).map(Right(_))
+     .recover {
+       case _: CircuitBreakerOpenException => Left(BidError.ServiceUnavailable)
+       case ex: BidException => Left(BidError.BidFailed(ex.getMessage))
+     }
+  }
+}
+```
+
+### Timeout and Retry Integration
+```scala
+// ✅ Good: Timeout and retry with ZIO
+class ReliableDataFacade(dataService: DataService) {
+  def fetchDataWithRetry(query: DataQuery): ZIO[Clock, DataError, DataResult] = {
+    dataService.fetchData(query)
+      .timeout(30.seconds)
+      .retry(Schedule.exponentialBackoff(1.second) && Schedule.recurs(3))
+      .catchAll { error =>
+        ZIO.logError(s"Failed to fetch data after retries: $error") *>
+        ZIO.fail(DataError.FetchFailed(error.getMessage))
+      }
+  }
+}
+```
+
+## Resource Management
+
+### Safe Resource Handling
+```scala
+// ✅ Good: Resource-safe facade operations
+class DatabaseFacade(connectionPool: ConnectionPool) {
+  def executeQuery[T](query: Query)(handler: ResultSet => T): ZIO[Any, DatabaseError, T] = {
+    ZIO.acquireReleaseWith(
+      acquire = ZIO.attempt(connectionPool.getConnection()).mapError(DatabaseError.ConnectionError)
+    )(
+      release = conn => ZIO.succeed(conn.close())
+    )(
+      use = conn => ZIO.attempt(handler(conn.executeQuery(query.sql))).mapError(DatabaseError.QueryError)
+    )
+  }
+}
+```
+
+### Streaming Resource Management
+```scala
+// ✅ Good: Resource-safe streaming
+class StreamingFacade(dataSource: DataSource) {
+  def streamData(query: StreamQuery): ZStream[Any, StreamError, DataRecord] = {
+    ZStream.acquireReleaseWith(
+      acquire = ZIO.attempt(dataSource.openStream(query)).mapError(StreamError.OpenError)
+    )(
+      release = stream => ZIO.succeed(stream.close())
+    ).flatMap { stream =>
+      ZStream.fromIterator(stream.iterator())
+        .mapError(StreamError.ReadError)
+    }
+  }
+}
+```
+
+## Integration Testing Patterns
+
+### Facade Testing
+```scala
+// ✅ Good: Facade integration testing
+class DataPipelineFacadeSpec extends AnyFlatSpec with Matchers {
+  "DataPipelineFacade" should "process data end-to-end" in {
+    val mockValidator = mock[DataValidator]
+    val mockEnricher = mock[DataEnricher]
+    val mockProcessor = mock[DataProcessor]
+    
+    val facade = new DataPipelineFacade(mockValidator, mockEnricher, mockProcessor)
+    
+    // Test the complete integration flow
+    val testData = DataRecord("test", Map("key" -> "value"))
+    val result = facade.processRecord(testData)
+    
+    // Verify the facade orchestrates all components correctly
+    result.map { processed =>
+      processed.validated shouldBe true
+      processed.enriched shouldBe true
+      processed.processed shouldBe true
+    }
+  }
+}
+```
+
+This facade design ensures clean separation of concerns, proper error handling, and maintainable integration patterns across any system using functional programming principles.
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection, separation of concerns)
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (pure functions, functional core/imperative shell)
+
+**Scala-Specific:**
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - For comprehensive error handling strategies
+- [Core Structural Guidelines](core-structural-guidelines.mdc) - Foundation architecture guidelines
+
+---
+
+## References
+- [Core Structural Guidelines](../architecture/core-structural-guidelines.mdc) - For architectural patterns
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - For performance optimization in facades
+
+### Complementary Patterns
+- [Trait Composition Patterns](../architecture/trait-composition-patterns.mdc) - For modular trait composition
+- [Scala Testing Best Practices](../testing/scala-testing-best-practices.mdc) - For testing integration patterns

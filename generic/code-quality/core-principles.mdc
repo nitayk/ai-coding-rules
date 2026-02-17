@@ -1,0 +1,307 @@
+---
+description: "Universal code quality principles - Boy Scout Rule, SOLID, DRY, KISS, YAGNI, correctness first, pure functions - apply across all languages. Use when: (1) Writing code, (2) Refactoring, (3) Reviewing code, (4) Applying design principles, (5) Improving code quality. Covers SOLID, DRY, KISS, YAGNI, correctness-first, and pure functions."
+globs: []
+alwaysApply: false
+version: "1.2.0"
+last_updated: "2025-01-21"
+tags: ["code-quality", "principles", "universal", "solid", "dry", "boy-scout-rule", "clean-code"]
+---
+
+# Core Code Quality Principles
+
+**APPLY WHEN:** Writing, reviewing, or refactoring code in any language.
+
+---
+
+## The Boy Scout Rule
+
+**Core Principle**: **Always leave the codebase cleaner than you found it.**
+
+When you modify existing code (bug fixes, feature updates, reviews), make small improvements along the way:
+- Rename unclear variables while you're already in the file
+- Refactor nested conditionals locally
+- Remove dead code
+- Fix formatting inconsistencies
+- Add missing tests for code you're touching
+
+**DO**:
+- Make small, incremental improvements during regular work
+- Keep cleanups scoped to what you're already changing
+- Commit improvements separately or clearly document in commit message
+
+**STOP**:
+- Scope creep (don't let cleanup overtake feature work)
+- Large refactorings without tests
+- Changing code you're not already modifying
+
+**Why**: Prevents technical debt from accumulating. Each commit becomes an opportunity to improve, not just add functionality.
+
+**Origin**: Popularized by Robert C. Martin (Uncle Bob) in "Clean Code", adapted from the Boy Scout motto: "Always leave the campground cleaner than you found it."
+
+---
+
+## The Four Pillars
+
+### 1. SOLID Principles
+
+**Origin**: Robert C. Martin (Uncle Bob), 2000. Acronym coined by Michael Feathers, 2004.
+
+**Single Responsibility Principle (SRP)**
+- **DO**: Each class/function/module has ONE reason to change
+- **STOP**: Classes that handle both business logic AND I/O AND validation
+- **Example**: Split `UserService` that handles DB, validation, and email into separate classes
+
+**Open/Closed Principle (OCP)**
+- **DO**: Open for extension, closed for modification
+- **STOP**: Modifying existing classes to add new features
+- **Example**: Use strategy pattern or dependency injection instead of `if/else` chains
+
+**Liskov Substitution Principle (LSP)**
+- **DO**: Subtypes must be substitutable for their base types without breaking behavior
+- **STOP**: Overriding methods that change expected behavior
+- **Example**: If `Bird.fly()` throws for penguins, violate LSP - use composition instead
+
+**Interface Segregation Principle (ISP)**
+- **DO**: Clients shouldn't depend on interfaces they don't use
+- **STOP**: Fat interfaces with many unrelated methods
+- **Example**: Split `Worker` interface into `Eatable`, `Workable`, `Sleepable` if needed separately
+
+**Dependency Inversion Principle (DIP)**
+- **DO**: Depend on abstractions, not concretions
+- **STOP**: High-level modules depending on low-level modules directly
+- **Example**: Inject `Logger` interface, not `FileLogger` concrete class
+
+---
+
+### 2. DRY (Don't Repeat Yourself)
+
+**Origin**: Andy Hunt and Dave Thomas, "The Pragmatic Programmer" (1999).
+
+**DO**:
+- Extract repeated logic into functions/classes
+- Use constants for magic numbers/strings
+- Create shared utilities for common operations
+- **BUT**: Don't over-abstract - duplication is cheaper than wrong abstraction
+
+**STOP**:
+- Copy-pasting code blocks
+- Repeating business logic in multiple places
+- Hardcoding values that appear 3+ times
+
+**When to Duplicate**:
+- Early in development (before patterns emerge)
+- When abstraction would be premature
+- When duplication is accidental (different reasons to change)
+
+---
+
+### 3. KISS (Keep It Simple, Stupid)
+
+**Origin**: Kelly Johnson (Lockheed Skunk Works, ~1960). Originally for aircraft design, adapted to software.
+
+**DO**:
+- Choose the simplest solution that works
+- Prefer explicit over clever
+- Use standard library features over custom implementations
+- Write code that junior developers can understand
+
+**STOP**:
+- Over-engineering for hypothetical future needs
+- Clever one-liners that require explanation
+- Premature optimization
+- Complex patterns when simple code suffices
+
+**Test**: Can a new team member understand this in 5 minutes?
+
+---
+
+### 4. YAGNI (You Aren't Gonna Need It)
+
+**Origin**: Extreme Programming (XP), late 1990s. Popularized by Kent Beck and Ron Jeffries in "Extreme Programming Explained" (1999).
+
+**DO**:
+- Build only what's needed NOW
+- Add features when actually required
+- Remove unused code immediately
+
+**STOP**:
+- Adding "just in case" abstractions
+- Building features for hypothetical requirements
+- Keeping dead code "for later"
+
+**Exception**: When cost of adding later is 10x higher (e.g., database migrations)
+
+---
+
+## Code Smell Detection
+
+**God Object**: Class with too many responsibilities
+- **Fix**: Apply SRP - split into focused classes
+
+**Feature Envy**: Method uses more of another class than its own
+- **Fix**: Move method to the class it envies
+
+**Data Clumps**: Same group of variables appearing together
+- **Fix**: Extract into a class/struct
+
+**Long Parameter List**: Function with 5+ parameters
+- **Fix**: Extract into parameter object/configuration class
+
+**Primitive Obsession**: Using primitives instead of domain objects
+- **Fix**: Create value objects (e.g., `Email` instead of `String`)
+
+**Long Method**: Method > 20 lines (or > 10 for complex logic)
+- **Fix**: Extract methods with descriptive names
+
+**Comments Explaining "What"**: Code should be self-documenting
+- **Fix**: Rename variables/functions, extract methods
+- **Keep**: Comments explaining "Why" (business context, non-obvious decisions)
+
+**Comment Guidelines**:
+- ✅ Comment when: Explaining **why** (business rules, technical decisions), documenting domain constraints, clarifying non-obvious behavior
+- ❌ Don't comment when: Code is self-explanatory, variable names are clear, comment just repeats code
+- **Principle**: Good comments explain reasoning, not what code does
+
+**Type Casts (Lying to Compiler)**: Using unsafe casts or `asInstanceOf`
+- **Fix**: Use proper types, sealed traits with exhaustive matching, or type-safe abstractions
+- **Question**: Why isn't the type precise enough? Can I add methods to parent interface?
+
+---
+
+## Correctness First
+
+**Core Principle**: **First make it correct, then make it fast.** Start with a correct, straightforward solution (even if inefficient) before optimizing, refactoring, or exploring clever alternatives.
+
+**DO**:
+- Write correct baseline first (even if simple/inefficient)
+- Verify correctness with comprehensive tests
+- Only then optimize (with correctness as baseline)
+- Compare optimized version against correct baseline
+
+**STOP**:
+- Optimizing before correctness is verified
+- Skipping tests assuming correctness
+- Being clever over correct
+- Breaking correctness for performance
+
+**Why**: Correctness is the foundation. Without it, optimization is meaningless. A correct baseline gives you confidence to experiment and optimize safely.
+
+**Reference**: For detailed examples and property-based testing patterns, see language-specific rules (e.g., `backend/scala/meta/correctness-first.mdc`).
+
+---
+
+## Make Illegal States Unrepresentable
+
+**Core Principle**: Design your types so that states violating invariants simply can't be expressed in code. Not just documented or tested—but prevented by the type system.
+
+**DO**:
+- Use types to prevent invalid combinations
+- Encode invariants in types (not comments)
+- Make nullability explicit (use `Option`/nullable types, never hidden nulls)
+- Use sealed traits/ADTs/union types to represent valid variants only
+
+**STOP**:
+- Using nullable fields that are logically required
+- Using boolean flags with optional fields (use sealed types instead)
+- Relying on comments to document invariants
+- Mixing valid and invalid states in same type
+
+**Benefits**:
+- Compiler prevents bugs automatically
+- AI edits stay safe (can't break invariants)
+- Self-documenting types
+- Refactoring safety
+
+**Reference**: For comprehensive examples with sealed traits, ADTs, and AI-safe patterns, see language-specific rules (e.g., `backend/scala/language/make-illegal-states-unrepresentable.mdc`).
+
+---
+
+## Pure Functions & Referential Transparency
+
+**Core Principle**: Write functions that are **referentially transparent** - same input always produces same output, no side effects.
+
+**DO**:
+- Write pure functions (no I/O, no mutation, no global state)
+- Use immutable data structures
+- Separate pure logic from side effects
+- Encapsulate side effects at boundaries (using effect types if available)
+
+**STOP**:
+- Functions depending on random values, time, logging, or global state
+- Mixing business logic with I/O operations
+- Mutating shared state
+
+**Benefits**:
+- Easier to reason about and test
+- Safe to refactor
+- Enables parallelism and memoization
+- Compiler optimizations
+
+**Pattern**: Functional core, imperative shell - extract pure business logic from side-effecting code.
+
+**Reference**: For detailed patterns on encoding errors in types, separating pure functions, and functional composition, see language-specific rules (e.g., `backend/scala/language/referential-transparency.mdc`, `backend/scala/meta/functional-programming-principles.mdc`).
+
+---
+
+## Decision Framework
+
+**When choosing between approaches:**
+
+1. **Correctness** > Performance (make it correct first)
+2. **Readability** > Cleverness
+3. **Maintainability** > Performance (unless proven bottleneck)
+4. **Explicit** > Implicit
+5. **Standard** > Custom (use language idioms)
+6. **Simple** > Complex (until complexity is justified)
+7. **Type Safety** > Runtime Checks (encode invariants in types)
+
+---
+
+## Language-Specific Notes
+
+- **Scala**: Prefer immutability, use `Option`/`Either`/`Try` for error handling
+- **Python**: Follow PEP 8, use type hints, prefer composition
+- **Go**: Small interfaces, explicit error handling, avoid inheritance
+- **Java**: Use interfaces, avoid deep inheritance hierarchies
+- **JavaScript/TypeScript**: Prefer functional over OOP, use TypeScript strictly
+- **Swift/Kotlin**: Use value types, prefer protocols/interfaces
+
+**Reference**: Language-specific rules in `backend/` and `mobile/` directories override these when they conflict.
+
+---
+
+## Leading Sources & References
+
+### Foundational Books & Authors
+
+**Robert C. Martin (Uncle Bob)**:
+- "Clean Code: A Handbook of Agile Software Craftsmanship" - Boy Scout Rule, meaningful names, small functions, code smells
+- "Clean Architecture" - SOLID principles, dependency inversion, architecture patterns
+- "The Clean Coder" - Professionalism and craftsmanship
+
+**Martin Fowler**:
+- "Refactoring: Improving the Design of Existing Code" - Code smells, refactoring catalog, behavior-preserving transformations
+- "Refactoring Workflows" - Integrating refactoring into daily development, "camp site rule"
+- martinfowler.com - Extensive articles on patterns, architecture, and practices
+
+**Andy Hunt & Dave Thomas**:
+- "The Pragmatic Programmer" - DRY principle, orthogonality, code katas
+
+**Kent Beck**:
+- "Extreme Programming Explained" - YAGNI, TDD, continuous refactoring
+
+### Modern Practices (2024-2025)
+
+- **Security by Design** - Shift-left security, DevSecOps
+- **AI-Native Development** - Intent-first workflows, AI-assisted coding
+- **Modular Monoliths** - Clean architecture, hexagonal architecture
+- **Developer Experience (DX)** - Code readability, meaningful names, explicit code
+- **Continuous Learning** - Post-mortems, retrospectives, staying current
+
+---
+
+## Related Rules
+
+- [Testing Principles](../testing/core-principles.mdc) - TDD, test behavior not implementation
+- [Architecture Principles](../architecture/core-principles.mdc) - Clean architecture, separation of concerns
+- [Error Handling](../error-handling/universal-patterns.mdc) - Explicit error types, fail fast

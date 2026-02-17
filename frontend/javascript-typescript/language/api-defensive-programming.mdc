@@ -1,0 +1,283 @@
+---
+description: "Defensive API programming - handle schema changes gracefully, safe property access, backward compatibility. Use when: (1) Handling API responses, (2) Schema changes, (3) Safe property access, (4) Backward compatibility, (5) Defensive coding. Covers safe property access, schema evolution, and API resilience patterns."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+alwaysApply: false
+---
+
+# API Defensive Programming
+
+Handle API responses defensively to remain resilient to backend schema changes. Use safe property access, validate responses, and provide graceful fallbacks.
+
+---
+
+## Safe Property Access
+
+**Always use optional chaining and provide defaults:**
+
+```javascript
+// ✅ Good: Safe access with defaults
+const user = {
+  id: item?.id || 'unknown',
+  name: item?.name || 'Unnamed',
+  email: item?.email || '',
+  // Handle nested objects safely
+  settings: {
+    theme: item?.settings?.theme || 'light',
+    notifications: item?.settings?.notifications ?? true
+  }
+};
+
+// ✅ Good: TypeScript with optional chaining
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  settings?: {
+    theme?: string;
+    notifications?: boolean;
+  };
+}
+
+function safeGetUser(item: unknown): User {
+  const obj = item as Record<string, unknown>;
+  return {
+    id: obj?.id as string || 'unknown',
+    name: obj?.name as string || 'Unnamed',
+    email: obj?.email as string || '',
+    settings: {
+      theme: obj?.settings && typeof obj.settings === 'object' 
+        ? (obj.settings as Record<string, unknown>)?.theme as string || 'light'
+        : 'light',
+      notifications: obj?.settings && typeof obj.settings === 'object'
+        ? (obj.settings as Record<string, unknown>)?.notifications as boolean ?? true
+        : true
+    }
+  };
+}
+
+// ❌ Bad: Direct access that breaks on schema changes
+const user = {
+  id: item.id,  // Breaks if item is null/undefined
+  name: item.name,  // Breaks if name field renamed
+  email: item.email  // Breaks if email field removed
+};
+```
+
+---
+
+## Safe Array Processing
+
+**Handle arrays and collections defensively:**
+
+```javascript
+// ✅ Good: Safe array processing
+const users = (response?.users || []).map(item => ({
+  id: item?.id || 'unknown',
+  name: item?.name || 'Unnamed'
+})).filter(item => item.id !== 'unknown');
+
+// ✅ Good: TypeScript with type guards
+function processUsers(response: unknown): User[] {
+  if (!response || typeof response !== 'object') {
+    return [];
+  }
+  
+  const obj = response as Record<string, unknown>;
+  const users = Array.isArray(obj.users) ? obj.users : [];
+  
+  return users
+    .map(item => safeGetUser(item))
+    .filter(user => user.id !== 'unknown');
+}
+
+// ❌ Bad: Assumes array exists and has expected structure
+const users = response.users.map(item => ({
+  id: item.id,  // Breaks if users is undefined
+  name: item.name  // Breaks if item structure changes
+}));
+```
+
+---
+
+## API Response Validation
+
+**Always validate API responses before processing:**
+
+```javascript
+// ✅ Good: Validate response structure generically
+function validateApiResponse(response: unknown, expectedFields: string[]): { isValid: boolean; data?: unknown; error?: string } {
+  if (!response || typeof response !== 'object') {
+    return { isValid: false, error: 'Invalid response format' };
+  }
+  
+  const obj = response as Record<string, unknown>;
+  
+  // Check required top-level properties
+  for (const field of expectedFields) {
+    if (!(field in obj)) {
+      console.warn(`API response missing expected field: ${field}`);
+      obj[field] = Array.isArray(obj[field]) ? [] : null; // Provide safe default
+    }
+  }
+  
+  return { isValid: true, data: obj };
+}
+
+// ✅ Good: TypeScript with generic typing
+interface ApiResponse<T = unknown> {
+  data?: T[];
+  items?: T[];
+  results?: T[];
+  error?: string;
+}
+
+function validateApiResponse<T>(response: unknown): { isValid: boolean; data?: ApiResponse<T> } {
+  if (!response || typeof response !== 'object') {
+    return { isValid: false };
+  }
+  
+  const obj = response as Record<string, unknown>;
+  const validated: ApiResponse<T> = {
+    data: Array.isArray(obj.data) ? obj.data as T[] : undefined,
+    items: Array.isArray(obj.items) ? obj.items as T[] : undefined,
+    results: Array.isArray(obj.results) ? obj.results as T[] : undefined,
+    error: typeof obj.error === 'string' ? obj.error : undefined
+  };
+  
+  return { isValid: true, data: validated };
+}
+
+// ❌ Bad: No validation
+function processResponse(response: unknown) {
+  const data = response as ApiResponse;
+  return data.data.map(/* ... */);  // Breaks if data is undefined
+}
+```
+
+---
+
+## Error Handling for Schema Changes
+
+**Implement graceful error handling:**
+
+```javascript
+// ✅ Good: Graceful error handling
+function processApiData<T>(response: unknown, processor: (data: ApiResponse<T>) => T[]): T[] {
+  try {
+    const validated = validateApiResponse<T>(response);
+    if (!validated.isValid || !validated.data) {
+      return [];
+    }
+    
+    return processor(validated.data);
+  } catch (error) {
+    console.error('API data processing failed:', error);
+    return [];
+  }
+}
+
+function getEmptyResponse<T>(): ApiResponse<T> {
+  return {
+    data: [],
+    error: 'Unable to process API response - possible schema change'
+  };
+}
+
+// ❌ Bad: No error handling
+function processApiData(response: unknown) {
+  const data = response as ApiResponse;
+  return {
+    users: data.users.map(/* ... */),  // Crashes on schema change
+    products: data.products.map(/* ... */),
+    orders: data.orders.map(/* ... */)
+  };
+}
+```
+
+---
+
+## Backward Compatibility Helpers
+
+**Create helper functions for common transformations:**
+
+```javascript
+// ✅ Good: Helper functions for safe data access with backward compatibility
+function safeGetUser(item: unknown): User {
+  const obj = item as Record<string, unknown>;
+  return {
+    // Handle renamed fields - check both old and new names
+    id: obj?.id as string || obj?.userId as string || 'unknown',
+    name: obj?.name as string || obj?.displayName as string || 'Unnamed',
+    email: obj?.email as string || obj?.emailAddress as string || '',
+    // Handle moved fields - check both flat and nested structures
+    address: obj?.address as string
+      || (obj?.location && typeof obj.location === 'object' 
+        ? (obj.location as Record<string, unknown>)?.address as string || ''
+        : '')
+      || '',
+    phone: obj?.phone as string
+      || (obj?.contact && typeof obj.contact === 'object'
+        ? (obj.contact as Record<string, unknown>)?.phone as string || ''
+        : '')
+      || ''
+  };
+}
+
+// ❌ Bad: Direct access - breaks on field rename/move
+function getUser(item: unknown): User {
+  const obj = item as Record<string, unknown>;
+  return {
+    id: obj.id as string,  // Breaks if renamed to userId
+    name: obj.name as string,  // Breaks if renamed to displayName
+    address: obj.address as string  // Breaks if moved to location.address
+  };
+}
+```
+
+---
+
+## Required Safety Checks
+
+1. **Null/Undefined Checks**: Always use `?.` operator or explicit null checks
+2. **Type Validation**: Verify data types before processing
+3. **Default Values**: Provide sensible defaults for missing fields
+4. **Error Boundaries**: Wrap API processing in try-catch blocks
+5. **Graceful Degradation**: UI should still work with partial data
+6. **Console Warnings**: Log warnings for missing expected fields (not errors)
+
+---
+
+## API Change Scenarios to Handle
+
+- ✅ **Field Renamed**: `name` → `displayName`, `userId` → `id`
+- ✅ **Field Moved**: `address` → `location.address`, `config.timeout` → `timeout`
+- ✅ **Field Removed**: Handle missing fields gracefully
+- ✅ **New Field Added**: Ignore unknown fields (forward compatibility)
+- ✅ **Type Changed**: String to object, number to string, etc.
+- ✅ **Array to Object**: Collection structure changes
+- ✅ **Nested Structure Changes**: Flattened or deeper nesting
+
+---
+
+## Testing Requirements
+
+When modifying API-consuming code:
+1. **Test with malformed responses**: `{}`, `null`, `undefined`
+2. **Test with missing fields**: Remove expected properties
+3. **Test with extra fields**: Add unexpected properties
+4. **Test with type mismatches**: Wrong data types
+5. **Test with empty arrays**: `[]` instead of expected data
+
+---
+
+## Related Rules
+
+- [TypeScript Strict Type Safety](typescript-strict-type-safety.mdc) - Type-safe API validation
+- [Error Handling Patterns](../frameworks/react-patterns.mdc#error-boundaries) - Error boundaries
+
+---
+
+## References
+
+- [MDN: Optional Chaining](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining)
+- [TypeScript: Type Guards](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)

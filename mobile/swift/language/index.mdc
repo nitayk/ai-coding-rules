@@ -1,0 +1,46 @@
+---
+description: "Swift language patterns index - style guide and concurrency patterns. Use when: (1) Swift language features, (2) Swift concurrency, (3) Swift style, (4) Async/await. Points to language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Swift Language Patterns Index
+
+**Purpose**: Router for Swift language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **swift style**, swift formatting, swift naming, style guide | `style-guide.mdc` |
+| **swift concurrency**, swift async await, actors, @MainActor, structured concurrency | `swift-concurrency-patterns.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [Style Guide](style-guide.mdc) | Swift naming conventions, formatting, code organization | swift style, swift formatting, swift naming |
+| [Swift Concurrency Patterns](swift-concurrency-patterns.mdc) | Async/await, actors, @MainActor, structured concurrency | swift concurrency, swift async await, actors |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Style guide | `style-guide.mdc` |
+| Concurrency | `swift-concurrency-patterns.mdc` |
+
+---
+
+## Related Resources
+
+- **iOS**: See `../ios/index.mdc` for iOS patterns

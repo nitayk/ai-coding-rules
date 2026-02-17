@@ -1,0 +1,59 @@
+---
+description: "Comprehensive index of Java development rules and best practices. Use when: (1) Discovering Java patterns, (2) Modern Java features (records/virtual threads), (3) Style guidelines, (4) Best practices, (5) Java conventions. Points to specific rules in language/ subdirectory. Auto-loads when Java files are opened (via globs)."
+globs: ["**/*.java"]
+alwaysApply: false
+---
+
+# Java Development Rules
+
+**Java-Specific Rules**: Implementation details for Java code.
+
+**How It Works**:
+- Generic rules (SOLID, DRY, KISS, correctness first) load **automatically** when you open Java files
+- This index loads **automatically** when you open Java files (via globs)
+- Use this to discover Java-specific patterns (records, virtual threads, Effective Java patterns)
+
+**Key Principle**: This directory contains ONLY Java-specific patterns. Universal principles are in `generic/` and load automatically - they're referenced from here.
+
+**Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **java style**, java formatting, java naming, style guide | `language/style-guide.mdc` |
+| **modern java**, java patterns, records, virtual threads, effective java | `language/modern-java-patterns.mdc` |
+
+---
+
+## Available Rules (Leaves)
+
+### 📝 Language Features (`language/`)
+- **[Style Guide](language/style-guide.mdc)** - Java naming conventions, formatting, code organization
+- **[Modern Java Patterns](language/modern-java-patterns.mdc)** - Effective Java principles, records, virtual threads, immutability
+
+## Core Principles
+- **Context**: Most new development should be in Kotlin. Java is primarily for maintaining existing legacy code or library code that requires pure Java compatibility.
+- **Style**: Follow Google Java Style Guide.
+- **Nullability**: Use `@Nullable` and `@NonNull` annotations strictly to support Kotlin interoperability.
+- **Modern Java**: Use Java 8+ features (Streams, Lambdas, Records, Virtual Threads) where supported.
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, correctness first, pure functions)
+- [Generic Architecture Principles](../../generic/architecture/core-principles.mdc) - Universal architecture principles
+- [Generic Testing Principles](../../generic/testing/core-principles.mdc) - Universal testing principles
+- [Generic Error Handling Principles](../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+
+**Java-Specific:**
+- This directory contains Java-specific implementations and examples
+
+---
+
+## Key Resources
+- [Effective Java - Joshua Bloch](https://www.oracle.com/technical-resources/articles/javase/bloch-effective-08-qa.html)
+- [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)
+- [Java Language Specification](https://docs.oracle.com/javase/specs/)

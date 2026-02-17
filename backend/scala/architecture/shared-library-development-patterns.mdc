@@ -1,0 +1,650 @@
+---
+description: "Best practices for developing shared libraries used across multiple repositories. Use when: (1) Creating shared libraries, (2) Designing library APIs, (3) Managing library dependencies, (4) Versioning shared code, (5) Maintaining backward compatibility. Covers API design, versioning strategies, and library organization."
+globs: []
+alwaysApply: false
+---
+
+# Shared Library Development Patterns & Best Practices
+
+## Library Design Philosophy
+
+### **Foundational Design Principles**
+
+#### **1. Zero Breaking Changes Policy**
+```scala
+// ✅ GOOD: Additive changes with defaults
+trait DatabaseClient {
+  def get[T](key: String): Future[Option[T]]
+  def put[T](key: String, value: T): Future[Unit]
+  
+  // New method with default implementation - non-breaking
+  def putWithTTL[T](key: String, value: T, ttl: Duration): Future[Unit] = {
+    // Fallback to regular put if TTL not supported
+    put(key, value)
+  }
+}
+
+// ❌ BAD: Changing method signatures breaks consumers
+trait DatabaseClient {
+  // def get[T](key: String): Future[Option[T]]  // OLD
+  def get[T](key: String, timeout: Duration): Future[Option[T]]  // BREAKING
+}
+```
+
+#### **2. Fail-Fast with Rich Error Context**
+```scala
+// ✅ GOOD: Rich error context for debugging
+sealed trait LibraryError extends Exception {
+  def context: Map[String, String]
+  def userMessage: String
+  def technicalDetails: String
+}
+
+case class AerospikeConnectionError(
+  cluster: String,
+  namespace: String,
+  cause: Throwable,
+  context: Map[String, String] = Map.empty
+) extends LibraryError {
+  def userMessage = s"Failed to connect to Aerospike cluster: $cluster"
+  def technicalDetails = s"Namespace: $namespace, Cause: ${cause.getMessage}"
+}
+
+// Usage in sonic-util logging
+object LoggingUtil {
+  def logError(error: LibraryError)(implicit logger: Logger): Unit = {
+    logger.error(
+      message = error.userMessage,
+      context = error.context + ("technical_details" -> error.technicalDetails)
+    )
+  }
+}
+```
+
+#### **3. Observable and Metrics-First Design**
+```scala
+// All library operations emit metrics automatically
+trait MetricsAware {
+  protected def metricsCollector: MetricsCollector
+  
+  protected def withMetrics[T](operation: String)(block: => Future[T]): Future[T] = {
+    val startTime = System.currentTimeMillis()
+    
+    block.andThen {
+      case Success(_) =>
+        metricsCollector.timing(s"$operation.success", System.currentTimeMillis() - startTime)
+        metricsCollector.increment(s"$operation.count")
+        
+      case Failure(error) =>
+        metricsCollector.timing(s"$operation.failure", System.currentTimeMillis() - startTime)
+        metricsCollector.increment(s"$operation.error.count")
+        metricsCollector.increment(s"$operation.error.${error.getClass.getSimpleName}")
+    }
+  }
+}
+
+// Example: aerospike-util with automatic metrics
+class AerospikeClient(config: AerospikeConfig)(implicit mc: MetricsCollector) 
+  extends MetricsAware {
+  
+  protected val metricsCollector = mc
+  
+  def get[T](key: String): Future[Option[T]] = withMetrics("aerospike.get") {
+    // Actual Aerospike operation
+    performAerospikeGet(key)
+  }
+}
+```
+
+## Module-Specific Development Patterns
+
+### **sonic-util - Core Infrastructure Patterns**
+
+#### **Configuration Management Pattern**
+```scala
+// Type-safe configuration with validation
+case class ServiceConfig(
+  httpPort: Int,
+  databaseUrl: String,
+  cacheSettings: CacheConfig,
+  featureFlags: Map[String, Boolean] = Map.empty
+) {
+  // Built-in validation
+  require(httpPort > 0 && httpPort < 65536, s"Invalid port: $httpPort")
+  require(databaseUrl.nonEmpty, "Database URL cannot be empty")
+}
+
+object ConfigurationLoader {
+  def load[T: ConfigReader](path: String): Either[ConfigError, T] = {
+    Try {
+      ConfigSource.default.at(path).loadOrThrow[T]
+    }.toEither.left.map(ConfigError.fromThrowable)
+  }
+  
+  // Environment-specific overrides
+  def loadWithEnvironment[T: ConfigReader](
+    basePath: String,
+    environment: String = sys.env.getOrElse("ENVIRONMENT", "local")
+  ): Either[ConfigError, T] = {
+    val environmentPath = s"$basePath.$environment"
+    load[T](environmentPath).orElse(load[T](basePath))
+  }
+}
+```
+
+#### **Retry and Resilience Patterns**
+```scala
+// Configurable retry policy for external service calls
+case class RetryPolicy(
+  maxAttempts: Int = 3,
+  initialDelay: FiniteDuration = 100.milliseconds,
+  maxDelay: FiniteDuration = 10.seconds,
+  backoffMultiplier: Double = 2.0,
+  retryableExceptions: Set[Class[_ <: Throwable]] = Set(
+    classOf[TimeoutException],
+    classOf[ConnectException]
+  )
+)
+
+object RetryUtils {
+  def withRetry[T](policy: RetryPolicy)(operation: => Future[T]): Future[T] = {
+    def attempt(attemptsLeft: Int, delay: FiniteDuration): Future[T] = {
+      operation.recoverWith {
+        case error if attemptsLeft > 0 && policy.retryableExceptions.contains(error.getClass) =>
+          after(delay, system.scheduler) {
+            attempt(attemptsLeft - 1, (delay * policy.backoffMultiplier).min(policy.maxDelay))
+          }
+        case error =>
+          Future.failed(error)
+      }
+    }
+    
+    attempt(policy.maxAttempts, policy.initialDelay)
+  }
+}
+
+// Usage in grow-delivery and sonic
+class DataScienceGrpcClient(retryPolicy: RetryPolicy) {
+  def scoreRequest(request: ScoringRequest): Future[ScoringResponse] = {
+    RetryUtils.withRetry(retryPolicy) {
+      grpcClient.scoreRequest(request)
+    }
+  }
+}
+```
+
+### **aerospike-util - High-Performance Data Access**
+
+#### **Connection Pool Management**
+```scala
+// Multi-cluster connection pooling with failover
+class AerospikeConnectionManager(
+  clusters: Map[String, AerospikeConfig],
+  poolSize: Int = 50
+) {
+  
+  private val clients: Map[String, IAerospikeClient] = clusters.map {
+    case (name, config) =>
+      name -> createClient(config, poolSize)
+  }
+  
+  private val healthChecker = new HealthChecker(clients)
+  
+  def getClient(clusterName: String): Either[AerospikeError, IAerospikeClient] = {
+    clients.get(clusterName) match {
+      case Some(client) if healthChecker.isHealthy(clusterName) =>
+        Right(client)
+      case Some(_) =>
+        Left(AerospikeError.ClusterUnhealthy(clusterName))
+      case None =>
+        Left(AerospikeError.ClusterNotFound(clusterName))
+    }
+  }
+  
+  // Automatic failover to secondary clusters
+  def getClientWithFailover(
+    primaryCluster: String,
+    fallbackClusters: List[String] = List.empty
+  ): Either[AerospikeError, IAerospikeClient] = {
+    
+    val clustersToTry = primaryCluster :: fallbackClusters
+    
+    clustersToTry.foldLeft[Either[AerospikeError, IAerospikeClient]](
+      Left(AerospikeError.NoHealthyClusters(clustersToTry))
+    ) { (result, cluster) =>
+      result.orElse(getClient(cluster))
+    }
+  }
+}
+```
+
+#### **Serialization and Performance Optimization**
+```scala
+// High-performance serialization for real-time serving
+trait AerospikeSerializer[T] {
+  def serialize(value: T): Array[Byte]
+  def deserialize(bytes: Array[Byte]): Either[SerializationError, T]
+  
+  // Performance optimization: pre-allocated buffers
+  def serializeWithBuffer(value: T, buffer: ByteBuffer): Int
+}
+
+// Optimized serializer for common ad network objects
+implicit val userAggregationsSerializer = new AerospikeSerializer[UserAggregations] {
+  
+  private val bufferPool = new ObjectPool[ByteBuffer](() => ByteBuffer.allocate(4096))
+  
+  def serialize(aggregations: UserAggregations): Array[Byte] = {
+    val buffer = bufferPool.borrow()
+    try {
+      val bytesWritten = serializeWithBuffer(aggregations, buffer)
+      buffer.array().take(bytesWritten)
+    } finally {
+      bufferPool.return(buffer)
+    }
+  }
+  
+  def serializeWithBuffer(aggregations: UserAggregations, buffer: ByteBuffer): Int = {
+    // Optimized binary serialization for sub-millisecond performance
+    buffer.clear()
+    
+    // User ID (variable length string)
+    val userIdBytes = aggregations.userId.toString.getBytes(UTF_8)
+    buffer.putInt(userIdBytes.length)
+    buffer.put(userIdBytes)
+    
+    // Daily impressions (fixed size map)
+    buffer.putInt(aggregations.dailyImpressions.size)
+    aggregations.dailyImpressions.foreach { case (adUnit, count) =>
+      buffer.putInt(adUnit.id)
+      buffer.putInt(count)
+    }
+    
+    // ... more optimized serialization
+    
+    buffer.position()
+  }
+}
+```
+
+### **kafka-util - Event Streaming Infrastructure**
+
+#### **Producer Patterns with Guarantees**
+```scala
+// High-throughput producer with delivery guarantees
+class ReliableKafkaProducer[K, V](
+  config: KafkaProducerConfig,
+  keySerializer: Serializer[K],
+  valueSerializer: Serializer[V]
+) {
+  
+  private val producer = createProducer(config)
+  private val metricsCollector = config.metricsCollector
+  
+  // Async send with callback and metrics
+  def sendAsync(
+    topic: String,
+    key: K,
+    value: V,
+    partition: Option[Int] = None
+  ): Future[RecordMetadata] = {
+    
+    val record = new ProducerRecord(topic, partition.map(Int.box).orNull, key, value)
+    val startTime = System.currentTimeMillis()
+    
+    val promise = Promise[RecordMetadata]()
+    
+    producer.send(record, new Callback {
+      def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
+        val latency = System.currentTimeMillis() - startTime
+        
+        if (exception == null) {
+          promise.success(metadata)
+          metricsCollector.timing(s"kafka.producer.$topic.success", latency)
+          metricsCollector.increment(s"kafka.producer.$topic.count")
+        } else {
+          promise.failure(exception)
+          metricsCollector.timing(s"kafka.producer.$topic.failure", latency)
+          metricsCollector.increment(s"kafka.producer.$topic.error")
+        }
+      }
+    })
+    
+    promise.future
+  }
+  
+  // Batch send for high-throughput scenarios
+  def sendBatch(
+    topic: String,
+    records: List[(K, V)]
+  ): Future[List[RecordMetadata]] = {
+    
+    Future.traverse(records) { case (key, value) =>
+      sendAsync(topic, key, value)
+    }
+  }
+}
+```
+
+#### **Consumer Patterns with Error Handling**
+```scala
+// Resilient consumer with dead letter queue support
+abstract class ResilientKafkaConsumer[K, V](
+  config: KafkaConsumerConfig,
+  keyDeserializer: Deserializer[K],
+  valueDeserializer: Deserializer[V]
+) {
+  
+  private val consumer = createConsumer(config)
+  private val deadLetterProducer = createDeadLetterProducer(config)
+  
+  // Override this method in concrete implementations
+  def processRecord(key: K, value: V, metadata: ConsumerRecordMetadata): Future[ProcessingResult]
+  
+  def startConsuming(): Unit = {
+    consumer.subscribe(config.topics.asJava)
+    
+    while (!Thread.currentThread().isInterrupted) {
+      val records = consumer.poll(Duration.ofMillis(config.pollTimeoutMs))
+      
+      records.asScala.foreach { record =>
+        processWithErrorHandling(record)
+      }
+      
+      consumer.commitAsync()
+    }
+  }
+  
+  private def processWithErrorHandling(record: ConsumerRecord[K, V]): Unit = {
+    val metadata = ConsumerRecordMetadata(
+      topic = record.topic(),
+      partition = record.partition(),
+      offset = record.offset(),
+      timestamp = record.timestamp()
+    )
+    
+    processRecord(record.key(), record.value(), metadata)
+      .recover {
+        case retryableError: RetryableProcessingError =>
+          // Retry logic with exponential backoff
+          scheduleRetry(record, retryableError, metadata)
+          ProcessingResult.Retry
+          
+        case fatalError: FatalProcessingError =>
+          // Send to dead letter queue
+          sendToDeadLetterQueue(record, fatalError, metadata)
+          ProcessingResult.DeadLetter
+          
+        case unexpectedError =>
+          logger.error(s"Unexpected error processing record", unexpectedError)
+          sendToDeadLetterQueue(record, unexpectedError, metadata)
+          ProcessingResult.DeadLetter
+      }
+  }
+}
+
+// Usage in grow-delivery: ImpressionConsumer
+class ImpressionEventConsumer(
+  config: KafkaConsumerConfig,
+  impressionProcessor: ImpressionProcessor
+) extends ResilientKafkaConsumer[String, ImpressionEvent](
+  config,
+  new StringDeserializer,
+  new ImpressionEventDeserializer
+) {
+  
+  def processRecord(
+    key: String,
+    impression: ImpressionEvent,
+    metadata: ConsumerRecordMetadata
+  ): Future[ProcessingResult] = {
+    
+    impressionProcessor.processImpression(impression)
+      .map(_ => ProcessingResult.Success)
+      .recover {
+        case _: UserNotFoundError => ProcessingResult.Skip  // Skip missing users
+        case _: ValidationError => ProcessingResult.DeadLetter  // Invalid data
+        case _: TimeoutException => ProcessingResult.Retry  // Retryable
+      }
+  }
+}
+```
+
+## Cross-Library Integration Patterns
+
+### **Dependency Injection and Service Discovery**
+
+#### **Lightweight DI Container**
+```scala
+// Simple DI container for managing library dependencies
+class ServiceContainer {
+  private val services = mutable.Map[Class[_], Any]()
+  private val singletons = mutable.Map[Class[_], Any]()
+  
+  def register[T](service: T)(implicit ct: ClassTag[T]): Unit = {
+    services += ct.runtimeClass -> service
+  }
+  
+  def registerSingleton[T](factory: () => T)(implicit ct: ClassTag[T]): Unit = {
+    singletons += ct.runtimeClass -> factory
+  }
+  
+  def get[T](implicit ct: ClassTag[T]): Option[T] = {
+    services.get(ct.runtimeClass).map(_.asInstanceOf[T])
+      .orElse {
+        singletons.get(ct.runtimeClass).map { factory =>
+          val instance = factory.asInstanceOf[() => T]()
+          services += ct.runtimeClass -> instance
+          instance
+        }
+      }
+  }
+  
+  def require[T](implicit ct: ClassTag[T]): T = {
+    get[T].getOrElse(throw new IllegalStateException(s"Service not found: ${ct.runtimeClass}"))
+  }
+}
+
+// Usage pattern in applications
+object ServiceRegistry {
+  private val container = new ServiceContainer()
+  
+  def initialize(config: ApplicationConfig): Unit = {
+    // Register infrastructure services
+    container.register(new MetricsCollector(config.metrics))
+    container.register(new AerospikeClient(config.aerospike))
+    container.register(new KafkaProducerFactory(config.kafka))
+    
+    // Register domain services
+    container.registerSingleton(() => new UserAggregationService(
+      aerospikeClient = container.require[AerospikeClient],
+      metricsCollector = container.require[MetricsCollector]
+    ))
+  }
+  
+  def get[T: ClassTag]: Option[T] = container.get[T]
+  def require[T: ClassTag]: T = container.require[T]
+}
+```
+
+### **Library Interoperability Patterns**
+
+#### **Event-Driven Integration**
+```scala
+// Event bus for cross-library communication
+trait DomainEvent {
+  def eventId: String
+  def timestamp: Instant
+  def eventType: String
+}
+
+case class UserAggregationUpdated(
+  userId: UserIdentifiers,
+  newAggregations: UserAggregations,
+  eventId: String = UUID.randomUUID().toString,
+  timestamp: Instant = Instant.now()
+) extends DomainEvent {
+  val eventType = "user.aggregation.updated"
+}
+
+class EventBus {
+  private val handlers = mutable.Map[String, List[DomainEvent => Future[Unit]]]()
+  
+  def subscribe[T <: DomainEvent: ClassTag](handler: T => Future[Unit]): Unit = {
+    val eventType = implicitly[ClassTag[T]].runtimeClass.getSimpleName
+    val typedHandler: DomainEvent => Future[Unit] = {
+      case event: T => handler(event)
+      case _ => Future.unit
+    }
+    
+    handlers += eventType -> (typedHandler :: handlers.getOrElse(eventType, List.empty))
+  }
+  
+  def publish(event: DomainEvent): Future[List[Unit]] = {
+    val eventHandlers = handlers.getOrElse(event.eventType, List.empty)
+    Future.traverse(eventHandlers)(_.apply(event))
+  }
+}
+
+// Cross-library event integration
+// In grow-delivery: publish aggregation updates
+class ImpressionConsumer(eventBus: EventBus, aggregationService: UserAggregationService) {
+  def processImpression(impression: ImpressionEvent): Future[Unit] = {
+    for {
+      updatedAggregations <- aggregationService.updateUserAggregations(
+        impression.userId, impression
+      )
+      _ <- eventBus.publish(UserAggregationUpdated(impression.userId, updatedAggregations))
+    } yield ()
+  }
+}
+
+// In sonic: subscribe to aggregation updates for ML features
+class MLFeatureUpdater(eventBus: EventBus, featureStore: FeatureStore) {
+  eventBus.subscribe[UserAggregationUpdated] { event =>
+    val mlFeatures = extractMLFeatures(event.newAggregations)
+    featureStore.updateUserFeatures(event.userId, mlFeatures)
+  }
+}
+```
+
+## Performance and Scalability Patterns
+
+### **Memory Management and Object Pooling**
+```scala
+// Object pool for high-frequency allocations
+class ObjectPool[T](factory: () => T, maxSize: Int = 100) {
+  private val pool = new ConcurrentLinkedQueue[T]()
+  private val currentSize = new AtomicInteger(0)
+  
+  def borrow(): T = {
+    Option(pool.poll()).getOrElse(factory())
+  }
+  
+  def return(obj: T): Unit = {
+    if (currentSize.get() < maxSize && pool.offer(obj)) {
+      currentSize.incrementAndGet()
+    }
+  }
+  
+  def withBorrowed[R](block: T => R): R = {
+    val obj = borrow()
+    try {
+      block(obj)
+    } finally {
+      return(obj)
+    }
+  }
+}
+
+// Usage in high-performance serialization
+object SerializationPools {
+  val byteBufferPool = new ObjectPool[ByteBuffer](() => ByteBuffer.allocate(8192))
+  val stringBuilderPool = new ObjectPool[StringBuilder](() => new StringBuilder(1024))
+  
+  def serializeToJson[T](obj: T)(implicit writes: Writes[T]): String = {
+    stringBuilderPool.withBorrowed { sb =>
+      sb.clear()
+      // Use pre-allocated StringBuilder for JSON serialization
+      Json.stringify(Json.toJson(obj))
+    }
+  }
+}
+```
+
+### **Async and Non-Blocking Patterns**
+```scala
+// Non-blocking batch operations
+class BatchOperationExecutor(
+  maxBatchSize: Int = 100,
+  batchTimeout: FiniteDuration = 10.milliseconds
+) {
+  
+  private val pendingOperations = new ConcurrentLinkedQueue[(String, Promise[String])]()
+  private val batchProcessor = system.scheduler.scheduleWithFixedDelay(
+    initialDelay = batchTimeout,
+    delay = batchTimeout
+  ) { () =>
+    processPendingBatch()
+  }
+  
+  def submitOperation(operation: String): Future[String] = {
+    val promise = Promise[String]()
+    pendingOperations.offer((operation, promise))
+    
+    // Force batch processing if we hit max batch size
+    if (pendingOperations.size() >= maxBatchSize) {
+      processPendingBatch()
+    }
+    
+    promise.future
+  }
+  
+  private def processPendingBatch(): Unit = {
+    val batch = mutable.ListBuffer[(String, Promise[String])]()
+    
+    // Drain up to maxBatchSize operations
+    var count = 0
+    while (count < maxBatchSize && !pendingOperations.isEmpty) {
+      Option(pendingOperations.poll()).foreach { op =>
+        batch += op
+        count += 1
+      }
+    }
+    
+    if (batch.nonEmpty) {
+      // Process batch asynchronously
+      Future {
+        processBatch(batch.map(_._1).toList)
+      }.onComplete {
+        case Success(results) =>
+          batch.zip(results).foreach { case ((_, promise), result) =>
+            promise.success(result)
+          }
+        case Failure(error) =>
+          batch.foreach { case (_, promise) =>
+            promise.failure(error)
+          }
+      }
+    }
+  }
+  
+  private def processBatch(operations: List[String]): List[String] = {
+    // Batch processing logic - much more efficient than individual operations
+    operations.map(processOperation)
+  }
+}
+```
+
+This comprehensive development framework ensures that shared libraries provide reliable, high-performance, and maintainable infrastructure components.
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, Boy Scout Rule)
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection)
+
+**Scala-Specific:**
+- This file provides Scala-specific shared library development patterns (zero breaking changes, versioning, API design)

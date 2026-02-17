@@ -1,0 +1,316 @@
+---
+description: "Monitoring and observability patterns for Scala services. Use when: (1) Implementing monitoring/metrics, (2) Adding observability features, (3) Setting up logging/tracing, (4) Creating dashboards, (5) Debugging production issues. Covers metrics collection, distributed tracing, logging patterns, and observability best practices."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+
+# Monitoring and Observability Patterns
+
+## Core Principles
+
+1. **Implicit Parameter Pattern**: Always pass `Monitoring` and `Logger` as implicit parameters
+2. **Structured Metrics**: Use consistent key naming with meaningful tags
+3. **Low Cardinality**: Keep tag values bounded to avoid metric explosion
+4. **Dedicated Monitor Objects**: Create service-specific monitoring utilities
+5. **Consistent Prefixes**: Use service-specific prefixes for metric organization
+
+## Monitoring Implementation Patterns
+
+### Implicit Monitoring Pattern
+```scala
+// ✅ Good: Monitoring as implicit parameter
+class ServiceHandler(implicit monitoring: Monitoring) {
+  def processRequest(requestType: String): Unit = {
+    monitoring.increment("requests_processed", "type" -> requestType)
+  }
+}
+
+// ✅ Good: Monitoring passed implicitly to functions
+def handleEvent(event: Event)(implicit monitoring: Monitoring): Unit = {
+  monitoring.increment("events_handled", "event_type" -> event.eventType)
+}
+
+// ❌ Bad: Monitoring passed explicitly everywhere
+def handleEvent(event: Event, monitoring: Monitoring): Unit = {
+  monitoring.increment("events_handled", "event_type" -> event.eventType)
+}
+```
+
+### Dedicated Monitoring Objects
+```scala
+// ✅ Good: Service-specific monitoring utility
+object ServiceMonitoring {
+  private val prefix = "service_name_"
+  
+  def monitorSuccess(operation: String)(implicit monitoring: Monitoring): Unit =
+    monitoring.increment(s"${prefix}success", "operation" -> operation)
+    
+  def monitorFailure(operation: String, reason: String)(implicit monitoring: Monitoring): Unit =
+    monitoring.increment(s"${prefix}failure", "operation" -> operation, "reason" -> reason)
+    
+  def monitorLatency(operation: String, duration: Long)(implicit monitoring: Monitoring): Unit =
+    monitoring.timing(s"${prefix}latency", duration, "operation" -> operation)
+}
+
+// ✅ Good: Class-based monitoring utility with prefix
+class DemandDemanderMonitor(implicit monitoring: Monitoring) {
+  private val prefix = "demand_demander_"
+  
+  def incoming(): Unit = monitoring.increment(s"${prefix}incoming_message")
+  
+  def parse(parsingResult: ParsingResult): Unit = monitoring.increment(
+    s"${prefix}parsing",
+    parsingResult.monitorStringTags ++ Seq("result" -> parsingResult.productPrefix): _*
+  )
+}
+```
+
+### Metric Naming Conventions
+```scala
+// ✅ Good: Consistent naming with prefixes and underscores
+monitoring.increment("service_requests_total", "method" -> "POST", "status" -> "success")
+monitoring.increment("bos_update_inflight_ratios_api_used", "campaign_id" -> campaignId)
+monitoring.increment("track_id_to_bundle_id", "result" -> "found")
+
+// ✅ Good: Service-specific prefixes
+val prefix = "udb_monitoring_"
+monitoring.increment(s"${prefix}get.success", "key_type" -> keyType)
+monitoring.increment(s"${prefix}get.fail", "key_type" -> keyType, "reason" -> errorType)
+
+// ❌ Bad: Inconsistent naming
+monitoring.increment("RequestSuccess") 
+monitoring.increment("req-failed")
+monitoring.increment("getDataOK")
+```
+
+### Tag Patterns
+```scala
+// ✅ Good: Bounded, meaningful tags
+monitoring.increment(
+  "request_processed",
+  "service" -> "impression_consumer",
+  "outcome" -> outcome.toString,           // Enum values - bounded
+  "country_tier" -> countryTier,          // Limited set of tiers
+  "result" -> "success"                   // success/failure
+)
+
+// ✅ Good: Using productPrefix for sealed trait/case class types
+monitoring.increment(
+  "parsing_result", 
+  "result" -> parsingResult.productPrefix  // Automatically bounded by case classes
+)
+
+// ✅ Good: Conditional tagging for optional values
+val tags = Seq(
+  "base_tag" -> "value"
+) ++ campaignId.map("campaign_id" -> _.toString).toSeq
+
+// ❌ Bad: High cardinality tags (unbounded values)
+monitoring.increment("requests", "user_id" -> userId)        // Many unique users
+monitoring.increment("requests", "timestamp" -> timestamp)    // Infinite timestamps
+monitoring.increment("requests", "request_body" -> body)     // Arbitrary strings
+```
+
+### Monitoring with Counts and Gauges
+```scala
+// ✅ Good: Increment with specific counts
+monitoring.increment("records_processed", recordCount)
+monitoring.increment("batch_success", batchSize, "operation" -> "udb_store")
+
+// ✅ Good: Gauge for current state
+monitoring.gauge("backfill_records_size", records)
+monitoring.gauge("backfill_operations", operations)
+
+// ✅ Good: Timing measurements
+monitoring.timing("event_latency", latencyMs, "event_type" -> eventType)
+```
+
+## Logging Patterns
+
+### Implicit Logger Pattern
+```scala
+// ✅ Good: Logger as implicit parameter
+def processEvent(event: Event)(implicit logger: Logger): Unit = {
+  logger.info("Processing event", "event_id" -> event.id, "type" -> event.eventType)
+}
+
+// ✅ Good: Combined logging and monitoring
+def logAndMonitor(event: String, tags: Seq[(String, String)])
+                 (implicit logger: Logger, monitoring: Monitoring): Unit = {
+  monitoring.increment(event, tags: _*)
+  logger.debug(event, tags: _*)
+}
+```
+
+### Structured Logging
+```scala
+// ✅ Good: Structured logging with key-value pairs
+logger.info("User action completed", 
+  "user_id" -> userId, 
+  "action" -> actionType, 
+  "duration_ms" -> duration.toString
+)
+
+// ✅ Good: Error logging with context
+logger.error("Database operation failed", 
+  "operation" -> "user_lookup",
+  "error" -> throwable.getMessage,
+  "retry_count" -> retryCount.toString
+)
+
+// ❌ Bad: String interpolation without structure
+logger.info(s"User $userId performed $actionType in ${duration}ms")
+```
+
+### Conditional Logging for Performance
+```scala
+// ✅ Good: Probabilistic logging for high-volume data
+def logIds(userKeys: NonEmptyList[AerospikeUserIDKey], logProb: Option[Int])
+          (implicit logger: Logger): Unit =
+  if (logProb.exists(value => Random.nextInt(value) == 0))
+    logger.info(s"User identifiers: ${userKeys.toList.mkString(",")}")
+
+// ✅ Good: Feature-flag controlled detailed logging
+def conditionalDetailedLogging(flag: DynamicFeatureFlag)
+                              (implicit logger: Logger, 
+                               featureFlags: DynamicFeatureFlagsFetcher): Unit = {
+  if (featureFlags.isFeatureOn(flag)) {
+    logger.info("Detailed debug information", "details" -> expensiveDebugInfo())
+  }
+}
+```
+
+## Monitoring Integration Patterns
+
+### Service Handler Pattern
+```scala
+// ✅ Good: Monitoring integrated in service handlers
+class ImpressionConsumerHandler(implicit monitoring: Monitoring, logger: Logger) {
+  
+  def handleImpression(event: ImpressionEvent): Unit = {
+    val startTime = System.currentTimeMillis()
+    
+    try {
+      processImpression(event)
+      
+      monitoring.increment("impressions_processed", "result" -> "success")
+      monitoring.timing("impression_processing_time", System.currentTimeMillis() - startTime)
+      
+    } catch {
+      case ex: Exception =>
+        logger.error("Impression processing failed", "error" -> ex.getMessage) 
+        monitoring.increment("impressions_processed", "result" -> "failure", "error_type" -> ex.getClass.getSimpleName)
+        throw ex
+    }
+  }
+}
+```
+
+### API Endpoint Monitoring
+```scala
+// ✅ Good: HTTP endpoint monitoring
+def processRequest(path: String)(implicit monitoring: Monitoring): HttpResponse = {
+  try {
+    val result = handleRequest()
+    monitoring.increment("http_requests", "path" -> path, "status" -> "success")
+    HttpResponse(StatusCodes.OK, entity = result)
+  } catch {
+    case ex: Exception =>
+      monitoring.increment("http_requests", "path" -> path, "status" -> "error") 
+      HttpResponse(StatusCodes.InternalServerError, entity = ex.getMessage)
+  }
+}
+```
+
+### Batch Processing Monitoring
+```scala
+// ✅ Good: Batch operation monitoring with success/failure counts
+def processBatch(items: List[Item])(implicit monitoring: Monitoring): BatchResult = {
+  val results = items.map(processItem)
+  val successful = results.count(_.isSuccess)
+  val failed = results.count(_.isFailure)
+  
+  monitoring.increment("batch_items_processed", successful, "result" -> "success")
+  monitoring.increment("batch_items_processed", failed, "result" -> "failure")
+  monitoring.gauge("batch_size", items.length)
+  
+  BatchResult(successful, failed)
+}
+```
+
+## Anti-Patterns to Avoid
+
+### Monitoring Anti-Patterns
+```scala
+// ❌ Bad: Creating monitoring instances in business logic
+class Service {
+  private val monitoring = new MonitoringImpl() // Don't do this
+}
+
+// ❌ Bad: Hardcoded monitoring without implicit
+def process(): Unit = {
+  MonitoringGlobal.increment("processed") // Global state
+}
+
+// ❌ Bad: Metric names without namespacing
+monitoring.increment("count")           // Too generic
+monitoring.increment("processed")       // Which service?
+monitoring.increment("success")         // Success of what?
+```
+
+### Logging Anti-Patterns
+```scala
+// ❌ Bad: Creating logger instances everywhere  
+class Service {
+  private val logger = Logger("Service") // Don't create explicit instances
+}
+
+// ❌ Bad: Unstructured logging
+logger.info("Something happened with user 123 and campaign 456")
+
+// ❌ Bad: Logging sensitive information
+logger.info("User credentials", "password" -> password) // Never log secrets
+```
+
+## Testing Patterns
+
+### Monitoring in Tests
+```scala
+// ✅ Good: Mock monitoring for tests
+class ServiceTest extends AnyWordSpec with Matchers {
+  implicit val monitoring: Monitoring = MonitoringMock
+  implicit val logger: Logger = Logger("Test")
+  
+  "service" should {
+    "increment success metric" in {
+      val service = new Service()
+      service.process()
+      // Assert monitoring calls if needed
+    }
+  }
+}
+```
+
+## Best Practices Summary
+
+1. **Always use implicit parameters** for `Monitoring` and `Logger`
+2. **Create dedicated monitoring objects** for each service with consistent prefixes
+3. **Use bounded tag values** to avoid metric explosion
+4. **Structure logs** with key-value pairs, not string interpolation
+5. **Monitor both success and failure paths** with appropriate tags
+6. **Use timing metrics** for performance-critical operations
+7. **Implement probabilistic logging** for high-volume operations
+8. **Test with mock monitoring** to avoid real metrics in tests
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal principles (separation of concerns, meaningful names)
+- [Generic Architecture Principles](../../../generic/architecture/core-principles.mdc) - Universal architecture principles (dependency injection, interface-centric design)
+
+**Scala-Specific:**
+- This file provides Scala-specific monitoring patterns (implicit parameters, structured metrics)

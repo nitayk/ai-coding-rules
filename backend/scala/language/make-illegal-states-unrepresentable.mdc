@@ -1,0 +1,556 @@
+---
+description: "Make illegal states unrepresentable using sealed traits and ADTs - prevent invalid combinations at compile time. Use when: (1) Designing data models with multiple states, (2) Handling state machines, (3) Preventing invalid combinations (e.g., active + deleted), (4) Creating type-safe enums, (5) Encoding business rules in types. Essential for AI agents working locally who can't enforce global invariants."
+globs: []
+alwaysApply: false
+---
+
+# Make Illegal States Unrepresentable
+
+This guide emphasizes using Scala's type system to make **illegal states impossible to represent**. When invalid combinations can't be expressed in code, the compiler prevents bugs, AI edits stay safe, and global invariants are enforced automatically.
+
+---
+
+## Core Principle
+
+> **Make illegal states unrepresentable.** Design your types so that states violating invariants simply can't be expressed in code. Not just documented or tested—but prevented by the type system.
+
+**Why this matters**:
+- **AI agents work locally** - They can't enforce global invariants unless encoded in types
+- **Humans make mistakes** - Type system catches violations automatically
+- **Refactoring safety** - Invalid states can't be introduced accidentally
+- **Self-documenting** - Types show valid combinations explicitly
+
+---
+
+## The Problem: Representable Illegal States
+
+### ❌ Bad: Nullable Fields Allow Invalid Combinations
+
+```scala
+// ❌ Bad: Illegal states are representable
+case class CoffeeOrder(
+  drinkType: DrinkType,
+  milk: Milk = null,           // Can be null even when required
+  gelato: Gelato = null,        // Can be null even when required
+  cream: Cream = null,          // Can be null even when required
+  whiskey: Whiskey = null       // Can be null even when required
+)
+
+enum DrinkType {
+  case Cappuccino, Espresso, Latte, Affogato, IrishCoffee
+}
+
+// ❌ Problem: Can create invalid combinations
+val invalidOrder = CoffeeOrder(
+  drinkType = DrinkType.IrishCoffee,
+  whiskey = null  // Irish coffee without whiskey - illegal but compiles!
+)
+
+val invalidAffogato = CoffeeOrder(
+  drinkType = DrinkType.Affogato,
+  gelato = null  // Affogato without gelato - illegal but compiles!
+)
+```
+
+**Problems**:
+- **Nullability is hidden** - Fields can be null even when logically required
+- **Invalid combinations possible** - Nothing prevents creating nonsensical orders
+- **Runtime failures** - Bugs appear only when code executes
+- **AI edits break invariants** - AI might replace defaults with dynamic logic that breaks
+
+### ❌ Bad: AI Edits Introduce Latent Bugs
+
+```scala
+// ❌ Bad: AI replaces hardcoded default with dynamic lookup
+case class CoffeeOrder(
+  drinkType: DrinkType,
+  whiskey: Whiskey = Whiskey.JAMESON  // Hardcoded default
+)
+
+// AI edit: "Make it dynamic!"
+case class CoffeeOrder(
+  drinkType: DrinkType,
+  whiskey: Whiskey = stockService.getDefaultWhiskey()  // Dynamic default
+)
+
+// ❌ Problem: What if stockService returns null or throws?
+// Type system doesn't help - nullability is blurred
+val order = CoffeeOrder(drinkType = DrinkType.IrishCoffee)
+// If getDefaultWhiskey() fails, order has null whiskey - illegal state!
+```
+
+**Problems**:
+- **Dynamic defaults can fail** - Stock service might be unavailable
+- **Type system doesn't help** - Nullability isn't explicit
+- **Latent bugs** - Failures happen in rare cases (out of stock, network issues)
+- **Tests might miss it** - Rare combinations might not be tested
+
+---
+
+## The Solution: Sealed Traits Make Illegal States Unrepresentable
+
+### ✅ Good: Sealed Traits Enforce Valid Combinations
+
+```scala
+// ✅ Good: Each variant represents only valid combinations
+sealed trait CoffeeOrder
+
+case class Cappuccino(milk: Milk) extends CoffeeOrder
+case class Espresso() extends CoffeeOrder
+case class Latte(milk: Milk) extends CoffeeOrder
+case class Affogato(gelato: Gelato) extends CoffeeOrder
+case class IrishCoffee(cream: Cream, whiskey: Whiskey) extends CoffeeOrder
+
+// ✅ Impossible to create invalid combinations
+val validIrishCoffee = IrishCoffee(
+  cream = Cream.Fresh,
+  whiskey = Whiskey.JAMESON
+)  // Compiler ensures both are provided
+
+// ❌ Compiler error: Can't create IrishCoffee without whiskey
+val invalid = IrishCoffee(cream = Cream.Fresh)  // Missing whiskey - compile error!
+```
+
+**Benefits**:
+- **Invalid states impossible** - Compiler prevents creating invalid combinations
+- **Exhaustive matching** - Compiler ensures all cases handled
+- **Self-documenting** - Types show valid combinations explicitly
+- **Refactoring safety** - Adding new variants shows all affected code
+
+### ✅ Good: Handling Dynamic Data with Types
+
+```scala
+// ✅ Good: Types reflect optionality and failure
+sealed trait CoffeeOrderResult
+
+case class ValidOrder(order: CoffeeOrder) extends CoffeeOrderResult
+case class MissingIngredient(ingredient: String) extends CoffeeOrderResult
+case class StockUnavailable(item: String) extends CoffeeOrderResult
+case class ServiceError(message: String) extends CoffeeOrderResult
+
+def createIrishCoffee(
+  cream: Option[Cream],
+  whiskey: Option[Whiskey]
+): CoffeeOrderResult = {
+  (cream, whiskey) match {
+    case (Some(c), Some(w)) => ValidOrder(IrishCoffee(c, w))
+    case (None, _) => MissingIngredient("cream")
+    case (_, None) => MissingIngredient("whiskey")
+  }
+}
+
+// ✅ Type system forces handling all cases
+val result = createIrishCoffee(Some(Cream.Fresh), None)
+result match {
+  case ValidOrder(order) => processOrder(order)
+  case MissingIngredient(item) => handleMissing(item)
+  case StockUnavailable(item) => handleUnavailable(item)
+  case ServiceError(msg) => handleError(msg)
+}
+```
+
+**Benefits**:
+- **Explicit failure modes** - Types show all possible outcomes
+- **Compile-time safety** - Compiler ensures all cases handled
+- **No null surprises** - Optionality is explicit in types
+- **AI edits stay safe** - Type system prevents breaking invariants
+
+---
+
+## Real-World Examples
+
+### Example 1: Policy Configuration
+
+```scala
+// ❌ Bad: Invalid combinations possible
+case class Policy(
+  isRestricted: Boolean,
+  availabilityZones: List[AvailabilityZone],  // Empty when unrestricted?
+  maxInstances: Option[Int]                    // None when unrestricted?
+)
+
+// Can create invalid state
+val invalid = Policy(
+  isRestricted = true,
+  availabilityZones = List.empty,  // Restricted but no zones!
+  maxInstances = None               // Restricted but no limit!
+)
+
+// ✅ Good: Sealed traits enforce valid combinations
+sealed trait Policy
+
+case class RestrictedPolicy(
+  availabilityZones: NonEmptyList[AvailabilityZone],
+  maxInstances: Int
+) extends Policy
+
+case class UnrestrictedPolicy() extends Policy
+
+// Impossible to create invalid restricted policy
+val valid = RestrictedPolicy(
+  availabilityZones = NonEmptyList.of(AvailabilityZone("us-east-1")),
+  maxInstances = 10
+)  // Compiler ensures zones and maxInstances are provided
+```
+
+### Example 2: Service Status
+
+```scala
+// ❌ Bad: Nullable fields allow invalid combinations
+case class ServiceStatus(
+  isHealthy: Boolean,
+  healthyInstances: List[Instance] = null,
+  unhealthyInstances: List[Instance] = null,
+  errors: List[Error] = null
+)
+
+// Can create invalid state
+val invalid = ServiceStatus(
+  isHealthy = true,
+  healthyInstances = null  // Healthy but no instances?
+)
+
+// ✅ Good: Sealed traits enforce valid combinations
+sealed trait ServiceStatus
+
+case class HealthyService(
+  instances: NonEmptyList[Instance]
+) extends ServiceStatus
+
+case class UnhealthyService(
+  healthyInstances: List[Instance],
+  unhealthyInstances: NonEmptyList[Instance]
+) extends ServiceStatus
+
+case class ServiceWithNoInstances() extends ServiceStatus
+
+case class ServiceError(
+  errors: NonEmptyList[Error]
+) extends ServiceStatus
+
+// Impossible to create invalid combinations
+val valid = HealthyService(
+  instances = NonEmptyList.of(Instance("server-1"))
+)  // Compiler ensures at least one instance
+```
+
+### Example 3: Order Processing State
+
+```scala
+// ❌ Bad: Mutable state allows invalid transitions
+case class Order(
+  status: OrderStatus,
+  paymentId: String = null,      // Required when paid?
+  shippingAddress: Address = null // Required when shipped?
+)
+
+enum OrderStatus {
+  case Pending, Paid, Shipped, Delivered
+}
+
+// Can create invalid state
+val invalid = Order(
+  status = OrderStatus.Shipped,
+  shippingAddress = null  // Shipped but no address?
+)
+
+// ✅ Good: Sealed traits enforce valid state transitions
+sealed trait Order
+
+case class PendingOrder(items: List[Item]) extends Order
+
+case class PaidOrder(
+  items: List[Item],
+  paymentId: PaymentId
+) extends Order
+
+case class ShippedOrder(
+  items: List[Item],
+  paymentId: PaymentId,
+  shippingAddress: Address,
+  trackingNumber: TrackingNumber
+) extends Order
+
+case class DeliveredOrder(
+  items: List[Item],
+  paymentId: PaymentId,
+  shippingAddress: Address,
+  trackingNumber: TrackingNumber,
+  deliveryDate: LocalDate
+) extends Order
+
+// Impossible to create invalid state
+val valid = ShippedOrder(
+  items = List(Item("book")),
+  paymentId = PaymentId("pay-123"),
+  shippingAddress = Address("123 Main St"),
+  trackingNumber = TrackingNumber("TRACK-456")
+)  // Compiler ensures all required fields
+```
+
+---
+
+## Patterns for Making Illegal States Unrepresentable
+
+### Pattern 1: Use Sealed Traits for Variants
+
+```scala
+// ✅ Good: Sealed trait with case classes for each valid variant
+sealed trait Result[A]
+
+case class Success[A](value: A) extends Result[A]
+case class Failure[A](error: String) extends Result[A]
+
+// Each variant represents a valid state
+// No way to create invalid combinations
+```
+
+### Pattern 2: Use NonEmptyList for Required Collections
+
+```scala
+import cats.data.NonEmptyList
+
+// ✅ Good: NonEmptyList guarantees at least one element
+case class RestrictedPolicy(
+  availabilityZones: NonEmptyList[AvailabilityZone],
+  maxInstances: Int
+)
+
+// Cannot create with empty list - compile error!
+val policy = RestrictedPolicy(
+  availabilityZones = NonEmptyList.of(AvailabilityZone("us-east-1")),
+  maxInstances = 10
+)
+```
+
+### Pattern 3: Use Typed Wrappers for Domain Concepts
+
+```scala
+// ✅ Good: Typed wrappers prevent mixing up values
+case class PaymentId(value: String) extends AnyVal
+case class TrackingNumber(value: String) extends AnyVal
+case class OrderId(value: String) extends AnyVal
+
+case class ShippedOrder(
+  orderId: OrderId,
+  paymentId: PaymentId,
+  trackingNumber: TrackingNumber
+)
+
+// Cannot mix up IDs - compile error!
+val order = ShippedOrder(
+  orderId = OrderId("order-123"),
+  paymentId = PaymentId("pay-456"),
+  trackingNumber = TrackingNumber("track-789")
+)
+```
+
+### Pattern 4: Use Either for Explicit Failure Modes
+
+```scala
+// ✅ Good: Either makes failure modes explicit
+sealed trait ValidationError
+case object MissingField extends ValidationError
+case class InvalidFormat(field: String) extends ValidationError
+
+def createOrder(
+  items: List[Item],
+  paymentId: String
+): Either[ValidationError, Order] = {
+  if (items.isEmpty) Left(MissingField)
+  else if (paymentId.isEmpty) Left(InvalidFormat("paymentId"))
+  else Right(Order(items, PaymentId(paymentId)))
+}
+
+// Type system forces handling failure cases
+createOrder(List.empty, "pay-123") match {
+  case Right(order) => processOrder(order)
+  case Left(MissingField) => handleMissingItems()
+  case Left(InvalidFormat(field)) => handleInvalidFormat(field)
+}
+```
+
+---
+
+## AI-Assisted Development Considerations
+
+### Why AI Needs Type-Safe Invariants
+
+**AI agents work locally** - They see small code snippets, not global invariants:
+
+```scala
+// ❌ Bad: AI might break invariants
+case class CoffeeOrder(
+  drinkType: DrinkType,
+  whiskey: Whiskey = Whiskey.JAMESON
+)
+
+// AI edit: "Make whiskey optional for flexibility"
+case class CoffeeOrder(
+  drinkType: DrinkType,
+  whiskey: Option[Whiskey] = Some(Whiskey.JAMESON)
+)
+
+// ❌ Problem: Now can create IrishCoffee without whiskey!
+val invalid = CoffeeOrder(
+  drinkType = DrinkType.IrishCoffee,
+  whiskey = None  // Illegal but compiles!
+)
+```
+
+**With sealed traits, AI edits stay safe**:
+
+```scala
+// ✅ Good: Type system prevents invalid edits
+sealed trait CoffeeOrder
+case class IrishCoffee(cream: Cream, whiskey: Whiskey) extends CoffeeOrder
+
+// AI cannot create IrishCoffee without whiskey - compile error!
+// Type system enforces invariants automatically
+```
+
+### Best Practices for AI-Safe Code
+
+1. **Encode invariants in types** - Don't rely on comments or tests
+2. **Use sealed traits** - Make invalid combinations impossible
+3. **Make nullability explicit** - Use `Option` or sealed traits, never `null`
+4. **Use typed wrappers** - Prevent mixing up similar values
+5. **Handle dynamic data with types** - Use `Either` or sealed traits for failure modes
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Invalid States
+
+Look for:
+- **Nullable fields** that are logically required
+- **Boolean flags** combined with optional fields
+- **Enums** with fields that don't apply to all variants
+- **Mutable state** that can transition to invalid combinations
+
+### Step 2: Design Sealed Trait Hierarchy
+
+```scala
+// Before: Invalid states possible
+case class Order(
+  status: OrderStatus,
+  paymentId: String = null,
+  shippingAddress: Address = null
+)
+
+// After: Sealed traits enforce valid states
+sealed trait Order
+case class PendingOrder(items: List[Item]) extends Order
+case class PaidOrder(items: List[Item], paymentId: PaymentId) extends Order
+case class ShippedOrder(items: List[Item], paymentId: PaymentId, shippingAddress: Address) extends Order
+```
+
+### Step 3: Update Pattern Matching
+
+```scala
+// ✅ Good: Exhaustive pattern matching
+def processOrder(order: Order): String = order match {
+  case PendingOrder(items) => s"Pending: ${items.size} items"
+  case PaidOrder(items, paymentId) => s"Paid: ${paymentId.value}"
+  case ShippedOrder(items, paymentId, address) => s"Shipped to ${address}"
+}
+```
+
+### Step 4: Add Tests
+
+```scala
+// ✅ Good: Property-based tests verify invariants
+property("all orders have items") = forAll { (order: Order) =>
+  order match {
+    case PendingOrder(items) => items.nonEmpty
+    case PaidOrder(items, _) => items.nonEmpty
+    case ShippedOrder(items, _, _) => items.nonEmpty
+  }
+}
+```
+
+---
+
+## Common Mistakes
+
+### ❌ Mistake 1: Still Using Nullable Fields
+
+```scala
+// ❌ Bad: Still allows null
+sealed trait CoffeeOrder
+case class IrishCoffee(cream: Cream, whiskey: Whiskey = null) extends CoffeeOrder
+
+// ✅ Good: Required fields are non-nullable
+sealed trait CoffeeOrder
+case class IrishCoffee(cream: Cream, whiskey: Whiskey) extends CoffeeOrder
+```
+
+### ❌ Mistake 2: Not Using NonEmptyList
+
+```scala
+// ❌ Bad: Empty list still possible
+case class RestrictedPolicy(availabilityZones: List[AvailabilityZone])
+
+// ✅ Good: NonEmptyList guarantees at least one
+case class RestrictedPolicy(availabilityZones: NonEmptyList[AvailabilityZone])
+```
+
+### ❌ Mistake 3: Mixing Valid and Invalid in Same Type
+
+```scala
+// ❌ Bad: Single type allows invalid combinations
+case class Policy(
+  isRestricted: Boolean,
+  zones: List[AvailabilityZone],
+  maxInstances: Option[Int]
+)
+
+// ✅ Good: Separate types for valid combinations
+sealed trait Policy
+case class RestrictedPolicy(zones: NonEmptyList[AvailabilityZone], maxInstances: Int) extends Policy
+case class UnrestrictedPolicy() extends Policy
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- **Use sealed traits** - Make invalid combinations impossible
+- **Use NonEmptyList** - Guarantee non-empty collections
+- **Use typed wrappers** - Prevent mixing up similar values
+- **Make nullability explicit** - Use `Option` or sealed traits, never `null`
+- **Handle dynamic data with types** - Use `Either` or sealed traits for failure modes
+- **Encode invariants in types** - Don't rely on comments or tests
+
+### ❌ DON'T
+- **Use nullable fields** - Make required fields non-nullable
+- **Use boolean flags with optional fields** - Use sealed traits instead
+- **Rely on comments** - Encode invariants in types
+- **Assume AI understands invariants** - Make them unrepresentable
+- **Mix valid and invalid in same type** - Separate types for valid combinations
+
+### Key Insight
+
+> **Make illegal states unrepresentable. When invalid combinations can't be expressed in code, the compiler prevents bugs, AI edits stay safe, and global invariants are enforced automatically. Sealed traits and ADTs are your tools - use them to encode domain rules in types.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal "make illegal states unrepresentable" principle (this file provides Scala-specific implementation with sealed traits)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Foundation for type safety
+- [Error Handling Patterns](error-handling-patterns.mdc) - Using `Either` for explicit failure modes
+- [Avoid Option Blindness](avoid-option-blindness.mdc) - When `Option` loses domain semantics
+- [Prefer Case Classes Over Tuples](prefer-case-classes-over-tuples.mdc) - Structured data with named fields
+- [Correctness First](../meta/correctness-first.mdc) - Make it correct first, then optimize
+
+---
+
+## References
+
+- [Make Illegal AI Edits Unrepresentable](https://blog.daniel-beskin.com/2025-08-24-illegal-ai-edits) - Daniel Beskin's Blog

@@ -1,0 +1,1829 @@
+---
+description: "Pure testing patterns - making tests side-effect-free, declarative, and composable using functional programming principles. Use when: (1) Writing tests, (2) Removing side effects from tests, (3) Making tests composable, (4) Creating declarative test code, (5) Improving test maintainability. Covers pure testing patterns, test composition, and FP testing principles."
+globs: []
+alwaysApply: false
+---
+
+# Pure Testing Patterns
+
+This guide focuses on **purifying tests** - making them side-effect-free, declarative, and composable using functional programming principles. The goal is to express **what** is being tested rather than **how** it's tested.
+
+---
+
+## Core Principle
+
+> **Tests should be pure functions** - same inputs always produce same outputs, no hidden side-effects, no mutable state, no global dependencies.
+
+---
+
+## 1. Replace Mocks with Functional Dependencies (Lean Testing)
+
+The goal is to make tests **lean** - minimal setup, no heavy infrastructure, fast execution, easy to understand.
+
+### ❌ The Problem: Heavy Mock Infrastructure
+
+```scala
+// ❌ Bad: Heavy mock setup with lots of ceremony
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+
+class DataProcessorSpec extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+  var mockValidator: DataValidator = _
+  var mockRepository: DataRepository = _
+  var mockLogger: Logger = _
+  var mockMetrics: Metrics = _
+  
+  override def beforeEach(): Unit = {
+    mockValidator = mock[DataValidator]
+    mockRepository = mock[DataRepository]
+    mockLogger = mock[Logger]
+    mockMetrics = mock[Metrics]
+    
+    when(mockLogger.log(any[String])).thenReturn(())
+    when(mockMetrics.record(any[String])).thenReturn(())
+  }
+  
+  "DataProcessor" should "process records" in {
+    when(mockValidator.validate(any[DataRecord])).thenReturn(true)
+    when(mockRepository.save(any[DataRecord])).thenReturn(Success(RecordId("123")))
+    
+    val processor = new DataProcessor(mockValidator, mockRepository, mockLogger, mockMetrics)
+    val result = processor.process(testRecord)
+    
+    result shouldBe defined
+    verify(mockValidator).validate(testRecord)
+    verify(mockRepository).save(testRecord)
+    verify(mockLogger).log("Processing record")
+  }
+}
+```
+
+**Problems**:
+- **Heavy infrastructure**: Mocking framework, BeforeAndAfterEach, setup/teardown
+- **Verbose**: Lots of boilerplate for simple tests
+- **Slow**: Mock framework overhead, reflection, verification
+- **Brittle**: Breaks on refactoring, tied to implementation
+- **Hard to understand**: Mock setup obscures test intent
+
+### ✅ The Solution: Lean Functional Dependencies
+
+**Note**: For **production code**, prefer **named traits** (SAM types) over anonymous function types for better discoverability and tooling support. Anonymous functions are fine for **tests**. See [Avoid Anonymous Function Dependencies](../language/avoid-anonymous-function-dependencies.mdc) for details.
+
+```scala
+// ✅ Good: Named trait for production - better discoverability
+trait DataValidator {
+  def validate(record: DataRecord): Boolean
+}
+
+trait DataRepository {
+  def save(record: DataRecord): Try[RecordId]
+}
+
+class DataProcessor(
+  validator: DataValidator,
+  repository: DataRepository
+) {
+  def process(record: DataRecord): Option[ProcessedRecord] = {
+    if (validator.validate(record)) {
+      repository.save(record).toOption.map(ProcessedRecord(record, _))
+    } else None
+  }
+}
+
+// ✅ Good: Lean test - anonymous functions are fine here!
+class DataProcessorSpec extends AnyFlatSpec with Matchers {
+  "DataProcessor" should "process valid records" in {
+    val alwaysValid = new DataValidator {
+      def validate(record: DataRecord): Boolean = true
+    }
+    val successfulSave = new DataRepository {
+      def save(record: DataRecord): Try[RecordId] = Success(RecordId("123"))
+    }
+    
+    val processor = new DataProcessor(alwaysValid, successfulSave)
+    val result = processor.process(testRecord)
+    
+    result shouldBe defined
+    result.get.record shouldBe testRecord
+  }
+  
+  // ✅ Also fine: Anonymous functions in tests for simplicity
+  it should "reject invalid records" in {
+    val processor = new DataProcessor(
+      validator = new DataValidator { def validate(_: DataRecord) = false },
+      repository = new DataRepository { def save(_: DataRecord) = Success(RecordId("123")) }
+    )
+    
+    val result = processor.process(testRecord)
+    result shouldBe None
+  }
+}
+```
+
+**Benefits**:
+- **Lean**: No mocking framework, no setup/teardown
+- **Fast**: Pure implementations execute instantly
+- **Clear**: Test intent is obvious
+- **Flexible**: Easy to create variations
+- **Maintainable**: Doesn't break on refactoring
+- **Discoverable**: Named traits enable IDE "go to implementation"
+
+### ✅ Even Leaner: Inline Test Functions
+
+For simple cases, inline anonymous functions make tests even more concise. **Note**: Anonymous functions are fine in tests, but production code should use named traits. See [Avoid Anonymous Function Dependencies](../language/avoid-anonymous-function-dependencies.mdc).
+
+```scala
+// ✅ Good: Inline anonymous functions in tests - maximum leanness
+class DataProcessorSpec extends AnyFlatSpec with Matchers {
+  "DataProcessor" should "process valid records" in {
+    val processor = new DataProcessor(
+      validator = new DataValidator { def validate(_: DataRecord) = true },
+      repository = new DataRepository { def save(_: DataRecord) = Success(RecordId("123")) }
+    )
+    
+    val result = processor.process(testRecord)
+    result shouldBe defined
+  }
+  
+  // ✅ Also fine: Lambda syntax for very simple cases in tests
+  it should "reject invalid records" in {
+    val processor = new DataProcessor(
+      validator = new DataValidator { def validate(_: DataRecord) = false },
+      repository = new DataRepository { def save(_: DataRecord) = Success(RecordId("123")) }
+    )
+    
+    val result = processor.process(testRecord)
+    result shouldBe None
+  }
+  
+  it should "handle save failures" in {
+    val processor = new DataProcessor(
+      validator = new DataValidator { def validate(_: DataRecord) = true },
+      repository = new DataRepository { 
+        def save(_: DataRecord) = Failure(new Exception("DB error")) 
+      }
+    )
+    
+    val result = processor.process(testRecord)
+    result shouldBe None
+  }
+}
+```
+
+**Key Point**: Anonymous implementations are fine in tests for simplicity. Production code should use named traits for better discoverability and tooling support.
+
+### ✅ Lean Test Helpers: Reusable Without Overhead
+
+Create lean helpers that don't require infrastructure:
+
+```scala
+// ✅ Good: Lean test helpers - pure functions, no setup
+object TestHelpers {
+  def alwaysValid[A]: A => Boolean = _ => true
+  def alwaysInvalid[A]: A => Boolean = _ => false
+  
+  def alwaysSucceeds[A, B](value: B): A => Try[B] = _ => Success(value)
+  def alwaysFails[A, B](error: Throwable): A => Try[B] = _ => Failure(error)
+  
+  def returns[A, B](value: B): A => B = _ => value
+  def throws[A, B](error: Throwable): A => B = _ => throw error
+}
+
+// ✅ Good: Using lean helpers
+class DataProcessorSpec extends AnyFlatSpec with Matchers {
+  import TestHelpers._
+  
+  "DataProcessor" should "process valid records" in {
+    val processor = new DataProcessor(
+      validate = alwaysValid,
+      save = alwaysSucceeds(RecordId("123"))
+    )
+    
+    val result = processor.process(testRecord)
+    result shouldBe defined
+  }
+}
+```
+
+### ✅ Eliminate Unnecessary Dependencies
+
+Make dependencies optional or eliminate them entirely:
+
+```scala
+// ❌ Bad: Forcing unnecessary dependencies
+class DataProcessor(
+  validator: DataValidator,
+  repository: DataRepository,
+  logger: Logger,  // Not used in core logic!
+  metrics: Metrics  // Not used in core logic!
+) {
+  def process(record: DataRecord): Option[ProcessedRecord] = {
+    if (validator.validate(record)) {
+      repository.save(record).toOption.map(ProcessedRecord(record, _))
+    } else None
+  }
+}
+
+// ✅ Good: Only essential dependencies
+class DataProcessor(
+  validate: DataRecord => Boolean,
+  save: DataRecord => Try[RecordId]
+) {
+  def process(record: DataRecord): Option[ProcessedRecord] = {
+    if (validate(record)) {
+      save(record).toOption.map(ProcessedRecord(record, _))
+    } else None
+  }
+}
+
+// ✅ Good: Cross-cutting concerns handled separately
+class DataProcessorWithLogging(
+  processor: DataProcessor,
+  log: String => Unit
+) {
+  def process(record: DataRecord): Option[ProcessedRecord] = {
+    log(s"Processing ${record.id}")
+    val result = processor.process(record)
+    log(s"Processed ${record.id}: ${result.isDefined}")
+    result
+  }
+}
+```
+
+### ✅ Lean State Management: Immutable Test State
+
+Avoid mutable state in tests:
+
+```scala
+// ❌ Bad: Mutable test state
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  var orders: List[Order] = Nil
+  var inventory: Map[String, Int] = Map.empty
+  
+  "OrderService" should "process order" in {
+    orders = List(Order("book", 10.0))
+    inventory = Map("book" -> 5)
+    
+    val service = new OrderService(inventory)
+    val result = service.process(orders.head)
+    
+    result shouldBe defined
+  }
+}
+
+// ✅ Good: Immutable test state - lean and clear
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "process order" in {
+    val orders = List(Order("book", 10.0))
+    val inventory = Map("book" -> 5)
+    
+    val service = new OrderService(inventory)
+    val result = service.process(orders.head)
+    
+    result shouldBe defined
+  }
+  
+  it should "handle multiple orders" in {
+    val orders = List(Order("book", 10.0), Order("pen", 5.0))
+    val inventory = Map("book" -> 5, "pen" -> 10)
+    
+    val service = new OrderService(inventory)
+    val results = orders.map(service.process)
+    
+    results.forall(_.isDefined) shouldBe true
+  }
+}
+```
+
+### ✅ Lean Assertions: Test Behavior, Not Implementation
+
+```scala
+// ❌ Bad: Heavy verification of implementation details
+class ServiceSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+  "Service" should "process request" in {
+    val mockRepo = mock[Repository]
+    val mockCache = mock[Cache]
+    
+    when(mockRepo.get(any[String])).thenReturn(Some(Data("test")))
+    when(mockCache.put(any[String], any[Data])).thenReturn(())
+    
+    val service = new Service(mockRepo, mockCache)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("test"))
+    verify(mockRepo).get("key")  // Implementation detail
+    verify(mockCache).put("key", Data("test"))  // Implementation detail
+    verifyNoMoreInteractions(mockRepo, mockCache)  // Heavy verification
+  }
+}
+
+// ✅ Good: Lean assertions - just test the result
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "process request successfully" in {
+    val repo: String => Option[Data] = key => Some(Data("test"))
+    val cache: (String, Data) => Unit = (_, _) => ()  // No-op for test
+    
+    val service = new Service(repo, cache)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("test"))
+    // No verification needed - we test behavior, not implementation
+  }
+}
+```
+
+### Key Principles for Lean Testing
+
+1. **Minimize Infrastructure**: No mocking frameworks, no setup/teardown unless necessary
+2. **Pure Functions**: Use simple functions instead of complex mock objects
+3. **Inline When Simple**: For simple cases, inline functions are clearer
+4. **Eliminate Unnecessary Dependencies**: Only test what matters
+5. **Immutable State**: Avoid mutable test fixtures
+6. **Test Behavior**: Assert outcomes, not implementation details
+7. **Fast Execution**: Pure functions execute instantly
+
+**Benefits**:
+- **Lean**: Minimal setup, no heavy infrastructure
+- **Fast**: Instant execution, no framework overhead
+- **Clear**: Test intent is obvious
+- **Maintainable**: Doesn't break on refactoring
+- **Flexible**: Easy to create test variations
+
+---
+
+## 2. Parametric and Declarative Tests
+
+This section covers **two parametric techniques** and **two declarative techniques** for purifying tests.
+
+### Parametric Technique 1: Abstraction Over Data Shapes
+
+Instead of testing concrete types, parameterize over data formats or inner types to enable testing different implementations with the same test suite.
+
+#### ❌ The Problem: Concrete Types in Production Code
+
+```scala
+// ❌ Bad: Concrete types prevent test reuse
+class StringProcessor {
+  def process(data: Map[String, String]): ProcessedData = ???
+}
+
+class IntProcessor {
+  def process(data: Map[String, Int]): ProcessedData = ???
+}
+
+// Need separate test suites for each
+class StringProcessorSpec extends AnyFlatSpec with Matchers {
+  "StringProcessor" should "process string data" in {
+    val processor = new StringProcessor()
+    val result = processor.process(Map("key" -> "value"))
+    // ... assertions
+  }
+}
+
+class IntProcessorSpec extends AnyFlatSpec with Matchers {
+  "IntProcessor" should "process int data" in {
+    val processor = new IntProcessor()
+    val result = processor.process(Map("key" -> 1))
+    // ... assertions
+  }
+}
+```
+
+#### ✅ The Solution: Parametric Production Code
+
+```scala
+// ✅ Good: Parametric production code enables test reuse
+class Processor[A] {
+  def process(data: Map[String, A]): ProcessedData = ???
+}
+
+// ✅ Good: Single parametric test suite
+class ProcessorSpec[A](
+  processor: Processor[A],
+  testData: Map[String, A],
+  expected: ProcessedData
+) extends AnyFlatSpec with Matchers {
+  
+  "Processor" should "process data correctly" in {
+    val result = processor.process(testData)
+    result shouldBe expected
+  }
+}
+
+// ✅ Good: Instantiate for different types
+class StringProcessorSpec extends ProcessorSpec[String](
+  processor = new Processor[String](),
+  testData = Map("key" -> "value"),
+  expected = ProcessedData("value")
+)
+
+class IntProcessorSpec extends ProcessorSpec[Int](
+  processor = new Processor[Int](),
+  testData = Map("key" -> 1),
+  expected = ProcessedData("1")
+)
+```
+
+**Benefits**:
+- Single test suite for multiple implementations
+- Less duplication
+- Type-safe abstraction
+- Easy to add new types
+
+### Parametric Technique 2: Lean Mocking with Fake Types
+
+Use type parameters to eliminate heavy mocks by passing test-specific fake types.
+
+#### ❌ The Problem: Heavy Mocks
+
+```scala
+// ❌ Bad: Heavy mock setup
+class DataServiceSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+  "DataService" should "process data" in {
+    val mockRepository = mock[Repository]
+    val mockCache = mock[Cache]
+    val mockLogger = mock[Logger]
+    
+    when(mockRepository.get(any[String])).thenReturn(Some(Data("test")))
+    when(mockCache.get(any[String])).thenReturn(None)
+    when(mockLogger.log(any[String])).thenReturn(())
+    
+    val service = new DataService(mockRepository, mockCache, mockLogger)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("test"))
+    verify(mockRepository).get("key")
+  }
+}
+```
+
+#### ✅ The Solution: Fake Types with Type Parameters
+
+```scala
+// ✅ Good: Parametric service with type parameters
+class DataService[Repo, Cache, Log](
+  repository: Repo,
+  cache: Cache,
+  logger: Log
+)(implicit
+  repoOps: RepositoryOps[Repo],
+  cacheOps: CacheOps[Cache],
+  logOps: LogOps[Log]
+) {
+  def process(key: String): Option[ProcessedData] = {
+    logOps.log(logger, s"Processing $key")
+    cacheOps.get(cache, key).orElse {
+      repoOps.get(repository, key).map { data =>
+        cacheOps.put(cache, key, data)
+        ProcessedData(data.value)
+      }
+    }
+  }
+}
+
+// ✅ Good: Type classes for operations
+trait RepositoryOps[Repo] {
+  def get(repo: Repo, key: String): Option[Data]
+}
+
+trait CacheOps[Cache] {
+  def get(cache: Cache, key: String): Option[Data]
+  def put(cache: Cache, key: String, data: Data): Unit
+}
+
+trait LogOps[Log] {
+  def log(log: Log, message: String): Unit
+}
+
+// ✅ Good: Pure fake implementations for tests
+case class TestRepository(data: Map[String, Data] = Map.empty) {
+  def get(key: String): Option[Data] = data.get(key)
+}
+
+case class TestCache(data: Map[String, Data] = Map.empty) {
+  def get(key: String): Option[Data] = data.get(key)
+  def put(key: String, value: Data): TestCache = this.copy(data = data + (key -> value))
+}
+
+case class TestLogger(logs: List[String] = Nil) {
+  def log(message: String): TestLogger = this.copy(logs = logs :+ message)
+}
+
+// ✅ Good: Type class instances for test types
+implicit val testRepoOps: RepositoryOps[TestRepository] = new RepositoryOps[TestRepository] {
+  def get(repo: TestRepository, key: String): Option[Data] = repo.get(key)
+}
+
+implicit val testCacheOps: CacheOps[TestCache] = new CacheOps[TestCache] {
+  def get(cache: TestCache, key: String): Option[Data] = cache.get(key)
+  def put(cache: TestCache, key: String, data: Data): Unit = cache.put(key, data)
+}
+
+implicit val testLogOps: LogOps[TestLogger] = new LogOps[TestLogger] {
+  def log(log: TestLogger, message: String): Unit = log.log(message)
+}
+
+// ✅ Good: Pure test without mocks
+class DataServiceSpec extends AnyFlatSpec with Matchers {
+  "DataService" should "process data from repository" in {
+    val repo = TestRepository(Map("key" -> Data("test")))
+    val cache = TestCache()
+    val logger = TestLogger()
+    
+    val service = new DataService(repo, cache, logger)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("test"))
+    cache.get("key") shouldBe Some(Data("test"))  // Verify caching
+    logger.logs should contain("Processing key")
+  }
+  
+  it should "use cache when available" in {
+    val repo = TestRepository(Map("key" -> Data("old")))
+    val cache = TestCache(Map("key" -> Data("cached")))
+    val logger = TestLogger()
+    
+    val service = new DataService(repo, cache, logger)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("cached"))
+  }
+}
+```
+
+**Benefits**:
+- No mocking framework needed
+- Pure, testable fake implementations
+- Type-safe with compile-time checking
+- Easy to reason about test behavior
+
+### Declarative Technique 1: Specification-Style Descriptions
+
+Make tests read like specifications by using descriptive names and structure that express behavior.
+
+#### ❌ The Problem: Imperative Test Names
+
+```scala
+// ❌ Bad: Imperative test names focus on "how"
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "call validate then save then send email" in {
+    // Test implementation
+  }
+  
+  it should "return error if validate fails" in {
+    // Test implementation
+  }
+}
+```
+
+#### ✅ The Solution: Specification-Style Names
+
+```scala
+// ✅ Good: Specification-style names express "what"
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "successfully process valid orders" in {
+    // Test expresses the behavior, not the steps
+  }
+  
+  it should "reject orders with invalid items" in {
+    // Focus on the outcome, not the process
+  }
+  
+  it should "notify customer when order is confirmed" in {
+    // Behavior-focused description
+  }
+  
+  // ✅ Better: Use Given-When-Then structure
+  it should "process order successfully" in {
+    // Given: a valid order with items in stock
+    val order = TestData.order(items = List(Item("book", 10.0)))
+    val inventory = TestData.inventory(Map("book" -> 5))
+    
+    // When: processing the order
+    val service = new OrderService(inventory)
+    val result = service.process(order)
+    
+    // Then: order is confirmed
+    result shouldBe Right(OrderConfirmed(order.id))
+  }
+}
+```
+
+**Benefits**:
+- Self-documenting tests
+- Focus on behavior, not implementation
+- Easier to understand for non-developers
+- Better test reports
+
+### Declarative Technique 2: Declarative Setup with Builders and DSLs
+
+Use higher-level constructs (builders, helpers, DSLs) to describe initial conditions declaratively.
+
+#### ❌ The Problem: Imperative Setup
+
+```scala
+// ❌ Bad: Imperative step-by-step setup
+class OrderProcessorSpec extends AnyFlatSpec with Matchers {
+  "OrderProcessor" should "process order" in {
+    // Step 1: Create order
+    val item1 = Item("book", 10.0)
+    val item2 = Item("pen", 5.0)
+    val order = Order(items = List(item1, item2))
+    
+    // Step 2: Setup inventory
+    val inventory = Map("book" -> 5, "pen" -> 10)
+    
+    // Step 3: Setup customer
+    val customer = Customer(id = "123", email = "test@example.com")
+    
+    // Step 4: Setup processor
+    val processor = new OrderProcessor(inventory, customer)
+    
+    // Step 5: Process
+    val result = processor.process(order)
+    
+    // Step 6: Assert
+    result shouldBe Right(ProcessedOrder(order.id, 15.0))
+  }
+}
+```
+
+#### ✅ The Solution: Declarative Setup DSL
+
+```scala
+// ✅ Good: Declarative test DSL
+object TestScenario {
+  case class OrderBuilder(items: List[Item] = Nil) {
+    def withItem(name: String, price: Double): OrderBuilder = 
+      this.copy(items = items :+ Item(name, price))
+    
+    def build: Order = Order(items = items)
+  }
+  
+  case class InventoryBuilder(stock: Map[String, Int] = Map.empty) {
+    def withStock(item: String, quantity: Int): InventoryBuilder = 
+      this.copy(stock = stock + (item -> quantity))
+    
+    def build: Map[String, Int] = stock
+  }
+  
+  case class CustomerBuilder(id: String = "test", email: String = "test@example.com") {
+    def withId(id: String): CustomerBuilder = this.copy(id = id)
+    def withEmail(email: String): CustomerBuilder = this.copy(email = email)
+    def build: Customer = Customer(id, email)
+  }
+  
+  // ✅ Good: Fluent DSL for test scenarios
+  def order = OrderBuilder()
+  def inventory = InventoryBuilder()
+  def customer = CustomerBuilder()
+}
+
+// ✅ Good: Declarative test using DSL
+class OrderProcessorSpec extends AnyFlatSpec with Matchers {
+  import TestScenario._
+  
+  "OrderProcessor" should "process order successfully" in {
+    val scenario = TestScenario(
+      order = order
+        .withItem("book", 10.0)
+        .withItem("pen", 5.0)
+        .build,
+      inventory = inventory
+        .withStock("book", 5)
+        .withStock("pen", 10)
+        .build,
+      customer = customer
+        .withId("123")
+        .withEmail("test@example.com")
+        .build
+    )
+    
+    val processor = new OrderProcessor(scenario.inventory, scenario.customer)
+    val result = processor.process(scenario.order)
+    
+    result shouldBe Right(ProcessedOrder(scenario.order.id, 15.0))
+  }
+  
+  // ✅ Better: Even more declarative with test cases as data
+  val testCases = List(
+    TestCase(
+      description = "process order with multiple items",
+      setup = TestScenario(
+        order = order.withItem("book", 10.0).withItem("pen", 5.0).build,
+        inventory = inventory.withStock("book", 5).withStock("pen", 10).build,
+        customer = customer.build
+      ),
+      expected = Right(ProcessedOrder(_, 15.0))
+    ),
+    TestCase(
+      description = "reject order with out-of-stock items",
+      setup = TestScenario(
+        order = order.withItem("book", 10.0).build,
+        inventory = inventory.withStock("book", 0).build,
+        customer = customer.build
+      ),
+      expected = Left(OutOfStock("book"))
+    )
+  )
+  
+  testCases.foreach { testCase =>
+    it should testCase.description in {
+      val processor = new OrderProcessor(testCase.setup.inventory, testCase.setup.customer)
+      val result = processor.process(testCase.setup.order)
+      result shouldBe testCase.expected
+    }
+  }
+}
+```
+
+**Benefits**:
+- Tests read like specifications
+- Less boilerplate
+- Easy to create variations
+- Focus on intent, not mechanics
+
+---
+
+## Combining Parametric and Declarative Techniques
+
+The real power comes from combining both techniques:
+
+```scala
+// ✅ Good: Parametric + Declarative
+class ProcessorSpec[A: Show](
+  processorFactory: TestScenario => Processor[A],
+  testCases: List[TestCase[A]]
+) extends AnyFlatSpec with Matchers {
+  
+  testCases.foreach { testCase =>
+    it should testCase.description in {
+      val processor = processorFactory(testCase.setup)
+      val result = processor.process(testCase.setup.input)
+      result shouldBe testCase.expected
+    }
+  }
+}
+
+// Usage: Declarative test cases with parametric processor
+val stringTestCases = List(
+  TestCase("process string", setup, Right("result")),
+  TestCase("reject invalid", setup, Left(Error("invalid")))
+)
+
+val intTestCases = List(
+  TestCase("process int", setup, Right(123)),
+  TestCase("reject negative", setup, Left(Error("negative")))
+)
+
+class StringProcessorSpec extends ProcessorSpec[String](stringFactory, stringTestCases)
+class IntProcessorSpec extends ProcessorSpec[Int](intFactory, intTestCases)
+```
+
+**Benefits**:
+- Maximum reuse with parametric abstraction
+- Maximum clarity with declarative structure
+- Easy to extend with new types or test cases
+
+---
+
+## 3. Pure Test Data Builders
+
+### ❌ The Problem: Mutable Test Fixtures
+
+```scala
+// ❌ Bad: Mutable test fixtures with side-effects
+class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
+  var testUser: User = _
+  var testConfig: Config = _
+  
+  override def beforeEach(): Unit = {
+    testUser = User("test", "test@example.com")
+    testConfig = Config.load()  // Side-effect: loads from file system!
+  }
+  
+  "UserService" should "process user" in {
+    val service = new UserService(testConfig)
+    val result = service.process(testUser)
+    result shouldBe defined
+  }
+}
+```
+
+### ✅ The Solution: Pure Test Data Builders
+
+```scala
+// ✅ Good: Pure test data builders
+object TestData {
+  def user(
+    name: String = "test",
+    email: String = "test@example.com"
+  ): User = User(name, email)
+  
+  def config(
+    timeout: Duration = 30.seconds,
+    retries: Int = 3
+  ): Config = Config(timeout, retries)
+  
+  def userWithDefaults: User = user()
+  def configWithDefaults: Config = config()
+}
+
+// ✅ Good: Pure test without side-effects
+class UserServiceSpec extends AnyFlatSpec with Matchers {
+  "UserService" should "process user" in {
+    val testUser = TestData.user()
+    val testConfig = TestData.config(timeout = 60.seconds)
+    
+    val service = new UserService(testConfig)
+    val result = service.process(testUser)
+    
+    result shouldBe defined
+  }
+  
+  it should "handle different configs" in {
+    val testUser = TestData.user()
+    val fastConfig = TestData.config(timeout = 1.second)
+    
+    val service = new UserService(fastConfig)
+    val result = service.process(testUser)
+    
+    result shouldBe defined
+  }
+}
+```
+
+**Benefits**:
+- No side-effects (no file system, no database)
+- Tests are deterministic
+- Easy to create variations
+- No `BeforeAndAfterEach` needed
+
+---
+
+## 4. Composing Tests with Monoids
+
+Monoids are algebraic structures that enable **composable, predictable combination** of test scenarios. A monoid has:
+- An **associative binary operation** (`combine` or `|+|`)
+- An **identity element** (`empty`)
+
+Using monoids for test composition makes tests **modular, reusable, and easy to combine**.
+
+### Understanding Monoids
+
+```scala
+// Monoid definition
+trait Monoid[A] {
+  def empty: A
+  def combine(x: A, y: A): A
+}
+
+// Monoid laws:
+// 1. Associativity: (a |+| b) |+| c == a |+| (b |+| c)
+// 2. Identity: empty |+| a == a == a |+| empty
+```
+
+### ❌ The Problem: Duplicated Test Setup
+
+```scala
+// ❌ Bad: Repeated setup code
+class OrderProcessorSpec extends AnyFlatSpec with Matchers {
+  "OrderProcessor" should "process valid order" in {
+    val order = Order(items = List(Item("book", 10.0)))
+    val inventory = Map("book" -> 5)
+    val processor = new OrderProcessor(inventory)
+    
+    val result = processor.process(order)
+    result shouldBe Right(ProcessedOrder(order, 10.0))
+  }
+  
+  it should "reject out-of-stock items" in {
+    val order = Order(items = List(Item("book", 10.0)))
+    val inventory = Map("book" -> 0)  // Duplicated setup
+    val processor = new OrderProcessor(inventory)
+    
+    val result = processor.process(order)
+    result shouldBe Left(OutOfStock("book"))
+  }
+  
+  it should "calculate total correctly" in {
+    val order = Order(items = List(Item("book", 10.0), Item("pen", 5.0)))
+    val inventory = Map("book" -> 5, "pen" -> 10)  // More duplication
+    val processor = new OrderProcessor(inventory)
+    
+    val result = processor.process(order)
+    result.map(_.total) shouldBe Right(15.0)
+  }
+}
+```
+
+### ✅ The Solution: Monoidal Composition
+
+```scala
+// ✅ Good: Test scenario as composable data
+case class TestScenario(
+  order: Order,
+  inventory: Map[String, Int],
+  expected: Either[OrderError, ProcessedOrder]
+)
+
+object TestScenario {
+  // Monoid instance for combining scenarios
+  implicit val monoid: Monoid[TestScenario] = new Monoid[TestScenario] {
+    def empty: TestScenario = TestScenario(
+      order = Order.empty,
+      inventory = Map.empty,
+      expected = Right(ProcessedOrder.empty)
+    )
+    
+    def combine(x: TestScenario, y: TestScenario): TestScenario = TestScenario(
+      order = Order(x.order.items ++ y.order.items),
+      inventory = x.inventory ++ y.inventory,
+      expected = x.expected.flatMap(_ => y.expected)
+    )
+  }
+  
+  // Builder methods that return monoidal values
+  def withOrder(order: Order): TestScenario = 
+    TestScenario(order, Map.empty, Right(ProcessedOrder.empty))
+  
+  def withInventory(inventory: Map[String, Int]): TestScenario = 
+    TestScenario(Order.empty, inventory, Right(ProcessedOrder.empty))
+  
+  def expecting(expected: Either[OrderError, ProcessedOrder]): TestScenario = 
+    TestScenario(Order.empty, Map.empty, expected)
+}
+
+// ✅ Good: Composable test scenarios using monoid
+class OrderProcessorSpec extends AnyFlatSpec with Matchers {
+  import TestScenario._
+  import cats.implicits._
+  
+  "OrderProcessor" should "process valid order" in {
+    val scenario = 
+      withOrder(Order(items = List(Item("book", 10.0)))) |+|
+      withInventory(Map("book" -> 5)) |+|
+      expecting(Right(ProcessedOrder(Order(items = List(Item("book", 10.0))), 10.0)))
+    
+    val processor = new OrderProcessor(scenario.inventory)
+    val result = processor.process(scenario.order)
+    
+    result shouldBe scenario.expected
+  }
+  
+  // ✅ Better: Declarative test cases
+  val testCases = List(
+    (
+      "valid order",
+      withOrder(Order(items = List(Item("book", 10.0)))) |+|
+      withInventory(Map("book" -> 5)) |+|
+      expecting(Right(ProcessedOrder(Order(items = List(Item("book", 10.0))), 10.0)))
+    ),
+    (
+      "out of stock",
+      withOrder(Order(items = List(Item("book", 10.0)))) |+|
+      withInventory(Map("book" -> 0)) |+|
+      expecting(Left(OutOfStock("book")))
+    ),
+    (
+      "multiple items",
+      withOrder(Order(items = List(Item("book", 10.0), Item("pen", 5.0)))) |+|
+      withInventory(Map("book" -> 5, "pen" -> 10)) |+|
+      expecting(Right(ProcessedOrder(Order(items = List(Item("book", 10.0), Item("pen", 5.0))), 15.0)))
+    )
+  )
+  
+  testCases.foreach { case (description, scenario) =>
+    it should description in {
+      val processor = new OrderProcessor(scenario.inventory)
+      val result = processor.process(scenario.order)
+      result shouldBe scenario.expected
+    }
+  }
+}
+```
+
+**Benefits**:
+- **Composable**: Combine scenarios with `|+|`
+- **Associative**: Order doesn't matter for combination
+- **Less duplication**: Reuse scenario parts
+- **Declarative**: Test cases as data
+
+### ✅ Advanced: Composing Test Results with Monoids
+
+Monoids can also compose test results and assertions:
+
+```scala
+// ✅ Good: Monoid for test results
+case class TestResult(
+  passed: Int = 0,
+  failed: Int = 0,
+  errors: List[String] = Nil
+)
+
+object TestResult {
+  implicit val monoid: Monoid[TestResult] = new Monoid[TestResult] {
+    def empty: TestResult = TestResult()
+    
+    def combine(x: TestResult, y: TestResult): TestResult = TestResult(
+      passed = x.passed + y.passed,
+      failed = x.failed + y.failed,
+      errors = x.errors ++ y.errors
+    )
+  }
+  
+  def success: TestResult = TestResult(passed = 1)
+  def failure(error: String): TestResult = TestResult(failed = 1, errors = List(error))
+}
+
+// ✅ Good: Combine test results
+def runTests(tests: List[TestScenario]): TestResult = {
+  tests.foldMap { scenario =>
+    val result = processor.process(scenario.order)
+    if (result == scenario.expected) TestResult.success
+    else TestResult.failure(s"Expected ${scenario.expected}, got $result")
+  }
+}
+
+// Usage
+val scenarios = List(scenario1, scenario2, scenario3)
+val combinedResults = runTests(scenarios)
+// Automatically combines all results!
+```
+
+### ✅ Advanced: Composing Test Data with Monoids
+
+Monoids can combine test data incrementally:
+
+```scala
+// ✅ Good: Monoid for test data
+case class TestData(
+  users: List[User] = Nil,
+  orders: List[Order] = Nil,
+  inventory: Map[String, Int] = Map.empty
+)
+
+object TestData {
+  implicit val monoid: Monoid[TestData] = new Monoid[TestData] {
+    def empty: TestData = TestData()
+    
+    def combine(x: TestData, y: TestData): TestData = TestData(
+      users = x.users ++ y.users,
+      orders = x.orders ++ y.orders,
+      inventory = x.inventory ++ y.inventory
+    )
+  }
+  
+  def withUser(user: User): TestData = TestData(users = List(user))
+  def withOrder(order: Order): TestData = TestData(orders = List(order))
+  def withInventory(inventory: Map[String, Int]): TestData = TestData(inventory = inventory)
+}
+
+// ✅ Good: Compose test data
+val testData = 
+  TestData.withUser(User("alice")) |+|
+  TestData.withUser(User("bob")) |+|
+  TestData.withOrder(Order("order1")) |+|
+  TestData.withInventory(Map("book" -> 5))
+
+// Result: TestData(
+//   users = List(User("alice"), User("bob")),
+//   orders = List(Order("order1")),
+//   inventory = Map("book" -> 5)
+// )
+```
+
+### ✅ Advanced: Monoidal Test Builders
+
+Use monoids to build complex test scenarios incrementally:
+
+```scala
+// ✅ Good: Monoidal test builder
+case class TestBuilder(
+  setup: TestData = TestData.empty,
+  expectations: List[Assertion] = Nil,
+  cleanup: List[() => Unit] = Nil
+)
+
+object TestBuilder {
+  implicit val monoid: Monoid[TestBuilder] = new Monoid[TestBuilder] {
+    def empty: TestBuilder = TestBuilder()
+    
+    def combine(x: TestBuilder, y: TestBuilder): TestBuilder = TestBuilder(
+      setup = x.setup |+| y.setup,
+      expectations = x.expectations ++ y.expectations,
+      cleanup = x.cleanup ++ y.cleanup
+    )
+  }
+  
+  def withSetup(data: TestData): TestBuilder = TestBuilder(setup = data)
+  def expecting(assertion: Assertion): TestBuilder = TestBuilder(expectations = List(assertion))
+  def withCleanup(action: () => Unit): TestBuilder = TestBuilder(cleanup = List(action))
+}
+
+// ✅ Good: Compose test builders
+val testBuilder = 
+  TestBuilder.withSetup(TestData.withUser(User("alice"))) |+|
+  TestBuilder.withSetup(TestData.withOrder(Order("order1"))) |+|
+  TestBuilder.expecting(Assertion("user exists", _.users.nonEmpty)) |+|
+  TestBuilder.expecting(Assertion("order exists", _.orders.nonEmpty)) |+|
+  TestBuilder.withCleanup(() => println("Cleanup"))
+
+// Run composed test
+def runTest(builder: TestBuilder): TestResult = {
+  val data = builder.setup
+  val results = builder.expectations.map(_.check(data))
+  builder.cleanup.foreach(_.apply())
+  results.foldMap(_.toTestResult)
+}
+```
+
+### ✅ Using Standard Library Monoids
+
+Many standard types already have monoid instances:
+
+```scala
+import cats.implicits._
+
+// ✅ Good: Use standard monoids
+val strings: List[String] = List("a", "b", "c")
+val combined: String = strings.combineAll  // "abc"
+
+val numbers: List[Int] = List(1, 2, 3)
+val sum: Int = numbers.combineAll  // 6
+
+val maps: List[Map[String, Int]] = List(
+  Map("a" -> 1, "b" -> 2),
+  Map("b" -> 3, "c" -> 4)
+)
+val combinedMap: Map[String, Int] = maps.combineAll  
+// Map("a" -> 1, "b" -> 5, "c" -> 4) - values combined!
+
+// ✅ Good: Compose test scenarios using standard monoids
+val orders: List[Order] = List(order1, order2, order3)
+val combinedOrder: Order = orders.foldMap(identity)  // Combine all orders
+
+val inventories: List[Map[String, Int]] = List(inv1, inv2, inv3)
+val combinedInventory: Map[String, Int] = inventories.combineAll
+```
+
+### Key Principles for Monoidal Test Composition
+
+1. **Make test data monoidal**: Enable combining with `|+|`
+2. **Use associative operations**: Order of combination shouldn't matter
+3. **Provide identity element**: `empty` for starting point
+4. **Compose incrementally**: Build complex scenarios from simple parts
+5. **Combine results**: Use monoids to aggregate test results
+
+### Benefits of Monoidal Composition
+
+- **Modular**: Build complex scenarios from simple parts
+- **Reusable**: Combine scenario parts in different ways
+- **Predictable**: Monoid laws ensure consistent behavior
+- **Composable**: Use standard combinators (`foldMap`, `combineAll`)
+- **Declarative**: Express scenarios as combinations of parts
+
+---
+
+## Related: Monoids in Production Code
+
+Monoids aren't just for tests - they're useful in production code too:
+
+```scala
+// ✅ Good: Monoid for configuration
+case class Config(
+  timeout: Option[Duration] = None,
+  retries: Option[Int] = None,
+  headers: Map[String, String] = Map.empty
+)
+
+object Config {
+  implicit val monoid: Monoid[Config] = new Monoid[Config] {
+    def empty: Config = Config()
+    
+    def combine(x: Config, y: Config): Config = Config(
+      timeout = y.timeout.orElse(x.timeout),
+      retries = y.retries.orElse(x.retries),
+      headers = x.headers ++ y.headers
+    )
+  }
+}
+
+// Compose configurations
+val baseConfig = Config(timeout = Some(30.seconds))
+val overrideConfig = Config(retries = Some(3))
+val finalConfig = baseConfig |+| overrideConfig
+// Config(timeout = Some(30.seconds), retries = Some(3))
+```
+
+**Benefits**:
+- **Composable**: Combine configurations naturally
+- **Layered**: Override defaults with specific values
+- **Type-safe**: Compiler ensures correct combination
+
+---
+
+## 5. Type Parameters for Test Abstraction
+
+### ❌ The Problem: Concrete Types in Tests
+
+```scala
+// ❌ Bad: Tests tied to concrete types
+class StringValidatorSpec extends AnyFlatSpec with Matchers {
+  "StringValidator" should "validate strings" in {
+    val validator = new StringValidator()
+    validator.validate("test") shouldBe Right("test")
+  }
+}
+
+class IntValidatorSpec extends AnyFlatSpec with Matchers {
+  "IntValidator" should "validate integers" in {
+    val validator = new IntValidator()
+    validator.validate("123") shouldBe Right(123)
+  }
+}
+```
+
+### ✅ The Solution: Parametric Test Harness
+
+```scala
+// ✅ Good: Parametric test harness
+trait Validator[A] {
+  def validate(input: String): Either[ValidationError, A]
+}
+
+class ParametricValidatorSpec[A: Validator] extends AnyFlatSpec with Matchers {
+  def testValidation(input: String, expected: Either[ValidationError, A]): Unit = {
+    val validator = implicitly[Validator[A]]
+    validator.validate(input) shouldBe expected
+  }
+}
+
+// ✅ Good: Type-safe test instances
+implicit val stringValidator: Validator[String] = new Validator[String] {
+  def validate(input: String): Either[ValidationError, String] = Right(input)
+}
+
+implicit val intValidator: Validator[Int] = new Validator[Int] {
+  def validate(input: String): Either[ValidationError, Int] = 
+    input.toIntOption.toRight(ValidationError("Invalid int"))
+}
+
+// Usage
+class StringValidatorSpec extends ParametricValidatorSpec[String] {
+  "StringValidator" should "validate strings" in {
+    testValidation("test", Right("test"))
+  }
+}
+
+class IntValidatorSpec extends ParametricValidatorSpec[Int] {
+  "IntValidator" should "validate integers" in {
+    testValidation("123", Right(123))
+  }
+  
+  it should "reject invalid integers" in {
+    testValidation("abc", Left(ValidationError("Invalid int")))
+  }
+}
+```
+
+**Benefits**:
+- Reusable test harness
+- Type-safe
+- Less duplication
+- Easy to add new types
+
+---
+
+## 6. Pure Effect Testing
+
+### ❌ The Problem: Testing with Real Side-Effects
+
+```scala
+// ❌ Bad: Tests with real side-effects
+class FileProcessorSpec extends AnyFlatSpec with Matchers {
+  "FileProcessor" should "process file" in {
+    val processor = new FileProcessor()
+    val result = processor.process("test.txt")  // Real file I/O!
+    
+    result shouldBe defined
+    // Test depends on file system state
+  }
+}
+```
+
+### ✅ The Solution: Effect Types and Test Interpreters
+
+```scala
+// ✅ Good: Effect type for file operations
+trait FileOps[F[_]] {
+  def readFile(path: String): F[String]
+  def writeFile(path: String, content: String): F[Unit]
+}
+
+// ✅ Good: Pure implementation for tests
+case class TestFileOps(files: Map[String, String] = Map.empty) extends FileOps[Id] {
+  def readFile(path: String): String = files.getOrElse(path, "")
+  def writeFile(path: String, content: String): Unit = this.copy(files = files + (path -> content))
+}
+
+// ✅ Good: Pure test
+class FileProcessorSpec extends AnyFlatSpec with Matchers {
+  "FileProcessor" should "process file" in {
+    val testFiles = TestFileOps(Map("test.txt" -> "content"))
+    val processor = new FileProcessor[Id](testFiles)
+    
+    val result = processor.process("test.txt")
+    
+    result shouldBe Some(ProcessedFile("test.txt", "content"))
+  }
+  
+  it should "handle missing file" in {
+    val testFiles = TestFileOps(Map.empty)
+    val processor = new FileProcessor[Id](testFiles)
+    
+    val result = processor.process("missing.txt")
+    
+    result shouldBe None
+  }
+}
+```
+
+**Benefits**:
+- No real side-effects
+- Deterministic tests
+- Fast execution
+- Easy to test error cases
+
+---
+
+## 7. Declarative Test Assertions
+
+### ❌ The Problem: Imperative Assertions
+
+```scala
+// ❌ Bad: Imperative assertions checking implementation
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "process request" in {
+    val mockLogger = mock[Logger]
+    val service = new Service(mockLogger)
+    
+    val result = service.process(request)
+    
+    result shouldBe defined
+    verify(mockLogger).log("Processing")  // Checking "how"
+    verify(mockLogger).log("Done")         // Not "what"
+  }
+}
+```
+
+### ✅ The Solution: Declarative Behavior Assertions
+
+```scala
+// ✅ Good: Assert behavior, not implementation
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "process request successfully" in {
+    val logger = TestLogger()  // Pure test logger
+    val service = new Service(logger.log)
+    
+    val result = service.process(request)
+    
+    result shouldBe Right(ProcessedRequest(request.id, "success"))
+    // Don't check logger calls - check the result!
+  }
+  
+  it should "return error for invalid request" in {
+    val service = new Service(_ => ())  // Ignore logging
+    
+    val result = service.process(invalidRequest)
+    
+    result shouldBe Left(ValidationError("Invalid request"))
+  }
+}
+
+// ✅ Good: Pure test logger that collects logs
+case class TestLogger(logs: List[String] = Nil) {
+  def log(message: String): TestLogger = this.copy(logs = logs :+ message)
+  def clear: TestLogger = TestLogger()
+}
+```
+
+**Benefits**:
+- Tests behavior, not implementation
+- Less brittle
+- Easier to understand
+- Focuses on "what" not "how"
+
+---
+
+## 8. Lean Testing: Minimize Overhead, Maximize Clarity
+
+The goal of lean testing is to **minimize test infrastructure overhead** while **maximizing test clarity and speed**. Every piece of infrastructure (mocking frameworks, setup/teardown, complex test utilities) adds cognitive load and execution time.
+
+### Principle: Test Infrastructure Should Be Invisible
+
+> **Good test infrastructure disappears - you focus on what's being tested, not how to set up the test.**
+
+### ❌ The Problem: Heavy Test Infrastructure
+
+```scala
+// ❌ Bad: Heavy infrastructure obscures test intent
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
+
+class OrderServiceSpec extends AnyFlatSpec 
+    with Matchers 
+    with MockitoSugar 
+    with BeforeAndAfterEach 
+    with ScalaFutures {
+  
+  implicit val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(5, Seconds),
+    interval = Span(100, Millis)
+  )
+  
+  var mockRepository: OrderRepository = _
+  var mockInventory: InventoryService = _
+  var mockEmail: EmailService = _
+  var testConfig: Config = _
+  
+  override def beforeEach(): Unit = {
+    mockRepository = mock[OrderRepository]
+    mockInventory = mock[InventoryService]
+    mockEmail = mock[EmailService]
+    testConfig = Config.load()  // Side-effect!
+    
+    when(mockEmail.send(any[Email])).thenReturn(Future.successful(()))
+  }
+  
+  override def afterEach(): Unit = {
+    reset(mockRepository, mockInventory, mockEmail)
+  }
+  
+  "OrderService" should "process order" in {
+    when(mockRepository.save(any[Order])).thenReturn(Future.successful(OrderId("123")))
+    when(mockInventory.check(any[String])).thenReturn(Future.successful(true))
+    
+    val service = new OrderService(mockRepository, mockInventory, mockEmail, testConfig)
+    val result = service.processOrder(testOrder)
+    
+    whenReady(result) { orderId =>
+      orderId shouldBe OrderId("123")
+      verify(mockRepository).save(testOrder)
+      verify(mockInventory).check("book")
+    }
+  }
+}
+```
+
+**Problems**:
+- **Heavy infrastructure**: Multiple traits, setup/teardown, async handling
+- **Side-effects**: Config loading, mock reset
+- **Complex**: Hard to understand what's actually being tested
+- **Slow**: Mock framework overhead, async waiting
+- **Brittle**: Breaks on refactoring
+
+### ✅ The Solution: Lean Test Infrastructure
+
+```scala
+// ✅ Good: Lean infrastructure - pure functions, no ceremony
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "process order successfully" in {
+    val saveOrder: Order => Future[OrderId] = _ => Future.successful(OrderId("123"))
+    val checkInventory: String => Future[Boolean] = _ => Future.successful(true)
+    val sendEmail: Email => Future[Unit] = _ => Future.successful(())
+    val config = TestConfig.default
+    
+    val service = new OrderService(saveOrder, checkInventory, sendEmail, config)
+    val result = service.processOrder(testOrder)
+    
+    // Simple assertion - no async framework needed for simple cases
+    result.value.get.get shouldBe OrderId("123")
+  }
+  
+  it should "reject order when inventory unavailable" in {
+    val saveOrder: Order => Future[OrderId] = _ => Future.successful(OrderId("123"))
+    val checkInventory: String => Future[Boolean] = _ => Future.successful(false)  // Out of stock
+    val sendEmail: Email => Future[Unit] = _ => Future.successful(())
+    val config = TestConfig.default
+    
+    val service = new OrderService(saveOrder, checkInventory, sendEmail, config)
+    val result = service.processOrder(testOrder)
+    
+    result.value.get.failed.get.getMessage should include("out of stock")
+  }
+}
+```
+
+**Benefits**:
+- **Lean**: No mocking framework, no setup/teardown
+- **Fast**: Pure functions execute instantly
+- **Clear**: Test intent is obvious
+- **Simple**: Easy to understand and modify
+
+### ✅ Lean Test Utilities: Pure and Composable
+
+```scala
+// ✅ Good: Lean test utilities - pure functions, no state
+object LeanTestHelpers {
+  // Simple, reusable test functions
+  def always[A, B](value: B): A => B = _ => value
+  def never[A, B](value: B): A => B = _ => value
+  
+  def succeeds[A, B](value: B): A => Try[B] = _ => Success(value)
+  def fails[A, B](error: Throwable): A => Try[B] = _ => Failure(error)
+  
+  def futureSucceeds[A, B](value: B): A => Future[B] = _ => Future.successful(value)
+  def futureFails[A, B](error: Throwable): A => Future[B] = _ => Future.failed(error)
+  
+  // Composable test scenarios
+  def withSuccess[A, B](value: B): A => Either[Error, B] = _ => Right(value)
+  def withError[A, B](error: Error): A => Either[Error, B] = _ => Left(error)
+}
+
+// Usage
+import LeanTestHelpers._
+
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "handle success case" in {
+    val service = new Service(
+      dependency = always(Right("success"))
+    )
+    service.process(input) shouldBe Right("success")
+  }
+}
+```
+
+### ✅ Eliminate Unnecessary Abstractions
+
+```scala
+// ❌ Bad: Over-abstracted test utilities
+trait TestFixture[A, B, C] {
+  def setup(): TestContext[A, B, C]
+  def teardown(context: TestContext[A, B, C]): Unit
+  def runTest(context: TestContext[A, B, C]): TestResult
+}
+
+class ComplexTestSpec extends AnyFlatSpec with Matchers {
+  val fixture = new TestFixture[Repo, Cache, Logger] {
+    // Complex setup logic
+  }
+  
+  "Service" should "work" in {
+    val context = fixture.setup()
+    try {
+      val result = fixture.runTest(context)
+      result shouldBe expected
+    } finally {
+      fixture.teardown(context)
+    }
+  }
+}
+
+// ✅ Good: Simple, direct tests
+class SimpleTestSpec extends AnyFlatSpec with Matchers {
+  "Service" should "work" in {
+    val repo: String => Option[Data] = key => Some(Data(key))
+    val cache: String => Option[Data] = _ => None
+    val logger: String => Unit = _ => ()
+    
+    val service = new Service(repo, cache, logger)
+    val result = service.process("key")
+    
+    result shouldBe Some(ProcessedData("key"))
+  }
+}
+```
+
+### ✅ Lean Assertions: Test Outcomes, Not Process
+
+```scala
+// ❌ Bad: Heavy verification of process
+class ServiceSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+  "Service" should "process request" in {
+    val mockA = mock[ServiceA]
+    val mockB = mock[ServiceB]
+    val mockC = mock[ServiceC]
+    
+    when(mockA.call(any[Input])).thenReturn(Result1)
+    when(mockB.call(any[Result1])).thenReturn(Result2)
+    when(mockC.call(any[Result2])).thenReturn(FinalResult)
+    
+    val service = new Service(mockA, mockB, mockC)
+    val result = service.process(input)
+    
+    result shouldBe FinalResult
+    verify(mockA).call(input)  // Verifying process
+    verify(mockB).call(Result1)  // Not necessary
+    verify(mockC).call(Result2)  // Not necessary
+    verifyNoMoreInteractions(mockA, mockB, mockC)  // Heavy verification
+  }
+}
+
+// ✅ Good: Lean assertion - just the outcome
+class ServiceSpec extends AnyFlatSpec with Matchers {
+  "Service" should "process request successfully" in {
+    val serviceA: Input => Result1 = _ => Result1
+    val serviceB: Result1 => Result2 = _ => Result2
+    val serviceC: Result2 => FinalResult = _ => FinalResult
+    
+    val service = new Service(serviceA, serviceB, serviceC)
+    val result = service.process(input)
+    
+    result shouldBe FinalResult
+    // No verification needed - we test the outcome, not the process
+  }
+}
+```
+
+### ✅ Lean Test Data: Build Only What You Need
+
+```scala
+// ❌ Bad: Building complete test objects when only parts matter
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "calculate total" in {
+    val order = Order(
+      id = OrderId("123"),
+      customer = Customer(
+        id = CustomerId("456"),
+        name = "John Doe",
+        email = "john@example.com",
+        address = Address(
+          street = "123 Main St",
+          city = "Anytown",
+          zip = "12345"
+        ),
+        preferences = CustomerPreferences(...),
+        history = OrderHistory(...)
+      ),
+      items = List(Item("book", 10.0)),
+      shipping = ShippingInfo(...),
+      payment = PaymentInfo(...),
+      metadata = OrderMetadata(...)
+    )
+    
+    val service = new OrderService()
+    val total = service.calculateTotal(order)
+    
+    total shouldBe 10.0
+  }
+}
+
+// ✅ Good: Build only what matters
+class OrderServiceSpec extends AnyFlatSpec with Matchers {
+  "OrderService" should "calculate total" in {
+    val order = Order(
+      items = List(Item("book", 10.0))
+      // Only include what's needed for this test
+    )
+    
+    val service = new OrderService()
+    val total = service.calculateTotal(order)
+    
+    total shouldBe 10.0
+  }
+}
+
+// ✅ Better: Use test data builders with defaults
+object TestOrders {
+  def order(items: List[Item] = Nil): Order = Order(
+    id = OrderId("test"),
+    customer = TestCustomers.default,
+    items = items,
+    // ... other fields with sensible defaults
+  )
+}
+
+// Usage
+val order = TestOrders.order(items = List(Item("book", 10.0)))
+```
+
+### Key Principles for Lean Testing
+
+1. **Minimize Infrastructure**: Use the simplest possible test setup
+2. **Pure Functions**: Prefer pure functions over mock objects
+3. **Inline When Simple**: For simple cases, inline functions are clearer
+4. **Test Outcomes**: Assert results, not implementation details
+5. **Build Only What's Needed**: Don't create unnecessary test data
+6. **Eliminate Ceremony**: Remove setup/teardown unless necessary
+7. **Fast Execution**: Pure functions execute instantly
+
+### When to Use Heavy Infrastructure
+
+Heavy infrastructure (mocking frameworks, complex setup) is sometimes necessary:
+- **Integration tests** with real external systems
+- **Complex async scenarios** requiring careful coordination
+- **Legacy code** that can't be refactored immediately
+- **Team standards** that require specific frameworks
+
+But even then, **minimize** the infrastructure and **isolate** it to what's necessary.
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Side-Effects
+- Find mocks, file I/O, database calls, global state
+- Identify mutable test fixtures
+- **Identify heavy infrastructure** that can be eliminated
+
+### Step 2: Extract Dependencies
+- Convert interfaces to function types
+- Create pure test implementations
+- **Replace mocks with pure functions**
+
+### Step 3: Refactor Tests
+- Replace mocks with pure functions
+- Use test data builders
+- Make tests declarative
+- **Eliminate unnecessary infrastructure**
+
+### Step 4: Compose
+- Use monoids/algebraic structures
+- Create parametric test harnesses
+- Build reusable test utilities
+- **Keep utilities lean and pure**
+
+---
+
+## Summary
+
+### ✅ DO
+- Use **functional dependencies** instead of mocks - **lean and fast**
+- Write **declarative tests** that express "what" not "how"
+- Create **pure test data builders** with sensible defaults
+- Use **type parameters** for test abstraction
+- Compose tests with **monoids/algebraic structures**
+- Test **behavior**, not implementation
+- **Minimize test infrastructure** - use pure functions, inline when simple
+- **Build only what's needed** - don't create unnecessary test data
+- **Eliminate ceremony** - remove setup/teardown unless necessary
+
+### ❌ DON'T
+- Use mocks to verify implementation details
+- Create tests with real side-effects (file I/O, database)
+- Use mutable test fixtures
+- Write imperative test setup code
+- Assert on internal implementation details
+- **Add heavy infrastructure** unless absolutely necessary
+- **Over-abstract** test utilities - keep them simple
+- **Build complete objects** when only parts matter
+
+### Key Insights
+
+> **Pure tests are easier to understand, maintain, and reason about. They express what is being tested, not how it's implemented.**
+
+> **Lean tests minimize infrastructure overhead while maximizing clarity and speed. Good test infrastructure disappears - you focus on what's being tested, not how to set up the test.**
+
+> **Monoids enable composable, predictable test composition. Build complex test scenarios from simple, reusable parts using algebraic structures. The monoid laws (associativity and identity) ensure consistent, predictable behavior.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (test behavior not implementation, AAA pattern, isolation, pure testing patterns)
+
+**Scala-Specific:**
+- [Avoid Anonymous Function Dependencies](../language/avoid-anonymous-function-dependencies.mdc) - **Use named traits for production dependencies** - Anonymous functions are fine in tests
+- [Referential Transparency](../language/referential-transparency.mdc) - Pure functions and side-effects
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Type safety in tests
+- [Functional Composition and HOF](../language/functional-composition-and-hof.mdc) - Composing test utilities
+- [Scala Testing Best Practices](scala-testing-best-practices.mdc) - General testing practices
+
+---
+
+## When to Use These Techniques
+
+### ✅ Use Parametric Techniques When:
+- You have **multiple similar implementations** to test (e.g., different data types, different backends)
+- You want to **reduce test duplication** across similar test suites
+- The abstraction cost is **worth the reuse benefit**
+- You're building **reusable test utilities** or test frameworks
+
+### ✅ Use Declarative Techniques When:
+- Tests have **complex setup** that obscures the test intent
+- You want tests to **read like specifications**
+- You need to **create many similar test cases** with variations
+- Tests are **hard to understand** for new team members
+
+### ⚠️ Consider Simpler Approaches When:
+- Tests are **already simple and clear** - don't add abstraction for its own sake
+- The **abstraction overhead** outweighs the benefits
+- Team members are **not familiar** with advanced FP patterns
+- You're testing **simple, one-off scenarios**
+
+### Balance is Key
+
+> **Not all tests benefit equally from these techniques. Use judgment - adopt them where maintainability, readability, or abstraction matter most. Simpler tests may not need all this structure.**
+
+---
+
+## References
+
+- [Purify Your Tests](https://blog.daniel-beskin.com/2024-05-09-purify-tests) - Daniel Beskin's Blog - Introduction to pure testing
+- [Purify Your Tests: 2 Parametric, 2 Declarative](https://blog.daniel-beskin.com/2024-05-20-purify-tests-2) - **Two parametric and two declarative techniques** - Abstraction over data shapes, lean mocking, specification-style descriptions, declarative setup
+- [Purify Your Tests III: Lean, Mean Testing Machine](https://blog.daniel-beskin.com/2024-05-30-purify-tests-3) - **Minimizing test infrastructure overhead** - Eliminating heavy mocks, using pure functions, making tests lean and fast
+- [Purify Your Tests Episode IV: The Monoids Strike Back](https://blog.daniel-beskin.com/2024-12-02-purify-tests-4) - **Composing tests with monoids** - Using algebraic structures to combine test scenarios, results, and data predictably

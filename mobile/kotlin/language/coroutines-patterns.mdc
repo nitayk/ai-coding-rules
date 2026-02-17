@@ -1,0 +1,376 @@
+---
+description: "Kotlin coroutines best practices - structured concurrency, dispatchers, error handling, Flow. Use when: (1) Using Kotlin coroutines, (2) Structured concurrency, (3) Dispatcher selection, (4) Error handling in coroutines, (5) Working with Flow. Covers coroutine patterns, structured concurrency, dispatchers, error handling, and Flow best practices."
+globs: ["**/*.kt", "**/*.kts"]
+alwaysApply: false
+---
+
+# Kotlin Coroutines Patterns
+
+Use Kotlin coroutines effectively with structured concurrency, proper dispatcher usage, and correct error handling.
+
+---
+
+## Use Structured Concurrency
+
+**Always launch coroutines in scoped `CoroutineScope`, avoid `GlobalScope`:**
+
+```kotlin
+// ✅ Good: Structured concurrency with scoped scope
+class ViewModel : ViewModel() {
+    fun loadData() {
+        viewModelScope.launch {
+            val data = repository.fetchData()
+            _uiState.value = UiState.Success(data)
+        }
+    }
+}
+
+// ✅ Good: Custom scope for background work
+class DataProcessor {
+    private val processorScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default
+    )
+    
+    fun process() {
+        processorScope.launch {
+            // Work here
+        }
+    }
+    
+    fun cleanup() {
+        processorScope.cancel()  // Cancel all children
+    }
+}
+
+// ❌ Bad: GlobalScope - no lifecycle management
+fun loadData() {
+    GlobalScope.launch {  // Leaks! No way to cancel
+        val data = repository.fetchData()
+        updateUI(data)
+    }
+}
+```
+
+---
+
+## Inject Dispatchers for Testability
+
+**Don't hardcode dispatchers - inject them via constructor:**
+
+```kotlin
+// ✅ Good: Injected dispatcher
+class UserRepository(
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
+    suspend fun fetchUser(id: String): User = withContext(ioDispatcher) {
+        // I/O work
+        api.getUser(id)
+    }
+}
+
+// Testing
+@Test
+fun `test fetchUser`() = runTest {
+    val testDispatcher = StandardTestDispatcher()
+    val repository = UserRepository(testDispatcher)
+    // Test with controlled dispatcher
+}
+
+// ❌ Bad: Hardcoded dispatcher
+class UserRepository {
+    suspend fun fetchUser(id: String): User = withContext(Dispatchers.IO) {
+        // Hard to test - can't control dispatcher
+        api.getUser(id)
+    }
+}
+```
+
+---
+
+## Ensure Main-Safety in Suspend Functions
+
+**Suspend functions should be safe to call from main thread:**
+
+```kotlin
+// ✅ Good: Main-safe suspend function
+suspend fun fetchUserData(userId: String): UserData {
+    return withContext(Dispatchers.IO) {  // Switch to background
+        val profile = api.getProfile(userId)
+        val settings = api.getSettings(userId)
+        UserData(profile, settings)
+    }
+}
+
+// Can be called from main thread safely
+viewModelScope.launch {
+    val data = fetchUserData(userId)  // Safe!
+    updateUI(data)
+}
+
+// ❌ Bad: Blocking work in suspend function
+suspend fun fetchUserData(userId: String): UserData {
+    // Blocking call - blocks main thread if called from UI!
+    val profile = api.getProfile(userId).execute()  // Blocking!
+    val settings = api.getSettings(userId).execute()
+    return UserData(profile, settings)
+}
+```
+
+---
+
+## Handle Errors Correctly
+
+**Don't swallow `CancellationException`, catch specific exceptions:**
+
+```kotlin
+// ✅ Good: Specific exception handling
+suspend fun fetchData(): Result<Data> {
+    return try {
+        val data = api.fetch()
+        Result.success(data)
+    } catch (e: IOException) {
+        Result.failure(e)
+    } catch (e: HttpException) {
+        Result.failure(e)
+    }
+    // CancellationException propagates - don't catch it!
+}
+
+// ✅ Good: CoroutineExceptionHandler for top-level errors
+val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+    logger.error("Unhandled exception", exception)
+}
+
+scope.launch(exceptionHandler) {
+    // Work
+}
+
+// ❌ Bad: Catching CancellationException
+suspend fun fetchData(): Data? {
+    return try {
+        api.fetch()
+    } catch (e: Exception) {  // Catches CancellationException!
+        null  // Prevents cancellation propagation
+    }
+}
+```
+
+---
+
+## Use Flow for Streams of Data
+
+**Use `Flow` for reactive streams, suspend functions for one-time operations:**
+
+```kotlin
+// ✅ Good: Flow for streams
+class UserRepository {
+    fun observeUsers(): Flow<List<User>> = flow {
+        while (true) {
+            val users = api.getUsers()
+            emit(users)
+            delay(5000)  // Poll every 5 seconds
+        }
+    }.catch { e ->
+        emit(emptyList())  // Handle errors
+    }.flowOn(Dispatchers.IO)
+}
+
+// ✅ Good: Suspend function for one-time operation
+suspend fun getUser(id: String): User {
+    return api.getUser(id)
+}
+
+// ❌ Bad: Mixing patterns
+class UserRepository {
+    suspend fun observeUsers(): List<User> {  // Should be Flow!
+        return api.getUsers()  // One-time, not a stream
+    }
+}
+```
+
+---
+
+## Use Correct Dispatchers
+
+**Choose the right dispatcher for the work type:**
+
+```kotlin
+// ✅ Good: Correct dispatcher usage
+suspend fun processData() {
+    // UI work
+    withContext(Dispatchers.Main) {
+        updateProgress(0.5f)
+    }
+    
+    // I/O work
+    val data = withContext(Dispatchers.IO) {
+        readFromFile()
+    }
+    
+    // CPU-bound work
+    val result = withContext(Dispatchers.Default) {
+        computeHeavy(data)
+    }
+    
+    // Back to UI
+    withContext(Dispatchers.Main) {
+        showResult(result)
+    }
+}
+
+// ❌ Bad: Wrong dispatcher
+suspend fun processData() {
+    withContext(Dispatchers.Main) {
+        val data = readFromFile()  // Blocking I/O on main thread!
+        computeHeavy(data)  // CPU work on main thread!
+    }
+}
+```
+
+---
+
+## Check Cancellation in Long-Running Tasks
+
+**Check cancellation in loops and long operations:**
+
+```kotlin
+// ✅ Good: Check cancellation in loop
+suspend fun processLargeList(items: List<Item>) {
+    items.forEach { item ->
+        ensureActive()  // Check cancellation
+        processItem(item)
+    }
+}
+
+// ✅ Good: Periodic cancellation check
+suspend fun longRunningTask() {
+    repeat(1000) { i ->
+        if (i % 100 == 0) {
+            ensureActive()  // Check every 100 iterations
+        }
+        doWork(i)
+    }
+}
+
+// ✅ Good: Use yield for cooperative cancellation
+suspend fun processItems(items: List<Item>) {
+    items.forEach { item ->
+        yield()  // Cooperative cancellation point
+        processItem(item)
+    }
+}
+
+// ❌ Bad: No cancellation check
+suspend fun processLargeList(items: List<Item>) {
+    items.forEach { item ->
+        processItem(item)  // Can't be cancelled!
+    }
+}
+```
+
+---
+
+## Use SupervisorScope for Independent Tasks
+
+**Use `supervisorScope` when child failures shouldn't cancel siblings:**
+
+```kotlin
+// ✅ Good: SupervisorScope for independent tasks
+suspend fun loadMultipleData() {
+    supervisorScope {
+        val profileDeferred = async { fetchProfile() }
+        val settingsDeferred = async { fetchSettings() }
+        val preferencesDeferred = async { fetchPreferences() }
+        
+        // One failure doesn't cancel others
+        val profile = profileDeferred.await()
+        val settings = settingsDeferred.await()
+        val preferences = preferencesDeferred.await()
+    }
+}
+
+// ✅ Good: Handle individual failures
+suspend fun loadMultipleData(): CombinedData {
+    supervisorScope {
+        val profile = async { fetchProfile() }.awaitCatching()
+        val settings = async { fetchSettings() }.awaitCatching()
+        
+        CombinedData(
+            profile = profile.getOrNull(),
+            settings = settings.getOrNull()
+        )
+    }
+}
+
+// ❌ Bad: coroutineScope cancels all on first failure
+suspend fun loadMultipleData() {
+    coroutineScope {  // All cancelled if one fails
+        val profile = async { fetchProfile() }
+        val settings = async { fetchSettings() }
+        // If profile fails, settings is cancelled too
+    }
+}
+```
+
+---
+
+## Use Flow Operators Correctly
+
+**Use Flow operators for transformations and error handling:**
+
+```kotlin
+// ✅ Good: Flow operators
+fun observeUsers(): Flow<List<User>> = userDao.observeAll()
+    .map { users ->
+        users.filter { it.isActive }
+    }
+    .catch { e ->
+        emit(emptyList())  // Emit fallback on error
+        logger.error("Error loading users", e)
+    }
+    .flowOn(Dispatchers.IO)
+    .distinctUntilChanged()
+
+// ✅ Good: StateFlow for UI state
+class ViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    
+    fun loadData() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val data = repository.fetchData()
+                _uiState.value = UiState.Success(data)
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e)
+            }
+        }
+    }
+}
+
+// ❌ Bad: Manual Flow management
+fun observeUsers(): Flow<List<User>> = flow {
+    try {
+        val users = userDao.getAll()  // Blocking!
+        emit(users)
+    } catch (e: Exception) {
+        // Error not handled properly
+    }
+}
+```
+
+---
+
+## Related Rules
+
+- [Android Best Practices](../android/android-best-practices.mdc) - Android-specific coroutine patterns
+- [Style Guide](style-guide.mdc) - Kotlin style conventions
+
+---
+
+## References
+
+- [Roman Elizarov - Kotlin Coroutines](https://blog.jetbrains.com/kotlin/)
+- [Android Coroutines Best Practices](https://developer.android.com/kotlin/coroutines/coroutines-best-practices)
+- [Kotlin Coroutines Guide](https://kotlinlang.org/docs/coroutines-guide.html)

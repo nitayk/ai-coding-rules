@@ -1,0 +1,55 @@
+---
+description: Continuous improvement of rules and knowledge base. Use when an error occurs, a correction is made, or a new pattern is discovered.
+globs: ["**/*"]
+alwaysApply: true
+version: "1.0.0"
+last_updated: "2026-02-03"
+tags: ["meta", "rules", "learning", "improvement"]
+---
+
+# Continuous Improvement
+
+## Triggers
+**APPLY WHEN:**
+- An error occurs and is corrected.
+- The user provides a correction or new preference.
+- A new successful pattern is discovered.
+- A "mistake" is identified (e.g., "Don't do X, do Y").
+
+## Core Directive
+**Invest in your rules.** After every correction, update the relevant rule (or create a new one) so the mistake is not repeated.
+
+## Process
+
+1.  **Identify the Learning**:
+    - What went wrong?
+    - What is the correct behavior?
+    - Is this a generic rule or specific to a language/domain?
+
+2.  **Update Rule File**:
+    - Locate the relevant `.mdc` rule in `.cursor/rules/` (or `manage/ai-coding-rules/`).
+    - If no relevant rule exists, create a new one (e.g., `meta/new-pattern.mdc`).
+    - **Ruthlessly edit**: Clarify instructions, add "Negative Pattern" examples, or update "Triggers".
+
+3.  **Verify**:
+    - Confirm the new rule covers the edge case.
+    - Ensure it doesn't conflict with existing rules.
+
+## Example
+
+**User**: "Don't use `var` in Scala, use `val`."
+
+**Action**:
+1.  Read `backend/scala/language/scala-more-best-practices.mdc` (or similar).
+2.  Add/Update:
+    ```markdown
+    ### Negative Pattern
+    var x = 10 // Bad: Mutable state
+    
+    ### Positive Pattern
+    val x = 10 // Good: Immutable
+    ```
+3.  Commit the change.
+
+## Philosophy
+"Claude is eerily good at writing rules for itself. Ruthlessly edit your rules over time. Keep iterating until the mistake rate measurably drops."

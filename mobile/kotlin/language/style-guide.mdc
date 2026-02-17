@@ -1,0 +1,43 @@
+---
+description: "Kotlin coding standards and style guide based on Google's Kotlin Style Guide. Use when: (1) Writing Kotlin code, (2) Following style conventions, (3) Formatting Kotlin code, (4) Code reviews, (5) Maintaining consistency. Covers Kotlin naming conventions, formatting standards, and Google Kotlin Style Guide."
+globs: ["**/*.kt", "**/*.kts"]
+alwaysApply: false
+---
+# Kotlin Style Guide
+
+## 1. Naming Conventions
+- **Classes/Objects**: PascalCase (`MyClass`, `MyObject`).
+- **Functions/Properties**: camelCase (`myFunction`, `myProperty`).
+- **Constants**: UPPER_SNAKE_CASE (`const val MAX_COUNT = 10`).
+- **Backing Properties**: `_privateProperty` for private mutable backing fields.
+
+## 2. Formatting
+- **Indentation**: 4 spaces (standard), NO TABS.
+- **Line Length**: 100 characters generally, but flexible for readability.
+- **Braces**: K&R style (opening brace on same line).
+
+## 3. Idiomatic Usage
+- **Null Safety**:
+  - Avoid `!!` operator. Use `?` (safe call), `?:` (Elvis operator), or `let`.
+  - Use `lateinit` only when dependency injection or lifecycle methods require it.
+- **Immutability**: Prefer `val` over `var`.
+- **Expressions**: Prefer expression bodies for simple functions.
+  ```kotlin
+  // Good
+  fun sum(a: Int, b: Int) = a + b
+  
+  // Acceptable (if logic expands later)
+  fun sum(a: Int, b: Int): Int {
+      return a + b
+  }
+  ```
+- **String Templates**: Use string templates (`$var` or `${expr}`) instead of concatenation.
+
+## 4. Classes and Objects
+- **Data Classes**: Use for POJOs/DTOs.
+- **Sealed Classes/Interfaces**: Use for modeling restricted hierarchies (e.g., UI States, Results).
+- **Companion Objects**: Place at the bottom of the class.
+
+## 5. Control Flow
+- **When Expression**: Prefer `when` over long `if-else` chains.
+- **Loops**: Prefer `forEach`, `map`, `filter` on collections over manual loops.

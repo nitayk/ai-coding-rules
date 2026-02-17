@@ -1,0 +1,53 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "disabled": false
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "disabled": true
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "disabled": true
+    },
+    "cursor-ide-browser": {
+      "command": "npx",
+      "args": ["-y", "@angheljf/cursor-ide-browser"],
+      "disabled": true
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "MCP_FS_ALLOWED_PATHS": "/path/to/your/project"
+      },
+      "disabled": true
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"],
+      "disabled": true
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer YOUR_GITHUB_TOKEN_HERE"
+      },
+      "disabled": true
+    },
+    "shell": {
+      "command": "npx",
+      "args": ["-y", "@mkusaka/mcp-shell-server"],
+      "env": {
+        "MCP_SHELL_ALLOW": "git,ls,cat,grep,find,cd,pwd,tail,head,npm,yarn,python3,node"
+      },
+      "disabled": true
+    }
+  }
+}

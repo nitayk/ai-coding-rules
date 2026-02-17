@@ -1,0 +1,26 @@
+---
+description: "iOS-specific Swift patterns and best practices. Use when: (1) Developing iOS apps, (2) Writing iOS code, (3) iOS architecture, (4) iOS patterns, (5) Swift iOS best practices. Covers iOS development patterns, architecture, and Swift iOS conventions."
+globs: ["**/*.swift"]
+alwaysApply: false
+---
+# iOS Swift Best Practices
+
+## 1. Architecture
+- **MVVM**: Model-View-ViewModel is the preferred architecture for UIKit and SwiftUI apps.
+  - **View**: Displays UI and delegates user input to ViewModel.
+  - **ViewModel**: Holds state, handles business logic, transforms data for View.
+  - **Model**: Data structures and networking.
+
+## 2. UI Development
+- **UIKit**:
+  - Prefer programmatic UI or XIBs over Storyboards for better merge conflict resolution.
+  - Use Auto Layout constraints efficiently.
+- **SwiftUI**:
+  - Use `@State`, `@Binding`, `@ObservedObject`, `@StateObject` correctly to manage data flow.
+
+## 3. Memory Management
+- **Retain Cycles**: Always use `[weak self]` in closures that capture `self`, especially in ViewModels and Network handlers.
+- **Deinit**: Implement `deinit` to verify objects are being released (debug only).
+
+## 4. Combine / Async
+- Prefer Combine or Async/Await for handling asynchronous streams of data over delegates or closures where appropriate.

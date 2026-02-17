@@ -1,0 +1,147 @@
+---
+description: "Guidelines for writing helpful, non-redundant comments in Scala code. Use when: (1) Writing comments, (2) Documenting complex logic, (3) Explaining why (not what), (4) Adding context, (5) Writing maintainable code. Covers comment best practices, when to comment, and meaningful documentation."
+globs: []
+alwaysApply: false
+---
+
+# Meaningful Comments Only
+
+## Core Principle
+Comments should add value by explaining **why**, **business context**, or **non-obvious behavior** - not **what** the code is doing when it's already clear.
+
+## ❌ Avoid Redundant Comments
+
+### Don't Restate Obvious Code
+```scala
+// ❌ Bad: Comment just restates the code
+val currentTime = System.currentTimeMillis() // Get current time
+val pastTime = currentTime - 300000 // 5 minutes ago
+val futureTime = currentTime + 300000 // 5 minutes from now
+
+// ❌ Bad: Obvious test descriptions
+"should return 1 when input is 1" in {
+  val result = myFunction(1)
+  result shouldBe 1 // Should be 1
+}
+```
+
+### Don't Comment Self-Explanatory Variable Names
+```scala
+// ❌ Bad: Variable name already explains purpose
+val filteredActiveUsers = users.filter(_.isActive) // Filter active users
+val processedConfigurations = configs.map(process) // Process configurations
+```
+
+## ✅ Use Comments for Value
+
+### Business Logic & Domain Rules
+```scala
+// ✅ Good: Explains business rule
+// Business rule: Cast transformations should handle null values gracefully
+// by returning null rather than throwing exceptions, as per data pipeline requirements
+private def safeCast(value: Column, targetType: DataType): Column = {
+  when(value.isNull, lit(null)).otherwise(value.cast(targetType))
+}
+```
+
+### Non-Obvious Technical Decisions
+```scala
+// ✅ Good: Explains technical reasoning
+// Using >= instead of > because Kafka timestamps are inclusive
+// and we want to include events that occurred exactly at the filter time
+df.filter(col(timestampColumn) >= lit(new Timestamp(startingTimestamp)))
+```
+
+### Complex Algorithms or Edge Cases
+```scala
+// ✅ Good: Explains complex logic
+// Handle nested struct fields by using columnExists() instead of df.columns.contains()
+// because df.columns only returns top-level column names, not nested paths
+if (!DataSetUtil.columnExists(df, timestampColumn)) {
+  throw new Exception(s"Column '$timestampColumn' not found")
+}
+```
+
+### Test Context When Non-Obvious
+```scala
+// ✅ Good: Explains test setup reasoning
+"handle edge case timestamps" in {
+  val filterTime = System.currentTimeMillis()
+  val exactTime = filterTime // Test >= behavior: exact time should be included
+  val oneMillisecondAfter = filterTime + 1
+  
+  // Test data designed to verify >= filtering behavior
+  val rows = Seq(
+    Row(1, new Timestamp(exactTime)),
+    Row(2, new Timestamp(oneMillisecondAfter))
+  )
+}
+```
+
+## Test-Specific Guidelines
+
+### Avoid Obvious Test Comments
+```scala
+// ❌ Bad: Test name already explains this
+"filter by user-specified timestamp column when provided" in {
+  // Create test data - OBVIOUS
+  val schema = new StructType()...
+  
+  // Apply filtering - OBVIOUS  
+  val filtered = TsUtils.applyTimestampFiltering(...)
+  
+  // Verify results - OBVIOUS
+  collected.length shouldBe 1
+}
+```
+
+### Keep Only Meaningful Test Comments
+```scala
+// ✅ Good: Only comment when adding non-obvious context
+"filter by user-specified timestamp column when provided" in {
+  val currentTime = System.currentTimeMillis()
+  val pastTime = currentTime - 300000
+  val futureTime = currentTime + 300000
+
+  val schema = new StructType()
+    .add("id", IntegerType)
+    .add("custom_timestamp", TimestampType)
+
+  val rows = Seq(
+    Row(1, new Timestamp(pastTime)),
+    Row(2, new Timestamp(futureTime))
+  )
+
+  val df = spark.createDataFrame(spark.sparkContext.parallelize(rows), schema)
+  val filtered = TsUtils.applyTimestampFiltering(df, Some(currentTime), Some("custom_timestamp"))
+
+  val collected = filtered.collect()
+  collected.length shouldBe 1
+  collected.head.getInt(0) shouldBe 2
+}
+```
+
+## When to Comment
+
+### ✅ Comment When:
+- Explaining **why** a particular approach was chosen
+- Documenting business rules or domain constraints
+- Clarifying non-obvious technical decisions
+- Explaining complex algorithms or edge case handling
+- Providing context for unusual test scenarios
+
+### ❌ Don't Comment When:
+- The code is self-explanatory
+- Variable/method names clearly indicate purpose
+- Test names fully describe the behavior being tested
+- The comment just repeats what the code says
+
+## Summary
+**Good comments explain the reasoning behind the code, not what the code is doing.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal comment guidelines (this file provides Scala-specific examples)

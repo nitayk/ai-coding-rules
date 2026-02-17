@@ -1,0 +1,109 @@
+---
+description: "Mobile development rules index - routes to language-specific routers/indexes (Kotlin, Swift, Objective-C) and build tools. Use when: (1) Mobile development, (2) Android/iOS code, (3) Mobile patterns needed. Points to language routers/indexes which then route to platform-specific and subcategory files. Follows Router → Index → Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Mobile Development Rules Index
+
+**Purpose**: Router for mobile rules - detects keywords and routes to language indexes or platform files.
+
+**Chaining**: Root Router → This Index (Router) → Language Index → Files
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 2 nodes (language indexes) based on keywords.
+
+**Hybrid Routing**: All mobile languages are flattened - language indexes route directly to files (2 hops total).
+
+---
+
+## Keyword → Language/Platform Routing
+
+| Keywords/Intent | Load Language Index or Platform File |
+|----------------|-------------------------------------|
+| **kotlin**, kotlin code, kotlin style, kotlin formatting | `.cursor/rules/shared/mobile/kotlin/index.mdc` |
+| **swift**, swift code, swift style, swift formatting | `.cursor/rules/shared/mobile/swift/index.mdc` |
+| **objective-c**, objc, objective c code, objc style | `.cursor/rules/shared/mobile/objective-c/index.mdc` |
+| **android**, android development, android app, android architecture | `.cursor/rules/shared/mobile/kotlin/android/android-best-practices.mdc` |
+| **android performance**, android memory leak, android profiling | `.cursor/rules/shared/mobile/kotlin/android/android-performance.mdc` |
+| **ios**, ios development, ios app, ios architecture | `.cursor/rules/shared/mobile/swift/ios/ios-best-practices.mdc` or `.cursor/rules/shared/mobile/objective-c/ios/ios-best-practices.mdc` |
+| **ios performance**, ios memory management, instruments | `.cursor/rules/shared/mobile/swift/ios/ios-performance.mdc` |
+| **kotlin coroutines**, coroutines, structured concurrency | `.cursor/rules/shared/mobile/kotlin/language/coroutines-patterns.mdc` |
+| **kotlin sealed**, sealed classes, sealed interfaces | `.cursor/rules/shared/mobile/kotlin/language/sealed-classes-patterns.mdc` |
+| **swift concurrency**, swift async await, actors | `.cursor/rules/shared/mobile/swift/language/swift-concurrency-patterns.mdc` |
+| **arc**, memory management, retain cycles | `.cursor/rules/shared/mobile/objective-c/language/arc-memory-management.mdc` |
+| **cocoapods**, podfile, podspec, ios dependencies | `.cursor/rules/shared/mobile/cocoapods/index.mdc` |
+| **gradle**, gradle build, build.gradle, android build | `.cursor/rules/shared/mobile/gradle/index.mdc` |
+
+---
+
+## Language Routers/Indexes
+
+| Language | Router/Index | Keywords |
+|----------|-------------|----------|
+| **Kotlin** | `.cursor/rules/shared/mobile/kotlin/index.mdc` | kotlin, kotlin code, kotlin style, kotlin formatting, kotlin naming |
+| **Swift** | `.cursor/rules/shared/mobile/swift/index.mdc` | swift, swift code, swift style, swift formatting, swift naming |
+| **Objective-C** | `.cursor/rules/shared/mobile/objective-c/index.mdc` | objective-c, objc, objective c code, objc style, objc formatting |
+
+---
+
+## Platform-Specific Files
+
+| Platform | File | Keywords |
+|----------|------|----------|
+| **Android Best Practices** | `.cursor/rules/shared/mobile/kotlin/android/android-best-practices.mdc` | android, android development, android app, android architecture, mvvm android, compose |
+| **Android Performance** | `.cursor/rules/shared/mobile/kotlin/android/android-performance.mdc` | android performance, android memory leak, android profiling, compose performance, leakcanary |
+| **iOS Best Practices (Swift)** | `.cursor/rules/shared/mobile/swift/ios/ios-best-practices.mdc` | ios, ios development, ios app, ios architecture, mvvm ios, swiftui, uikit |
+| **iOS Performance (Swift)** | `.cursor/rules/shared/mobile/swift/ios/ios-performance.mdc` | ios performance, ios memory management, instruments, swiftui performance, profiling ios |
+| **iOS Best Practices (Obj-C)** | `.cursor/rules/shared/mobile/objective-c/ios/ios-best-practices.mdc` | ios, ios development, ios app, ios architecture |
+
+---
+
+## Language-Specific Patterns
+
+| Pattern | File | Keywords |
+|---------|------|----------|
+| **Kotlin Coroutines** | `.cursor/rules/shared/mobile/kotlin/language/coroutines-patterns.mdc` | kotlin coroutines, coroutines, structured concurrency, dispatchers, flow, stateflow |
+| **Kotlin Sealed Classes** | `.cursor/rules/shared/mobile/kotlin/language/sealed-classes-patterns.mdc` | kotlin sealed, sealed classes, sealed interfaces, sealed types, exhaustive when |
+| **Swift Concurrency** | `.cursor/rules/shared/mobile/swift/language/swift-concurrency-patterns.mdc` | swift concurrency, swift async await, actors, @MainActor, structured concurrency swift |
+| **Objective-C ARC** | `.cursor/rules/shared/mobile/objective-c/language/arc-memory-management.mdc` | arc, memory management, retain cycles, weak strong, arc memory |
+
+---
+
+## Build Tools
+
+| Tool | File | Keywords |
+|------|------|----------|
+| **CocoaPods** | `.cursor/rules/shared/mobile/cocoapods/index.mdc` | cocoapods, podfile, podspec, ios dependencies, pod install |
+| **Gradle** | `.cursor/rules/shared/mobile/gradle/index.mdc` | gradle, gradle build, build.gradle, gradle kts, android build, version catalog |
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Language Router/Index → Platform/Subcategory Index → Files**
+
+1. Root Router detects "mobile" or platform keyword → loads this index
+2. This index routes to language router/index or platform file
+3. Language router/index routes to subcategory indexes
+4. Subcategory indexes point to specific rule files
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Kotlin patterns | `.cursor/rules/shared/mobile/kotlin/index.mdc` |
+| Swift patterns | `.cursor/rules/shared/mobile/swift/index.mdc` |
+| Objective-C patterns | `.cursor/rules/shared/mobile/objective-c/index.mdc` |
+| Android development | `.cursor/rules/shared/mobile/kotlin/android/android-best-practices.mdc` |
+| iOS development | `.cursor/rules/shared/mobile/swift/ios/ios-best-practices.mdc` |
+| CocoaPods | `.cursor/rules/shared/mobile/cocoapods/index.mdc` |
+| Gradle | `.cursor/rules/shared/mobile/gradle/index.mdc` |
+
+---
+
+## Related Resources
+
+- **Generic Rules**: See `.cursor/rules/shared/generic/index.mdc` for universal principles
+- **Tools**: See `.cursor/rules/shared/tools/index.mdc` for CLI tools

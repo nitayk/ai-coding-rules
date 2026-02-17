@@ -1,0 +1,344 @@
+---
+description: "Swift concurrency best practices - async/await, actors, @MainActor, structured concurrency. Use when: (1) Using Swift concurrency, (2) async/await patterns, (3) Actors, (4) @MainActor usage, (5) Structured concurrency. Covers async/await, actors, @MainActor, structured concurrency, and Swift concurrency best practices."
+globs: ["**/*.swift"]
+alwaysApply: false
+---
+
+# Swift Concurrency Patterns
+
+Use Swift's modern concurrency (async/await, actors) effectively. Follow structured concurrency patterns and proper actor isolation.
+
+---
+
+## Use Actors for Shared Mutable State
+
+**Use `actor` types to isolate mutable shared state:**
+
+```swift
+// ✅ Good: Actor for shared mutable state
+actor Counter {
+    private var value = 0
+    
+    func increment() {
+        value += 1
+    }
+    
+    func getValue() -> Int {
+        return value
+    }
+}
+
+// Usage
+let counter = Counter()
+await counter.increment()
+let value = await counter.getValue()
+
+// ❌ Bad: Mutable state without actor isolation
+class Counter {
+    var value = 0  // Data race possible!
+    
+    func increment() {
+        value += 1  // Not thread-safe
+    }
+}
+```
+
+---
+
+## Use @MainActor for UI Code
+
+**Isolate UI-bound code with `@MainActor`:**
+
+```swift
+// ✅ Good: @MainActor for UI updates
+@MainActor
+class ViewModel: ObservableObject {
+    @Published var items: [Item] = []
+    
+    func loadItems() async {
+        let fetched = await fetchItems()
+        items = fetched  // Safe - on main actor
+    }
+}
+
+// ✅ Good: @MainActor on specific methods
+class DataProcessor {
+    func processData() async {
+        // Background work
+    }
+    
+    @MainActor
+    func updateUI() {
+        // UI updates - guaranteed on main thread
+    }
+}
+
+// ❌ Bad: UI updates without @MainActor
+class ViewModel: ObservableObject {
+    @Published var items: [Item] = []
+    
+    func loadItems() async {
+        let fetched = await fetchItems()
+        items = fetched  // Might not be on main thread!
+    }
+}
+```
+
+---
+
+## Use `nonisolated` for Immutable Operations
+
+**Mark methods that don't touch mutable state as `nonisolated`:**
+
+```swift
+// ✅ Good: nonisolated for immutable operations
+actor UserCache {
+    private var cache: [String: User] = [:]
+    
+    func getUser(id: String) async -> User? {
+        return cache[id]
+    }
+    
+    nonisolated func formatUser(_ user: User) -> String {
+        // Doesn't access mutable state - no await needed
+        return "\(user.name) (\(user.id))"
+    }
+}
+
+// Usage - no await needed for nonisolated
+let cache = UserCache()
+let formatted = cache.formatUser(user)  // No await!
+
+// ❌ Bad: Unnecessary actor isolation
+actor UserCache {
+    private var cache: [String: User] = [:]
+    
+    func getUser(id: String) async -> User? {
+        return cache[id]
+    }
+    
+    func formatUser(_ user: User) async -> String {
+        // Unnecessary await - doesn't access mutable state
+        return "\(user.name) (\(user.id))"
+    }
+}
+```
+
+---
+
+## Use Structured Concurrency
+
+**Prefer `async let` and `TaskGroup` for related operations:**
+
+```swift
+// ✅ Good: Structured concurrency with async let
+func loadUserData(userId: String) async throws -> UserData {
+    async let profile = fetchProfile(userId)
+    async let settings = fetchSettings(userId)
+    async let preferences = fetchPreferences(userId)
+    
+    // All run concurrently, wait for all
+    return try await UserData(
+        profile: profile,
+        settings: settings,
+        preferences: preferences
+    )
+}
+
+// ✅ Good: TaskGroup for dynamic concurrency
+func processItems(_ items: [Item]) async throws -> [ProcessedItem] {
+    return try await withThrowingTaskGroup(of: ProcessedItem.self) { group in
+        for item in items {
+            group.addTask {
+                return try await processItem(item)
+            }
+        }
+        
+        var results: [ProcessedItem] = []
+        for try await result in group {
+            results.append(result)
+        }
+        return results
+    }
+}
+
+// ❌ Bad: Unstructured concurrency
+func loadUserData(userId: String) async throws -> UserData {
+    let profile = try await fetchProfile(userId)
+    let settings = try await fetchSettings(userId)
+    let preferences = try await fetchPreferences(userId)
+    // Sequential - slower!
+    return UserData(profile: profile, settings: settings, preferences: preferences)
+}
+```
+
+---
+
+## Check Cancellation in Long-Running Tasks
+
+**Check for cancellation in loops and long operations:**
+
+```swift
+// ✅ Good: Check cancellation in loops
+func processLargeDataset(_ data: [Data]) async throws {
+    for item in data {
+        try Task.checkCancellation()  // Check cancellation
+        await processItem(item)
+    }
+}
+
+// ✅ Good: Check cancellation periodically
+func longRunningTask() async throws {
+    for i in 0..<1000 {
+        if i % 100 == 0 {
+            try Task.checkCancellation()
+        }
+        await doWork(i)
+    }
+}
+
+// ❌ Bad: Ignoring cancellation
+func processLargeDataset(_ data: [Data]) async throws {
+    for item in data {
+        await processItem(item)  // Can't be cancelled!
+    }
+}
+```
+
+---
+
+## Avoid Frequent Actor Switching
+
+**Minimize actor hops for performance:**
+
+```swift
+// ✅ Good: Batch work on same actor
+actor DataProcessor {
+    func processBatch(_ items: [Item]) async -> [ProcessedItem] {
+        var results: [ProcessedItem] = []
+        for item in items {
+            results.append(await processItem(item))
+        }
+        return results  // All work on same actor
+    }
+}
+
+// ❌ Bad: Frequent actor switching
+@MainActor
+class ViewModel: ObservableObject {
+    @Published var items: [Item] = []
+    
+    func updateItems() async {
+        for item in items {
+            let processed = await processOnBackground(item)  // Actor hop
+            await updateUI(processed)  // Actor hop back
+            // Many actor hops - slow!
+        }
+    }
+}
+```
+
+---
+
+## Use Sendable for Cross-Actor Types
+
+**Mark types that can be safely passed between actors as `Sendable`:**
+
+```swift
+// ✅ Good: Sendable struct
+struct User: Sendable {
+    let id: String
+    let name: String
+    let email: String
+}
+
+actor UserCache {
+    func store(_ user: User) {
+        // User is Sendable - safe to pass
+    }
+}
+
+// ✅ Good: Sendable class (immutable)
+final class Configuration: @unchecked Sendable {
+    let apiUrl: String
+    let timeout: TimeInterval
+    
+    init(apiUrl: String, timeout: TimeInterval) {
+        self.apiUrl = apiUrl
+        self.timeout = timeout
+    }
+}
+
+// ❌ Bad: Non-Sendable mutable class
+class User {
+    var name: String  // Mutable - not Sendable
+    // Can't safely pass between actors
+}
+```
+
+---
+
+## Prefer Value Types When Possible
+
+**Use `struct` and `enum` for safer concurrency:**
+
+```swift
+// ✅ Good: Value type (struct)
+struct User {
+    let id: String
+    let name: String
+    var email: String  // Even mutable is safer in struct
+}
+
+// Safe to pass between actors - copied, not shared
+func processUser(_ user: User) async {
+    // User is copied - no data races
+}
+
+// ❌ Bad: Reference type without proper isolation
+class User {
+    var name: String
+    var email: String
+    // Shared reference - data race risk
+}
+```
+
+---
+
+## Use Task.detached Sparingly
+
+**Only use `Task.detached` when you need independent work:**
+
+```swift
+// ✅ Good: Task.detached for independent background work
+func logAnalytics(_ event: AnalyticsEvent) {
+    Task.detached {
+        // Independent background task
+        await analyticsService.log(event)
+    }
+}
+
+// ❌ Bad: Task.detached when structured concurrency works
+func loadData() async {
+    Task.detached {  // Loses parent context, cancellation
+        await fetchData()
+    }
+    // Better: use async let or TaskGroup
+}
+```
+
+---
+
+## Related Rules
+
+- [iOS Best Practices](../ios/ios-best-practices.mdc) - iOS-specific patterns
+- [Style Guide](style-guide.mdc) - Swift style conventions
+
+---
+
+## References
+
+- [Swift Concurrency - Apple Documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
+- [John Sundell - Swift by Sundell](https://www.swiftbysundell.com/)
+- [Paul Hudson - Hacking with Swift](https://www.hackingwithswift.com/)
+- [WWDC 2025: Embracing Swift Concurrency](https://developer.apple.com/videos/play/wwdc2025/268/)

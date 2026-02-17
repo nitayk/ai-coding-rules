@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Memory (private per-project state)
+.cursor/memory/
+.claude/memory/
+
+# Backups created by install scripts
+.cursor/.setup-backup-*
+.claude/.setup-backup-*

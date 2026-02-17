@@ -1,0 +1,209 @@
+---
+description: "Comprehensive guide for modern JavaScript and TypeScript development. Use when: (1) Writing JavaScript/TypeScript, (2) React/Vue frameworks, (3) TypeScript strict type safety, (4) Testing (Vitest), (5) Frontend best practices. Auto-loads when JS/TS files are opened (via globs). Points to frameworks/, language/, testing/ subdirectories."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx", "**/*.vue"]
+alwaysApply: false
+---
+
+# JavaScript & TypeScript Development Rules
+
+**Stack Coverage**: 
+- Vanilla JS/TS
+- Vue.js 3 (Composition API & Options API)
+- Node.js backend services
+- Browser/Client-side applications
+
+**Graph Structure**: This is a Layer 2 node that routes to Layer 1 nodes (subcategory indexes) or Layer 0 leaves (framework files) based on keywords.
+
+---
+
+## Keyword → Subcategory/Framework Routing
+
+| Keywords/Intent | Load Subcategory Index |
+|----------------|----------------------|
+| **frameworks**, react, vue, vuex, framework patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/index.mdc` |
+| **language**, typescript, javascript, type safety, api defensive | `.cursor/rules/shared/frontend/javascript-typescript/language/index.mdc` |
+| **testing**, vitest, vue testing, component testing | `.cursor/rules/shared/frontend/javascript-typescript/testing/index.mdc` |
+
+---
+
+## Quick Reference
+
+### Core Language Patterns (`language/`)
+**Load**: `.cursor/rules/shared/frontend/javascript-typescript/language/index.mdc` ← Points to language pattern files
+- **[@Modern JavaScript Best Practices](language/modern-javascript-patterns.mdc)** - ES6+, async/await, modules
+- **[@TypeScript Type Safety](language/typescript-type-safety.mdc)** - Interfaces, generics, utility types
+- **[@TypeScript Strict Type Safety](language/typescript-strict-type-safety.mdc)** - Strict mode, avoid any, use unknown, type guards
+- **[@API Defensive Programming](language/api-defensive-programming.mdc)** - Safe property access, schema change resilience, backward compatibility
+- **[@Error Handling](language/error-handling-patterns.mdc)** - Try/catch, promises, error boundaries
+- **[@Async Patterns](language/async-patterns.mdc)** - Promises, async/await, concurrent operations
+
+### Architecture & Design
+- **[@Module Organization](architecture/module-organization.mdc)** - ES modules, exports, barrel files
+- **[@Component Design](architecture/component-design-patterns.mdc)** - Composition, single responsibility
+- **[@State Management](architecture/state-management-patterns.mdc)** - Vuex, local state, reactive patterns
+- **[@Dependency Injection](architecture/dependency-injection.mdc)** - Service patterns, testability
+
+### Framework-Specific (`frameworks/`)
+**Load**: `.cursor/rules/shared/frontend/javascript-typescript/frameworks/index.mdc` ← Points to framework pattern files
+- **[@Vue.js Best Practices](frameworks/vue-best-practices.mdc)** - Composition API, reactivity, lifecycle
+- **[@Vuex Patterns](frameworks/vuex-state-management.mdc)** - Actions, mutations, getters, modules
+- **[@React Patterns](frameworks/react-patterns.mdc)** - Hooks, performance optimization, React 19 features
+
+### Testing (`testing/`)
+**Load**: `.cursor/rules/shared/frontend/javascript-typescript/testing/index.mdc` ← Points to testing pattern files
+- **[@Testing Best Practices](testing/javascript-testing-best-practices.mdc)** - Vitest, Jest, mocking
+- **[@Vue Component Testing](testing/vue-component-testing.mdc)** - @vue/test-utils patterns
+
+### Code Quality & Style
+- **[@Code Style Guide](meta/javascript-typescript-style-guide.mdc)** - ESLint, Prettier, naming
+- **[@Performance Optimization](meta/performance-best-practices.mdc)** - Bundle size, lazy loading
+- **[@Security Patterns](meta/security-best-practices.mdc)** - XSS, CSRF, input validation
+
+---
+
+## When to Use These Rules
+
+### For Vue.js Projects
+- Follow Vue-specific patterns in `frameworks/vue-best-practices.mdc`
+- Use Composition API for new components
+- Apply Vuex patterns for global state
+
+### For Mixed JS/TS Projects
+- Gradually adopt TypeScript patterns
+- Use strict null checks where possible
+- Maintain compatibility with existing JS code
+
+### For New TypeScript Projects
+- Start with strict mode enabled
+- Use interfaces over types for objects
+- Leverage utility types (Partial, Pick, Omit)
+
+---
+
+## Rule Hierarchy
+
+1. **Global Rules** (always apply)
+   - `@generic/communication/business-communication-standards.mdc`
+   - `@generic/communication/tool-communication-pattern.mdc`
+
+2. **Language-Specific** (this folder)
+   - Modern JavaScript patterns
+   - TypeScript type safety
+   - Error handling
+
+3. **Framework-Specific** (when using Vue/React)
+   - Vue.js patterns
+   - Vuex state management
+
+---
+
+## Common Patterns
+
+### ✅ DO: Use Modern JavaScript
+```typescript
+// Use const/let, not var
+const apiUrl = 'https://api.example.com';
+let retryCount = 0;
+
+// Use arrow functions for callbacks
+const numbers = [1, 2, 3].map(n => n * 2);
+
+// Use destructuring
+const { id, name } = user;
+const [first, ...rest] = array;
+
+// Use async/await over raw promises
+async function fetchData(): Promise<Data> {
+  const response = await fetch(url);
+  return response.json();
+}
+```
+
+### ✅ DO: Leverage TypeScript
+```typescript
+// Define interfaces for data shapes
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// Use union types for state
+type LoadingState = 'idle' | 'loading' | 'success' | 'error';
+
+// Use generics for reusable functions
+function first<T>(arr: T[]): T | undefined {
+  return arr[0];
+}
+```
+
+### ❌ DON'T: Mix Patterns
+```typescript
+// BAD: Mixing callbacks and promises
+function badAsync(callback) {
+  return fetch(url)  // Returns promise
+    .then(res => callback(res));  // Uses callback
+}
+
+// GOOD: Consistent async/await
+async function goodAsync(): Promise<Response> {
+  return await fetch(url);
+}
+```
+
+---
+
+## Integration with Existing Rules
+
+- **Error Handling**: See `@language/error-handling-patterns.mdc`
+- **Testing**: See `@testing/javascript-testing-best-practices.mdc`
+- **Git Workflow**: See `.cursor/rules/shared/skills/git-workflow/SKILL.md`
+- **Refactoring**: See `.cursor/rules/shared/skills/service-refactoring/SKILL.md`
+
+---
+
+## Tool Configuration
+
+### ESLint (Recommended)
+```javascript
+// .eslintrc.js
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:vue/vue3-recommended', // For Vue projects
+    'airbnb-base',  // Or airbnb-typescript
+  ],
+  rules: {
+    'no-console': 'warn',  // Allow console for debugging
+    'no-unused-vars': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'warn',
+  },
+};
+```
+
+### TypeScript (tsconfig.json)
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+---
+
+## See Also
+
+- **[@Python Rules](../backend/python/index.mdc)** - For backend services
+- **[@Scala Rules](../backend/scala/index.mdc)** - For JVM services
+- **[@Go Rules](../backend/go/index.mdc)** - For microservices
+
+---
+
+**Last Updated**: 2026-01-06
+**Maintainers**: DevOps/Platform Team

@@ -1,0 +1,394 @@
+---
+description: "First make it correct, then optimize - prioritize correctness over performance and cleverness. Use when: (1) Writing new code, (2) Optimizing existing code, (3) Reviewing for correctness, (4) Balancing correctness vs performance, (5) Making design decisions. Covers correctness-first principle, optimization strategy, and code quality priorities."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+
+# First Make It Correct
+
+This guide emphasizes the fundamental principle: **correctness first, optimization second**. Always start with a correct, straightforward solution before optimizing, refactoring, or exploring alternate designs.
+
+---
+
+## Core Principle
+
+> **First make it correct, then make it fast.** Start with a correct, straightforward solution (even if inefficient) before optimizing, refactoring, or exploring clever alternatives. Correctness is your foundation - everything else builds on it.
+
+---
+
+## Why Correctness First?
+
+### The Problem: Premature Optimization
+
+Many developers skip correctness in favor of:
+- **Clever solutions** that are hard to understand
+- **Premature optimization** before understanding the problem
+- **Fancy abstractions** that obscure the core logic
+- **Speed** over correctness
+
+This leads to:
+- **Bugs** that are hard to find and fix
+- **Unclear code** that's hard to maintain
+- **Wasted effort** optimizing incorrect code
+- **No baseline** to compare optimizations against
+
+### ✅ The Solution: Correctness First
+
+Start with a **correct, straightforward solution**:
+
+```scala
+// ✅ Good: Correct but simple solution first
+def calculateTotal(items: List[Item]): BigDecimal = {
+  items.map(_.price).sum  // Simple, correct, easy to understand
+}
+
+// Later: Optimize if needed
+def calculateTotalOptimized(items: List[Item]): BigDecimal = {
+  items.foldLeft(BigDecimal(0))(_ + _.price)  // More efficient, but correct first!
+}
+```
+
+**Benefits**:
+- **Clear baseline**: Know what "correct" means
+- **Confidence**: Can verify optimizations don't break correctness
+- **Understanding**: Simple solution helps understand the problem
+- **Safety**: Fewer bugs, fewer surprises
+
+---
+
+## The Correctness-First Workflow
+
+### Step 1: Write a Correct Baseline
+
+Start with the simplest, most obvious solution:
+
+```scala
+// ✅ Good: Simple, correct baseline
+def findMax(numbers: List[Int]): Int = {
+  if (numbers.isEmpty) throw new IllegalArgumentException("Empty list")
+  numbers.max
+}
+
+// ✅ Good: Handle edge cases explicitly
+def processOrders(orders: List[Order]): ProcessedOrders = {
+  val validOrders = orders.filter(_.isValid)
+  val totals = validOrders.map(_.total)
+  ProcessedOrders(
+    count = validOrders.size,
+    total = totals.sum,
+    average = if (totals.nonEmpty) totals.sum / totals.size else 0
+  )
+}
+```
+
+**Key**: Don't worry about performance or elegance yet - just make it **correct**.
+
+### Step 2: Verify Correctness with Tests
+
+Use comprehensive testing to verify correctness:
+
+```scala
+// ✅ Good: Property-based testing for correctness
+import org.scalacheck.Prop.forAll
+
+property("max is always >= all elements") = forAll { (numbers: List[Int]) =>
+  if (numbers.nonEmpty) {
+    val max = findMax(numbers)
+    numbers.forall(_ <= max)
+  } else true
+}
+
+property("max is in the list") = forAll { (numbers: List[Int]) =>
+  if (numbers.nonEmpty) {
+    val max = findMax(numbers)
+    numbers.contains(max)
+  } else true
+}
+
+// ✅ Good: Example-based tests for specific cases
+"findMax" should "handle single element" in {
+  findMax(List(42)) shouldBe 42
+}
+
+it should "handle negative numbers" in {
+  findMax(List(-1, -5, -3)) shouldBe -1
+}
+
+it should "throw on empty list" in {
+  assertThrows[IllegalArgumentException] {
+    findMax(List.empty)
+  }
+}
+```
+
+**Key**: Verify correctness **broadly** with property-based tests, not just examples.
+
+### Step 3: Only Then Optimize
+
+Once correctness is established, optimize:
+
+```scala
+// ✅ Good: Optimize after correctness is verified
+def findMaxOptimized(numbers: List[Int]): Int = {
+  if (numbers.isEmpty) throw new IllegalArgumentException("Empty list")
+  numbers.foldLeft(Int.MinValue)(_ max _)  // Single pass, no intermediate list
+}
+
+// Verify optimization maintains correctness
+property("optimized version matches baseline") = forAll { (numbers: List[Int]) =>
+  if (numbers.nonEmpty) {
+    findMaxOptimized(numbers) == findMax(numbers)
+  } else true
+}
+```
+
+**Key**: Compare optimized version against correct baseline.
+
+---
+
+## Real-World Example: Evolution of a Solution
+
+### Step 1: Correct Baseline
+
+```scala
+// ✅ Good: Correct but simple
+def processData(data: List[Data]): List[ProcessedData] = {
+  data.map(_.enrich).filter(_.isValid).map(_.transform)
+}
+
+// Test correctness
+"processData" should "process all valid data" in {
+  val input = List(Data("a"), Data("b"), Data("c"))
+  val result = processData(input)
+  result should have length 3
+  result.forall(_.isProcessed) shouldBe true
+}
+```
+
+### Step 2: Identify Performance Issues
+
+```scala
+// Profile and identify bottlenecks
+// Found: Multiple passes over data, creating intermediate lists
+```
+
+### Step 3: Optimize (Maintaining Correctness)
+
+```scala
+// ✅ Good: Optimized but still correct
+def processDataOptimized(data: List[Data]): List[ProcessedData] = {
+  data.foldLeft(List.empty[ProcessedData]) { (acc, item) =>
+    val enriched = item.enrich
+    if (enriched.isValid) {
+      acc :+ enriched.transform
+    } else acc
+  }
+}
+
+// Verify optimization maintains correctness
+property("optimized matches baseline") = forAll { (data: List[Data]) =>
+  processDataOptimized(data) == processData(data)
+}
+```
+
+---
+
+## When to Optimize
+
+### ✅ Optimize When:
+- **Correctness is verified** with comprehensive tests
+- **Performance is actually a problem** (measured, not assumed)
+- **You have a baseline** to compare against
+- **Optimization maintains correctness** (verified with tests)
+
+### ❌ Don't Optimize When:
+- **Code isn't correct yet** - fix bugs first
+- **Performance isn't measured** - profile first
+- **Premature optimization** - optimize when needed
+- **Optimization breaks correctness** - correctness always wins
+
+---
+
+## Property-Based Testing for Correctness
+
+Property-based testing is essential for verifying correctness:
+
+```scala
+// ✅ Good: Property-based tests verify correctness broadly
+import org.scalacheck.Prop.forAll
+
+property("reverse twice is identity") = forAll { (xs: List[Int]) =>
+  xs.reverse.reverse == xs
+}
+
+property("sorted list is ordered") = forAll { (xs: List[Int]) =>
+  val sorted = xs.sorted
+  sorted.zip(sorted.tail).forall { case (a, b) => a <= b }
+}
+
+property("filter then map equals map then filter") = forAll { 
+  (xs: List[Int], f: Int => Boolean, g: Int => Int) =>
+    xs.filter(f).map(g) == xs.map(g).filter(x => f(g(x)))
+}
+```
+
+**Benefits**:
+- **Broad coverage**: Tests many cases automatically
+- **Finds edge cases**: Discovers bugs you didn't think of
+- **Verifies invariants**: Ensures properties hold
+- **Regression prevention**: Catches when optimizations break correctness
+
+---
+
+## Maintaining Correctness During Refactoring
+
+When refactoring, use the correct baseline as reference:
+
+```scala
+// ✅ Good: Keep baseline for comparison
+object DataProcessor {
+  // Baseline: Correct but simple
+  def processBaseline(data: List[Data]): List[ProcessedData] = {
+    data.map(_.enrich).filter(_.isValid).map(_.transform)
+  }
+  
+  // Optimized: Faster but must match baseline
+  def processOptimized(data: List[Data]): List[ProcessedData] = {
+    data.foldLeft(List.empty[ProcessedData]) { (acc, item) =>
+      val enriched = item.enrich
+      if (enriched.isValid) acc :+ enriched.transform else acc
+    }
+  }
+  
+  // Verify they match
+  property("optimized matches baseline") = forAll { (data: List[Data]) =>
+    processOptimized(data) == processBaseline(data)
+  }
+}
+```
+
+**Key**: Always compare refactored code against correct baseline.
+
+---
+
+## Correctness in Functional Programming
+
+Functional programming helps with correctness:
+
+```scala
+// ✅ Good: Pure functions are easier to verify
+def calculateTotal(items: List[Item]): BigDecimal = {
+  items.map(_.price).sum  // Pure, easy to test
+}
+
+// ✅ Good: Referential transparency enables property testing
+property("total is sum of prices") = forAll { (items: List[Item]) =>
+  calculateTotal(items) == items.map(_.price).sum
+}
+
+// ✅ Good: Immutable data prevents bugs
+case class Order(items: List[Item]) {
+  def addItem(item: Item): Order = this.copy(items = items :+ item)
+  // Can't accidentally mutate - correctness preserved
+}
+```
+
+**Benefits**:
+- **Pure functions**: Easier to test and verify
+- **Immutable data**: Prevents accidental mutations
+- **Type safety**: Compiler catches many errors
+- **Property testing**: Verify mathematical properties
+
+---
+
+## Common Mistakes
+
+### ❌ Mistake 1: Optimizing Before Correctness
+
+```scala
+// ❌ Bad: Optimized but incorrect
+def findMax(numbers: List[Int]): Int = {
+  numbers.foldLeft(0)(_ max _)  // Wrong! Returns 0 for negative numbers
+}
+
+// ✅ Good: Correct first
+def findMax(numbers: List[Int]): Int = {
+  if (numbers.isEmpty) throw new IllegalArgumentException("Empty list")
+  numbers.max  // Correct, then optimize
+}
+```
+
+### ❌ Mistake 2: Skipping Tests
+
+```scala
+// ❌ Bad: No tests, assume it's correct
+def process(data: List[Data]): List[ProcessedData] = {
+  // Complex logic, no tests
+}
+
+// ✅ Good: Tests verify correctness
+def process(data: List[Data]): List[ProcessedData] = {
+  // Same logic, but with tests
+}
+
+property("process maintains data count") = forAll { (data: List[Data]) =>
+  process(data).size == data.size
+}
+```
+
+### ❌ Mistake 3: Clever Over Correct
+
+```scala
+// ❌ Bad: Clever but unclear
+def process(data: List[Data]): List[ProcessedData] = {
+  data.groupBy(_.category).values.flatMap(_.map(_.transform)).toList
+}
+
+// ✅ Good: Clear and correct
+def process(data: List[Data]): List[ProcessedData] = {
+  data.map(_.transform)  // Simple, correct, clear
+}
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- **Start with correct solution** - even if simple or inefficient
+- **Verify correctness broadly** - use property-based testing
+- **Optimize after correctness** - only when performance is a problem
+- **Compare against baseline** - verify optimizations maintain correctness
+- **Keep baseline in code** - reference for future changes
+
+### ❌ DON'T
+- **Optimize prematurely** - correctness first
+- **Skip tests** - verify correctness before optimizing
+- **Be clever over correct** - clarity and correctness win
+- **Assume correctness** - test it
+- **Break correctness for performance** - correctness always wins
+
+### Key Insight
+
+> **Correctness is the foundation. Without it, optimization is meaningless. Start simple, verify correctness, then optimize. A correct baseline gives you confidence to experiment and optimize safely.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../generic/code-quality/core-principles.mdc) - Universal correctness-first principle (this file provides Scala-specific details)
+
+**Scala-Specific:**
+- [Performance Conscious FP](../performance/performance-conscious-fp.mdc) - Performance optimization (after correctness)
+- [Pure Testing Patterns](../testing/pure-testing-patterns.mdc) - Property-based testing for correctness
+- [Referential Transparency](../language/referential-transparency.mdc) - Pure functions aid correctness
+- [Compiler-Friendly Types](../language/compiler-friendly-types.mdc) - Type safety helps correctness
+
+---
+
+## References
+
+- [First Make It Correct](https://blog.daniel-beskin.com/2025-06-10-first-make-it-correct) - Daniel Beskin's Blog

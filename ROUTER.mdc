@@ -1,0 +1,92 @@
+---
+description: "Smart intent router that detects user prompts and keywords, then auto-loads appropriate guides via Router -> Index -> Files chain. Always loads first (alwaysApply: true). Analyzes prompt context and intent keywords to decide which index to load. Covers automatic rule selection, intent detection, and progressive disclosure."
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Rule Router
+
+**Purpose**: Detect user intent -> Auto-load guide -> Execute. Do NOT load all guides upfront.
+
+**Note**: This is a shared library. Repos can override these guides with their own in `.cursor/repo-rules/`.
+
+**Behavior**: When keywords detected -> IMMEDIATELY load guide with `@fetch_rules <path>` -> Follow process.
+
+---
+
+## Loading Chain (Hybrid Approach)
+
+**Router -> Index -> Index -> Files** (2-3 hops for most rules)
+
+- **Large categories** (Scala, Python, JS/TS): 3 hops via subcategory indexes
+- **Small categories** (Go, Java, PHP, Kotlin, Swift, Obj-C): 2 hops, route directly to files
+
+1. **ROOT ROUTER** (`ROUTER.mdc`) -> category indexes (`.cursor/rules/shared/backend/index.mdc`, `frontend/index.mdc`, `mobile/index.mdc`, `generic/index.mdc`, `tools/index.mdc`)
+2. **CATEGORY INDEX** -> language indexes
+3. **LANGUAGE INDEX** -> subcategory indexes (large) or files (small)
+4. **RULE FILES** - actual content (rules, skills, agents, commands)
+
+---
+
+## Intent -> Category Mapping
+
+| Keywords/Intent | Load Guide |
+|---|---|
+| **curl**, http request, rest api, api call | `.cursor/rules/shared/tools/curl.mdc` |
+| **jq**, json parser, json filter, parse json | `.cursor/rules/shared/tools/jq.mdc` |
+| **git**, git commit, git branch, version control | `.cursor/rules/shared/tools/git.mdc` |
+| **docker**, container, docker image, docker logs | `.cursor/rules/shared/tools/docker.mdc` |
+| **kcat**, kafkacat, kafka client, produce/consume | `.cursor/rules/shared/tools/kcat.mdc` |
+| **gh cli**, github cli, gh pr, gh issue | `.cursor/rules/shared/tools/gh-cli.mdc` |
+| **aws cli**, s3 cli, ec2 cli, cloudwatch, ssm | `.cursor/rules/shared/tools/aws-cli.mdc` |
+| **kubectl**, kubernetes cli, pod logs, k8s | `.cursor/rules/shared/tools/kubectl.mdc` |
+| **tools**, cli tools, tool reference | `.cursor/rules/shared/tools/index.mdc` |
+| **parallel**, worktree, independent tasks, isolation | Use `/using-git-worktrees` skill |
+| **plan**, implementation plan, spec, design doc | Use `/writing-plans` skill |
+| **execute**, implement plan, build feature | Use `/executing-plans` skill |
+| **orchestrate**, dispatch, multi-agent, concurrent | Use `/dispatching-parallel-agents` skill |
+| **explain tool**, how to use MCP, tool communication | `.cursor/rules/shared/generic/communication/tool-communication-pattern.mdc` |
+| **how is X calculated**, business logic | `.cursor/rules/shared/generic/communication/business-communication-standards.mdc` |
+| **prompt engineering**, optimize prompts, llm techniques | `.cursor/rules/shared/generic/communication/prompt-engineering-principles.mdc` |
+| **style guide**, formatting rules, mdc rules | `.cursor/rules/shared/meta/cursor-rules-style-guide.mdc` |
+| **create skill**, make skill, new skill | `.cursor/rules/shared/meta/cursor-rules-style-guide.mdc` + `/skill-creator` |
+| **build**, **refactor**, **migrate**, **implement**, **create** | Load `.cursor/rules/shared/generic/smart-gates.mdc` |
+| **debug**, **fix**, **error**, **bug**, **broken** | Load `.cursor/rules/shared/generic/smart-gates.mdc` |
+| **continue**, **resume**, **remember**, **context** | Load `.cursor/rules/shared/generic/smart-gates.mdc` |
+
+**Language rules**: Auto-load by file type (Scala->`shared/backend/scala/index.mdc`, Python->`shared/backend/python/index.mdc`, Go->`shared/backend/go/index.mdc`, Java->`shared/backend/java/index.mdc`, PHP->`shared/backend/php/index.mdc`, JS/TS->`shared/frontend/javascript-typescript/index.mdc`, Kotlin->`shared/mobile/kotlin/index.mdc`, Swift->`shared/mobile/swift/index.mdc`, Objective-C->`shared/mobile/objective-c/index.mdc`)
+
+---
+
+## Skills (Auto-Discovered)
+
+Skills are automatically discovered from `skills/` directory. No router mapping needed.
+
+Available Skills (use slash commands or natural language):
+- `/service-breakdown` - Complete service analysis methodology
+- `/service-migration` - Migrate services between repos
+- `/service-refactoring` - Refactor services safely
+- `/git-workflow` - Git workflow for complex tasks
+- `/best-practices-enforcement` - Enforce code quality standards
+
+---
+
+## Critical Rules
+
+**When intent detected:**
+1. Load guide immediately -> `@fetch_rules <path>`
+2. Follow entire process in guide
+3. Do NOT ask user - proceed
+
+**Quality standards:**
+- Verify existing knowledge - don't just return docs
+- Get ACTUAL config values from config/deployment sources, not code vars
+- Read 100% of files or be honest about scope
+
+**When general questions** (no specific task): Answer directly, don't load guides.
+
+**Can't find guide?** Load `.cursor/rules/shared/index.mdc` (complete catalog)
+
+---
+
+**This is a shared library**: Individual repos can add their own guides in `.cursor/repo-rules/` which take precedence.

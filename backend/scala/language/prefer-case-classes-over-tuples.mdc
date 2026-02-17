@@ -1,0 +1,375 @@
+---
+description: "Prefer case classes over tuples - better type safety, discoverability, and maintainability. Use when: (1) Returning multiple values, (2) Grouping related data, (3) Creating data structures, (4) Improving code readability, (5) Enabling better IDE support. Covers when tuples are acceptable vs when case classes are better."
+globs: []
+alwaysApply: false
+---
+
+# Prefer Case Classes Over Tuples
+
+This guide explains why **case classes** should be preferred over **tuples** for structured data, especially when data is passed around or stored.
+
+---
+
+## Core Principle
+
+> **Prefer case classes over tuples** - Case classes provide better type safety, discoverability, documentation, and maintainability. Tuples are fine for local, temporary values, but case classes are better for data that crosses method boundaries or is stored.
+
+---
+
+## Why Tuples Are Problematic
+
+### 1. Poor Discoverability
+
+Tuples don't have named fields, making code hard to understand.
+
+```scala
+// ❌ Bad: Tuple - what does each element mean?
+def processUser(user: (String, Int, Boolean)): String = {
+  val (name, age, isActive) = user
+  // What is the first element? Second? Third?
+  // Must read implementation to understand
+}
+
+// ❌ Bad: Tuple access by position
+def getUserInfo(user: (String, Int, Boolean)): String = {
+  s"${user._1} is ${user._2} years old"  // What is _1? _2?
+}
+```
+
+**Problems**:
+- **No field names**: `_1`, `_2`, `_3` don't convey meaning
+- **Position-dependent**: Easy to mix up order
+- **Hard to understand**: Must read code to know what each element is
+- **No documentation**: Can't document what each field represents
+
+### 2. Type Safety Issues
+
+Tuples don't prevent mixing up fields of the same type.
+
+```scala
+// ❌ Bad: Easy to mix up tuple elements
+def createUser(name: String, age: Int): (String, Int) = {
+  (age, name)  // Oops! Wrong order - compiles but wrong!
+}
+
+// Later usage
+val user = createUser("Alice", 30)
+val (name, age) = user
+println(s"$name is $age")  // Prints "30 is Alice" - wrong!
+```
+
+**Problems**:
+- **Same types**: If fields have same type, compiler can't catch mistakes
+- **Position errors**: Easy to swap elements
+- **No validation**: Can't add validation to tuple construction
+
+### 3. Hard to Refactor
+
+Changing tuple structure breaks all call sites.
+
+```scala
+// ❌ Bad: Adding field breaks all call sites
+def getUser(): (String, Int) = ("Alice", 30)
+
+// Later: Need to add email
+def getUser(): (String, Int, String) = ("Alice", 30, "alice@example.com")
+
+// Problem: All call sites break!
+val (name, age) = getUser()  // Compile error - wrong arity
+```
+
+**Problems**:
+- **Breaking changes**: Adding/removing fields breaks all usages
+- **No gradual migration**: Can't add optional fields
+- **Hard to evolve**: Changes ripple through codebase
+
+### 4. No Documentation Place
+
+Tuples don't provide a place to document fields.
+
+```scala
+// ❌ Bad: No way to document tuple fields
+def processOrder(order: (String, List[Item], BigDecimal)): OrderResult = {
+  // What is the first String? Order ID? Customer ID?
+  // What is the BigDecimal? Total? Tax? Shipping?
+  // Must guess from usage
+}
+```
+
+---
+
+## ✅ The Solution: Case Classes
+
+### ✅ Basic Pattern: Named Fields
+
+```scala
+// ✅ Good: Case class with named fields
+case class User(name: String, age: Int, isActive: Boolean)
+
+def processUser(user: User): String = {
+  // Clear what each field is
+  s"${user.name} is ${user.age} years old, active: ${user.isActive}"
+}
+
+// ✅ Good: Type-safe construction
+val user = User(name = "Alice", age = 30, isActive = true)
+// Can't mix up order with named parameters
+```
+
+**Benefits**:
+- **Named fields**: `name`, `age`, `isActive` convey meaning
+- **Type-safe**: Compiler prevents mixing up fields
+- **Self-documenting**: Field names explain purpose
+- **Refactorable**: Can add fields without breaking all code
+
+### ✅ Documentation
+
+Case classes provide a natural place for documentation.
+
+```scala
+// ✅ Good: Case class with documentation
+/**
+ * Represents a user in the system.
+ * 
+ * @param name The user's full name
+ * @param age The user's age in years (must be >= 0)
+ * @param isActive Whether the user account is currently active
+ */
+case class User(name: String, age: Int, isActive: Boolean)
+
+// Usage is clear
+val user = User(name = "Alice", age = 30, isActive = true)
+```
+
+### ✅ Validation
+
+Case classes can include validation logic.
+
+```scala
+// ✅ Good: Case class with validation
+case class User(name: String, age: Int, isActive: Boolean) {
+  require(name.nonEmpty, "Name cannot be empty")
+  require(age >= 0, "Age must be non-negative")
+}
+
+// Or with smart constructor
+case class User private(name: String, age: Int, isActive: Boolean)
+
+object User {
+  def apply(name: String, age: Int, isActive: Boolean): Option[User] = {
+    if (name.nonEmpty && age >= 0) {
+      Some(new User(name, age, isActive))
+    } else None
+  }
+}
+```
+
+### ✅ Evolution
+
+Case classes can evolve without breaking all code.
+
+```scala
+// ✅ Good: Can add fields with defaults
+case class User(
+  name: String,
+  age: Int,
+  isActive: Boolean,
+  email: Option[String] = None  // New field with default
+)
+
+// Existing code still works
+val user1 = User("Alice", 30, isActive = true)  // email = None
+
+// New code can use email
+val user2 = User("Bob", 25, isActive = true, email = Some("bob@example.com"))
+```
+
+---
+
+## When Tuples Are Acceptable
+
+### ✅ Local, Temporary Values
+
+Tuples are fine for local, temporary values that don't cross method boundaries.
+
+```scala
+// ✅ Good: Tuple for local computation
+def calculateStats(numbers: List[Int]): Stats = {
+  val (sum, count) = numbers.foldLeft((0, 0)) { case ((s, c), n) =>
+    (s + n, c + 1)
+  }
+  Stats(sum, count)
+}
+
+// ✅ Good: Tuple for intermediate values
+def processData(data: List[String]): List[ProcessedData] = {
+  data.map { item =>
+    val (parsed, validated) = (parse(item), validate(item))
+    ProcessedData(parsed, validated)
+  }
+}
+```
+
+### ✅ Return Multiple Values
+
+Tuples are acceptable for returning multiple values from private/internal methods.
+
+```scala
+// ✅ Acceptable: Tuple for multiple return values
+private def parseAndValidate(input: String): (ParsedData, ValidationResult) = {
+  val parsed = parse(input)
+  val validated = validate(parsed)
+  (parsed, validated)
+}
+
+// But consider case class for public APIs
+case class ParseResult(parsed: ParsedData, validation: ValidationResult)
+
+def parseAndValidatePublic(input: String): ParseResult = {
+  val parsed = parse(input)
+  val validated = validate(parsed)
+  ParseResult(parsed, validated)
+}
+```
+
+### ✅ Scala 3 Named Tuples
+
+In Scala 3, named tuples provide better ergonomics than regular tuples:
+
+```scala
+// ✅ Good: Scala 3 named tuple (better than regular tuple)
+type UserInfo = (name: String, age: Int, isActive: Boolean)
+
+def processUser(user: UserInfo): String = {
+  // Can access by name: user.name, user.age
+  s"${user.name} is ${user.age} years old"
+}
+
+// ✅ Good: Named tuple with pattern matching
+val user: UserInfo = (name = "Alice", age = 30, isActive = true)
+user match {
+  case (name = n, age = a, isActive = active) => 
+    s"$n is $a, active: $active"
+}
+
+// Still prefer case class for complex data
+case class User(name: String, age: Int, isActive: Boolean)
+```
+
+**Note**: Named tuples are better than regular tuples, but case classes are still preferred for:
+- Data that crosses method boundaries
+- Data that's stored or persisted
+- Data that needs validation
+- Data that might evolve
+- Public APIs
+
+### ✅ Advanced: Named Tuples with Computed Field Names (Scala 3.5+)
+
+Scala 3.5+ introduces computed field names and `Selectable` for advanced use cases:
+
+```scala
+// ✅ Advanced: Using named tuples with Selectable for automatic derivation
+import scala.compiletime.*
+
+// Named tuple type
+type PersonFields = (name: String, age: Int, isAlive: Boolean)
+
+// Can be used with Selectable for structural typing
+trait PersonLike extends Selectable {
+  type Fields = PersonFields
+  def selectDynamic(name: String): Any = ???
+}
+
+// This enables automatic derivation patterns
+// (Advanced topic - see blog post for full details)
+```
+
+**Note**: These advanced patterns are useful for:
+- Automatic derivation (lenses, codecs, etc.)
+- Reducing boilerplate
+- Type-level programming
+
+**But**: For most use cases, **case classes are simpler and more maintainable**.
+
+---
+
+## Migration Strategy
+
+### Step 1: Identify Tuple Usage
+
+Find tuples used as parameters or return types:
+
+```scala
+// Find patterns like:
+def process(x: (String, Int))
+def getData(): (A, B, C)
+val data: (String, Int) = ...
+```
+
+### Step 2: Extract to Case Class
+
+Create case class with meaningful names:
+
+```scala
+// Before
+def processUser(user: (String, Int, Boolean)): String
+
+// After
+case class User(name: String, age: Int, isActive: Boolean)
+def processUser(user: User): String
+```
+
+### Step 3: Update Call Sites
+
+Update all usages:
+
+```scala
+// Before
+val user = ("Alice", 30, true)
+processUser(user)
+
+// After
+val user = User(name = "Alice", age = 30, isActive = true)
+processUser(user)
+```
+
+---
+
+## Summary
+
+### ✅ DO
+- Use **case classes** for data that crosses method boundaries
+- Use **case classes** for data that's stored or persisted
+- Use **case classes** when fields need documentation
+- Use **case classes** when data might evolve
+- Use **named tuples** (Scala 3) if you must use tuples
+- Use **tuples** for local, temporary values only
+
+### ❌ DON'T
+- Use **tuples** as method parameters (use case classes)
+- Use **tuples** as return types from public methods (use case classes)
+- Use **tuples** for data that's stored or persisted (use case classes)
+- Use **tuples** when fields have the same type (easy to mix up)
+- Use **tuples** when data structure might change (use case classes)
+
+### Key Insight
+
+> **Case classes provide type safety, discoverability, and maintainability that tuples lack. Use tuples only for local, temporary values. For any data that crosses method boundaries or is stored, prefer case classes.**
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (primitive obsession code smell, use domain objects)
+
+**Scala-Specific:**
+- [Compiler-Friendly Types](compiler-friendly-types.mdc) - Type safety principles, typed wrappers
+- [Avoid Overloading](avoid-overloading.mdc) - Prefer explicit naming
+- [Pattern Matching Best Practices](pattern-matching-best-practices.mdc) - Pattern matching on case classes
+
+---
+
+## References
+
+- [Whiteboxish Macro Powers with Named Tuples](https://blog.daniel-beskin.com/2025-04-14-whiteboxish-named-tuples) - Daniel Beskin's Blog - Advanced Scala 3 named tuple techniques

@@ -1,0 +1,107 @@
+---
+description: "Always explain MCP tools when using them to educate users about the ecosystem. Use when: (1) Using MCP tools, (2) Explaining tool usage, (3) Documenting tool capabilities, (4) Educating about ecosystem, (5) Demonstrating tool integration. Covers MCP tool communication patterns and ecosystem education."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+
+# Tool Communication Pattern
+
+## 🎯 Core Principle
+
+**When using MCP tools, always explain them to users first!**
+
+This helps users understand the ecosystem, set up their own tools, and know what's available.
+
+## 📋 Pattern to Follow
+
+```
+To [task], I'll use the [Tool Name] MCP tool (`mcp_tool_name`).
+According to [guide-file.mdc], this tool [brief explanation].
+
+[Then proceed with using the tool]
+```
+
+## ✅ Good Examples
+
+### Example 1: Code Analysis Tool
+```
+To understand this service structure, I'll use a **code analysis tool** to map 
+relationships, call chains, and identify dead code before reading files.
+
+Let me start by finding all classes in this service and tracing their dependencies...
+```
+
+## ❌ Bad Examples (Don't Do This)
+
+### Example 1: Silent Tool Usage
+```
+❌ [Just runs code analysis queries without mentioning the tool]
+❌ [Provides results without explaining the tool used]
+```
+
+**Why bad?** User doesn't learn about available tools.
+
+### Example 2: Over-explaining Every Call
+```
+❌ "Using code analysis tool again..." (for 10th query in same conversation)
+```
+
+**Why bad?** Repetitive and annoying after the first explanation.
+
+## 🎯 When to Explain
+
+- ✅ **First time using a tool** in a conversation
+- ✅ **When user seems unfamiliar** with the tool
+- ✅ **When switching to a different tool**
+- ❌ **Not for every single query** in the same conversation
+
+## 🔗 Available Tools & Guides
+
+| Tool | MCP Name | Purpose |
+|------|----------|---------|
+| Context7 | `mcp_context7_*` | Library/API documentation (see below) |
+
+## Context7 Tool Usage
+
+**When to use Context7** (`mcp_context7_*`):
+- User requests code examples, setup, or configuration steps
+- User asks for library/API documentation
+- Suggesting environment variables, CLI flags, or configuration options for external tools/libraries
+
+**Always verify** configuration options exist before suggesting them (see `ROUTER.mdc` quality standards).
+
+**Tool call patterns**:
+```
+[[calls]]
+match = "when the user requests code examples, setup or configuration steps, or library/API documentation"
+tool  = "context7"
+
+[[calls]]
+match = "when suggesting environment variables, CLI flags, or configuration options for external tools/libraries"
+tool  = "context7"
+```
+
+## 💡 Why This Matters
+
+1. **Users learn the ecosystem** - They discover what tools are available
+2. **Users can set up tools** - They know what to configure in `.cursor/mcp.json`
+3. **Better collaboration** - Teams share understanding of tooling
+4. **Self-service** - Users can use tools independently after learning
+
+## 🚀 Setup Reference
+
+Point users to:
+- **MCP Setup Guide**: `docs/MCP_SETUP_GUIDE.mdc`
+- **Example Configuration**: `mcp/example-config.json`
+- **Smart Router**: `ROUTER.mdc` (auto-loads, detects intent and loads guides)
+
+## Related Rules
+
+- [Prompt Engineering Principles](prompt-engineering-principles.mdc) - Techniques for optimizing LLM prompts and understanding architecture limitations
+- [Business Communication Standards](business-communication-standards.mdc) - BLUF format for business explanations
+
+---
+
+**Remember: Be an educational guide, not a silent worker!**

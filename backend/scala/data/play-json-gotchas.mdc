@@ -1,0 +1,242 @@
+---
+description: "Play JSON gotchas and common pitfalls discovered during migrations. Use when: (1) Migrating JSON code, (2) Debugging JSON serialization issues, (3) Handling Play JSON edge cases, (4) Avoiding common Play JSON mistakes, (5) Working with complex JSON structures. Covers migration pitfalls, serialization gotchas, and solutions to common problems."
+globs: []
+alwaysApply: false
+---
+
+# Play JSON Gotchas & Common Pitfalls
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Scala-Specific:**
+- [JSON Serialization Patterns](json-serialization-patterns.mdc) - General Play JSON patterns
+- This file documents common pitfalls and anti-patterns specific to Play JSON
+
+---
+
+## The `readNullable.orElse()` Anti-Pattern
+
+**THIS DOESN'T WORK AS EXPECTED:**
+
+```scala
+// ❌ WRONG - orElse NEVER triggers because readNullable returns JsSuccess(None)
+(__ \ "field1").readNullable[T].orElse((__ \ "field2").readNullable[T])
+```
+
+**Why it fails:** `readNullable` returns `JsSuccess(None)` when field is missing, not `JsError`. So Play JSON's `orElse` on `JsResult` never triggers for the fallback field.
+
+**Correct pattern:**
+```scala
+// ✅ CORRECT - read both fields separately, combine with Scala orElse
+for {
+  field1 <- (__ \ "field1").readNullable[T]
+  field2 <- (__ \ "field2").readNullable[T]
+} yield field1.orElse(field2)
+```
+
+---
+
+## Null Field Handling Differences
+
+**`Jsonx.formatCaseClass` vs `Json.format` behave differently with nulls:**
+
+```scala
+case class Data(a: String, b: Option[String])
+
+// Jsonx.formatCaseClass - OMITS null fields
+// {"a": "value"}
+
+// Json.format - INCLUDES null fields
+// {"a": "value", "b": null}
+```
+
+**Impact:** If you're matching serialization for encryption/hashing, this difference breaks compatibility.
+
+**Fix:** Use custom `Writes` to control null handling:
+```scala
+implicit val writes: Writes[Data] = new Writes[Data] {
+  override def writes(o: Data): JsValue = {
+    val fields = Seq(
+      Some("a" -> JsString(o.a)),
+      o.b.map("b" -> JsString(_))  // Only include if Some
+    ).flatten
+    JsObject(fields)
+  }
+}
+```
+
+---
+
+## Enum Serialization: Int vs String
+
+Enums can serialize as strings or integers depending on implementation:
+
+```scala
+// String serialization (StringEnumEntry)
+sealed abstract class Status(val value: String) extends StringEnumEntry
+// Serializes as: "active"
+
+// Int serialization (IntEnumEntry)  
+sealed abstract class Status(val value: Int) extends IntEnumEntry
+// Serializes as: 1
+```
+
+**Gotcha:** When migrating, check if source uses int or string serialization:
+```scala
+// Custom format to output int even if enum is string-based
+implicit val fmt: Format[InstanceType] = new Format[InstanceType] {
+  override def reads(json: JsValue): JsResult[InstanceType] = json match {
+    case JsString(s) => // handle string
+    case JsNumber(n) => // handle int
+    case _ => JsError("Expected string or number")
+  }
+  override def writes(o: InstanceType): JsValue = JsNumber(o.intValue)
+}
+```
+
+---
+
+## Map Key Serialization
+
+When using custom types as Map keys, the key serialization format matters:
+
+```scala
+case class Instance(provider: Provider, id: Int)
+
+// Default: keys serialize as object toString
+Map(Instance(MyProvider, 1) -> data)
+// Key: "Instance(MyProvider,1)"  ❌
+
+// Custom key serializer needed:
+implicit val mapFmt: Format[Map[Instance, Data]] = 
+  valueClassMapTryFormat[String, Instance, Data](
+    parseInstance,
+    inst => s"${inst.provider.value}_${inst.id}"  // "MyProvider_1"
+  )
+```
+
+---
+
+## Case Class Field Naming
+
+Play JSON uses Scala field names by default. Different repos may use different conventions:
+
+```scala
+// Source repo uses: "auctionID" (camelCase with acronym)
+// Target repo uses: "auctionId" (standard camelCase)
+```
+
+**Fix:** Use `@JsonNaming` or custom format:
+```scala
+implicit val writes: Writes[Params] = new Writes[Params] {
+  override def writes(o: Params): JsValue = Json.obj(
+    "auctionID" -> o.auctionId,  // Explicit field name
+    // ...
+  )
+}
+```
+
+---
+
+## Complex Type Serialization Differences
+
+The same logical type can serialize differently:
+
+```scala
+case class Instance(provider: Provider, instanceId: InstanceID)
+
+// Format A: Object
+// {"provider": "mycompany", "instanceId": 123}
+
+// Format B: String
+// "mycompany_123"
+```
+
+**Impact:** Encryption/hashing will produce different results.
+
+**Fix:** Create format matching the expected serialization:
+```scala
+implicit val instanceWrites: Writes[Instance] = new Writes[Instance] {
+  override def writes(o: Instance): JsValue =
+    JsString(s"${o.provider.value}_${o.instanceId.value}")
+}
+```
+
+---
+
+## Value Class Casing Differences
+
+Enum/value class string representations may differ between repos:
+
+```scala
+// Repo A: "MyProvider" (PascalCase)
+// Repo B: "myProvider" (camelCase)
+```
+
+**Impact:** Any string comparison, encryption, or hashing breaks.
+
+**Fix:** Map values explicitly:
+```scala
+private def toExpectedFormat(provider: Provider): String = provider match {
+  case Provider.MyProvider => "MyProvider"  // Force specific casing
+  case other => other.value
+}
+```
+
+---
+
+## Test Data with Hardcoded Serialized Values
+
+Tests often contain hardcoded encrypted/serialized strings:
+
+```scala
+// Test expects specific encrypted value
+expected = "http://host/path?request=ABC123ENCRYPTED..."
+```
+
+**Problem:** When serialization changes (even field order), encrypted values change.
+
+**Solutions:**
+1. **Update expectations** if your serialization is correct but different
+2. **Match source serialization** if encryption must be compatible across systems
+3. **Use dynamic expectations** for time-sensitive or non-deterministic values:
+   ```scala
+   val result = buildRequest(...)
+   expected = expected.copy(timestamp = result.timestamp)  // Use actual value
+   ```
+
+---
+
+## Debugging Serialization Differences
+
+When serialization doesn't match expected:
+
+```scala
+// 1. Print both JSON strings
+println(s"Expected: $expectedJson")
+println(s"Actual: $actualJson")
+
+// 2. Compare character by character
+expectedJson.zip(actualJson).zipWithIndex.foreach { case ((e, a), i) =>
+  if (e != a) println(s"Diff at $i: expected='$e' actual='$a'")
+}
+
+// 3. Check specific aspects
+// - Field order
+// - Field casing
+// - Null handling
+// - Numeric type (int vs string)
+// - Complex type format (object vs string)
+```
+
+---
+
+## See Also
+
+- `json-serialization-patterns.mdc` - Correct patterns for JSON serialization
+- `skills/service-migration/SKILL.md` - Migration guide that may encounter these issues

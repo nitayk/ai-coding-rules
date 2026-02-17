@@ -1,0 +1,411 @@
+---
+description: "React best practices - hooks, performance optimization, component patterns, React 19 features. Use when: (1) Writing React components, (2) Using hooks, (3) Optimizing performance, (4) Component patterns, (5) React 19 features. Covers hooks patterns, performance optimization, component design, and React best practices."
+globs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js"]
+alwaysApply: false
+---
+
+# React Patterns
+
+Follow React best practices: proper hook usage, performance optimization, and modern React patterns.
+
+---
+
+## Use Hooks Correctly
+
+**Follow Rules of Hooks - only call hooks at top level:**
+
+```tsx
+// ✅ Good: Hooks at top level
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchUser(userId).then(setUser).finally(() => setLoading(false));
+  }, [userId]);
+  
+  if (loading) return <Loading />;
+  return <div>{user?.name}</div>;
+}
+
+// ❌ Bad: Conditional hook call
+function UserProfile({ userId }: { userId: string }) {
+  if (!userId) {
+    return null;
+  }
+  const [user, setUser] = useState<User | null>(null);  // Hook after return!
+  // ...
+}
+```
+
+---
+
+## Use useEffect Dependencies Correctly
+
+**Include all dependencies in useEffect:**
+
+```tsx
+// ✅ Good: Complete dependency array
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    async function loadUser() {
+      const data = await fetchUser(userId);
+      setUser(data);
+    }
+    loadUser();
+  }, [userId]);  // All dependencies included
+  
+  return <div>{user?.name}</div>;
+}
+
+// ✅ Good: Use useCallback for stable function references
+function UserList({ onUserClick }: { onUserClick: (id: string) => void }) {
+  const [users, setUsers] = useState<User[]>([]);
+  
+  const handleClick = useCallback((id: string) => {
+    onUserClick(id);
+  }, [onUserClick]);
+  
+  useEffect(() => {
+    // handleClick is stable
+  }, [handleClick]);
+}
+
+// ❌ Bad: Missing dependencies
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    fetchUser(userId).then(setUser);  // Missing userId in deps!
+  }, []);  // Empty deps - stale closure risk
+}
+```
+
+---
+
+## Optimize Performance with useMemo and useCallback
+
+**Use memoization only when necessary:**
+
+```tsx
+// ✅ Good: useMemo for expensive computation
+function ExpensiveComponent({ items }: { items: Item[] }) {
+  const sortedItems = useMemo(() => {
+    return items.sort((a, b) => a.price - b.price);  // Expensive sort
+  }, [items]);
+  
+  return <div>{sortedItems.map(item => <ItemCard key={item.id} item={item} />)}</div>;
+}
+
+// ✅ Good: useCallback for stable function references
+function ParentComponent() {
+  const [count, setCount] = useState(0);
+  
+  const handleClick = useCallback(() => {
+    setCount(c => c + 1);
+  }, []);  // Stable reference
+  
+  return <ChildComponent onClick={handleClick} />;
+}
+
+// ❌ Bad: Premature optimization
+function SimpleComponent({ name }: { name: string }) {
+  const displayName = useMemo(() => name.toUpperCase(), [name]);  // Unnecessary!
+  return <div>{displayName}</div>;
+}
+```
+
+---
+
+## Use React.memo for Expensive Components
+
+**Memoize components that receive object/function props:**
+
+```tsx
+// ✅ Good: React.memo for component with object props
+interface UserCardProps {
+  user: User;
+  onSelect: (id: string) => void;
+}
+
+const UserCard = React.memo(function UserCard({ user, onSelect }: UserCardProps) {
+  return (
+    <div onClick={() => onSelect(user.id)}>
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+});
+
+// ✅ Good: Custom comparison function
+const UserCard = React.memo(
+  function UserCard({ user }: { user: User }) {
+    return <div>{user.name}</div>;
+  },
+  (prevProps, nextProps) => {
+    return prevProps.user.id === nextProps.user.id;  // Custom comparison
+  }
+);
+
+// ❌ Bad: Memoizing everything
+const SimpleComponent = React.memo(function SimpleComponent({ text }: { text: string }) {
+  return <div>{text}</div>;  // Primitive prop - memoization overhead not worth it
+});
+```
+
+---
+
+## Use useTransition for Non-Urgent Updates
+
+**Defer non-urgent updates to keep UI responsive:**
+
+```tsx
+// ✅ Good: useTransition for non-urgent updates
+function SearchResults({ query }: { query: string }) {
+  const [results, setResults] = useState<Result[]>([]);
+  const [isPending, startTransition] = useTransition();
+  
+  useEffect(() => {
+    startTransition(() => {
+      // Non-urgent update - can be interrupted
+      const newResults = performSearch(query);
+      setResults(newResults);
+    });
+  }, [query]);
+  
+  return (
+    <div>
+      {isPending && <Spinner />}
+      {results.map(result => <ResultCard key={result.id} result={result} />)}
+    </div>
+  );
+}
+
+// ❌ Bad: Blocking update
+function SearchResults({ query }: { query: string }) {
+  const [results, setResults] = useState<Result[]>([]);
+  
+  useEffect(() => {
+    const newResults = performSearch(query);  // Blocks UI
+    setResults(newResults);
+  }, [query]);
+}
+```
+
+---
+
+## Use Suspense and Lazy Loading
+
+**Lazy load components to reduce initial bundle:**
+
+```tsx
+// ✅ Good: Lazy loading with Suspense
+import { lazy, Suspense } from 'react';
+
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <HeavyComponent />
+    </Suspense>
+  );
+}
+
+// ✅ Good: Code splitting routes
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
+
+function App() {
+  return (
+    <Router>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
+}
+
+// ❌ Bad: Importing everything upfront
+import HeavyComponent from './HeavyComponent';  // Loaded even if not used
+
+function App() {
+  return <HeavyComponent />;
+}
+```
+
+---
+
+## Extract Custom Hooks for Reusable Logic
+
+**Create custom hooks for shared logic:**
+
+```tsx
+// ✅ Good: Custom hook for reusable logic
+function useUser(userId: string | null) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    if (!userId) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    fetchUser(userId)
+      .then(setUser)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [userId]);
+  
+  return { user, loading, error };
+}
+
+// Usage
+function UserProfile({ userId }: { userId: string }) {
+  const { user, loading, error } = useUser(userId);
+  
+  if (loading) return <Loading />;
+  if (error) return <Error message={error.message} />;
+  return <div>{user?.name}</div>;
+}
+
+// ❌ Bad: Duplicating logic
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Duplicated in multiple components
+    fetchUser(userId).then(setUser).finally(() => setLoading(false));
+  }, [userId]);
+}
+```
+
+---
+
+## Avoid Stale Closures
+
+**Be aware of closure behavior in effects:**
+
+```tsx
+// ✅ Good: Using functional updates
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount(c => c + 1);  // Functional update - always current
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return <div>{count}</div>;
+}
+
+// ✅ Good: Include dependencies
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    let cancelled = false;
+    
+    fetchUser(userId).then(data => {
+      if (!cancelled) {
+        setUser(data);
+      }
+    });
+    
+    return () => {
+      cancelled = true;  // Cleanup
+    };
+  }, [userId]);  // Include userId
+  
+  return <div>{user?.name}</div>;
+}
+
+// ❌ Bad: Stale closure
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount(count + 1);  // Uses stale count!
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);  // Missing count dependency
+}
+```
+
+---
+
+## Use Error Boundaries
+
+**Catch errors in component tree:**
+
+```tsx
+// ✅ Good: Error boundary component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught:', error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+// Usage
+function App() {
+  return (
+    <ErrorBoundary fallback={<ErrorPage />}>
+      <UserProfile userId="123" />
+    </ErrorBoundary>
+  );
+}
+
+// ❌ Bad: No error handling
+function App() {
+  return <UserProfile userId="123" />;  // Crashes entire app on error
+}
+```
+
+---
+
+## Related Rules
+
+- [TypeScript Strict Type Safety](../language/typescript-strict-type-safety.mdc) - Type-safe React
+- [Testing Best Practices](../testing/vitest-best-practices.mdc) - React testing
+
+---
+
+## References
+
+- [React Hooks Documentation](https://react.dev/reference/react)
+- [Dan Abramov's Blog](https://overreacted.io/)
+- [Kent C. Dodds - Epic React](https://epicreact.dev/)

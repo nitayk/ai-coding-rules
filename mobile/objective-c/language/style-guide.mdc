@@ -1,0 +1,26 @@
+---
+description: "Objective-C coding standards and style guide. Use when: (1) Writing Objective-C code, (2) Following style conventions, (3) Formatting Objective-C code, (4) Code reviews, (5) Maintaining consistency. Covers Objective-C naming conventions, formatting standards, and Objective-C style guide."
+globs: ["**/*.m", "**/*.h", "**/*.mm"]
+alwaysApply: false
+---
+# Objective-C Style Guide
+
+## 1. Naming
+- **Prefixes**: Always use a 2-3 letter prefix for classes, protocols, and global constants (e.g., `ISMyClass`, `IS_MAX_COUNT`).
+- **Methods**: camelCase, descriptive. First argument should form a readable sentence with the method name.
+- **Properties**: camelCase.
+
+## 2. Formatting
+- **Indentation**: 4 spaces.
+- **Braces**: Opening brace on the end of the line (K&R style).
+- **Asterisks**: `NSString *text` (space before asterisk).
+
+## 3. Best Practices
+- **Nullability**: Use `nonnull`, `nullable`, `null_resettable` in headers to support Swift interoperability.
+- **Properties**: Use `@property (nonatomic, copy) NSString *string;` for strings and blocks to ensure immutability.
+- **Literals**: Use literals (`@[]`, `@{}`) instead of `NSArray`/`NSDictionary` creation methods.
+- **Constants**: Use `static let` (Swift) or `static const` (Obj-C) instead of `#define` macros where possible.
+
+## 4. Memory Management
+- **ARC**: Ensure ARC is enabled.
+- **Weak Self**: Use `__weak typeof(self) weakSelf = self;` inside blocks to avoid retain cycles.

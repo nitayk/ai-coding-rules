@@ -1,0 +1,502 @@
+---
+description: "kubectl CLI for managing Kubernetes clusters - inspect pods, deployments, services, logs, and debug containerized applications. Use when: (1) Managing Kubernetes clusters, (2) Inspecting pods/deployments, (3) Viewing logs, (4) Debugging K8s applications, (5) Managing services/configs. Covers kubectl commands, pod management, log viewing, and Kubernetes debugging."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["kubernetes", "kubectl", "cli", "basics", "k8s", "containers", "pods"]
+---
+
+# kubectl Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to investigate Kubernetes resources, debug pods, inspect deployments, view logs, or troubleshoot containerized applications
+**SKIP WHEN:** Using Kubernetes Dashboard, ArgoCD MCP tools, or Kubernetes API directly
+
+## Core Directive
+**Use kubectl for Kubernetes operations** - Inspect resources, debug pods, view logs, and manage clusters from the command line.
+
+## Installation
+
+```bash
+# macOS
+brew install kubectl
+
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Verify installation
+kubectl version --client
+```
+
+## Configuration
+
+**View current context:**
+```bash
+kubectl config current-context
+```
+
+**List contexts:**
+```bash
+kubectl config get-contexts
+```
+
+**Switch context:**
+```bash
+kubectl config use-context context-name
+```
+
+**View kubeconfig:**
+```bash
+kubectl config view
+```
+
+**Set namespace:**
+```bash
+kubectl config set-context --current --namespace=my-namespace
+```
+
+## Common Operations
+
+### Pods
+
+**List pods:**
+```bash
+kubectl get pods
+kubectl get pods -n namespace
+kubectl get pods --all-namespaces
+kubectl get pods -o wide
+kubectl get pods --show-labels
+```
+
+**Get pod details:**
+```bash
+kubectl describe pod pod-name
+kubectl describe pod pod-name -n namespace
+```
+
+**Get pod logs:**
+```bash
+kubectl logs pod-name
+kubectl logs pod-name -n namespace
+kubectl logs pod-name --tail=100
+kubectl logs pod-name --follow
+kubectl logs pod-name --since=1h
+kubectl logs pod-name -c container-name
+```
+
+**Get logs from previous container (after crash):**
+```bash
+kubectl logs pod-name --previous
+kubectl logs pod-name -c container-name --previous
+```
+
+**Execute command in pod:**
+```bash
+kubectl exec pod-name -- command
+kubectl exec pod-name -c container-name -- command
+kubectl exec -it pod-name -- /bin/bash
+kubectl exec -it pod-name -- sh
+```
+
+**Port forward:**
+```bash
+kubectl port-forward pod-name 8080:80
+kubectl port-forward pod-name 8080:80 -n namespace
+```
+
+**Copy files:**
+```bash
+kubectl cp pod-name:/path/to/file ./local-file
+kubectl cp ./local-file pod-name:/path/to/file
+```
+
+### Deployments
+
+**List deployments:**
+```bash
+kubectl get deployments
+kubectl get deploy -n namespace
+kubectl get deploy -o wide
+```
+
+**Get deployment details:**
+```bash
+kubectl describe deployment deployment-name
+kubectl describe deploy deployment-name -n namespace
+```
+
+**Scale deployment:**
+```bash
+kubectl scale deployment deployment-name --replicas=3
+kubectl scale deploy deployment-name --replicas=0 -n namespace
+```
+
+**Restart deployment:**
+```bash
+kubectl rollout restart deployment deployment-name
+```
+
+**Check rollout status:**
+```bash
+kubectl rollout status deployment deployment-name
+kubectl rollout history deployment deployment-name
+```
+
+**Rollback deployment:**
+```bash
+kubectl rollout undo deployment deployment-name
+kubectl rollout undo deployment deployment-name --to-revision=2
+```
+
+### Services
+
+**List services:**
+```bash
+kubectl get services
+kubectl get svc -n namespace
+kubectl get svc -o wide
+```
+
+**Get service details:**
+```bash
+kubectl describe service service-name
+kubectl describe svc service-name -n namespace
+```
+
+**Get service endpoints:**
+```bash
+kubectl get endpoints service-name
+```
+
+### ConfigMaps and Secrets
+
+**List ConfigMaps:**
+```bash
+kubectl get configmaps
+kubectl get cm -n namespace
+```
+
+**Get ConfigMap details:**
+```bash
+kubectl describe configmap config-name
+kubectl get configmap config-name -o yaml
+```
+
+**List Secrets:**
+```bash
+kubectl get secrets
+kubectl get secrets -n namespace
+```
+
+**Get Secret details:**
+```bash
+kubectl describe secret secret-name
+kubectl get secret secret-name -o yaml
+kubectl get secret secret-name -o jsonpath='{.data.key}' | base64 -d
+```
+
+### Namespaces
+
+**List namespaces:**
+```bash
+kubectl get namespaces
+kubectl get ns
+```
+
+**Create namespace:**
+```bash
+kubectl create namespace my-namespace
+```
+
+**Delete namespace:**
+```bash
+kubectl delete namespace my-namespace
+```
+
+### Events
+
+**Get events:**
+```bash
+kubectl get events
+kubectl get events -n namespace
+kubectl get events --sort-by='.lastTimestamp'
+kubectl get events --field-selector type=Warning
+```
+
+### Resource Usage
+
+**Get node resource usage:**
+```bash
+kubectl top nodes
+```
+
+**Get pod resource usage:**
+```bash
+kubectl top pods
+kubectl top pods -n namespace
+kubectl top pods --containers
+```
+
+## Common Patterns
+
+### Debug Pod Issues
+
+```bash
+# Step 1: Check pod status
+kubectl get pods -n namespace
+
+# Step 2: Get pod details
+kubectl describe pod pod-name -n namespace
+
+# Step 3: Check logs
+kubectl logs pod-name -n namespace --tail=100
+
+# Step 4: Check previous logs if crashed
+kubectl logs pod-name -n namespace --previous
+
+# Step 5: Exec into pod if running
+kubectl exec -it pod-name -n namespace -- sh
+```
+
+### Investigate Deployment Problems
+
+```bash
+# Check deployment status
+kubectl get deployment deployment-name -n namespace
+
+# Check rollout status
+kubectl rollout status deployment deployment-name -n namespace
+
+# View deployment history
+kubectl rollout history deployment deployment-name -n namespace
+
+# Check replica sets
+kubectl get rs -n namespace
+
+# Check events
+kubectl get events -n namespace --field-selector involvedObject.name=deployment-name
+```
+
+### Find Pods by Label
+
+```bash
+# Get pods with specific label
+kubectl get pods -l app=my-app
+kubectl get pods -l app=my-app,version=v1
+kubectl get pods -l 'environment in (prod,staging)'
+```
+
+### Tail Logs from Multiple Pods
+
+```bash
+# Using label selector
+kubectl logs -l app=my-app --tail=50 --follow
+kubectl logs -l app=my-app -n namespace --all-containers --follow
+```
+
+### Check Resource Quotas and Limits
+
+```bash
+# Get resource quotas
+kubectl get resourcequota -n namespace
+kubectl describe resourcequota -n namespace
+
+# Get limit ranges
+kubectl get limitrange -n namespace
+kubectl describe limitrange -n namespace
+```
+
+## Advanced Options
+
+### Output Formats
+
+```bash
+# JSON
+kubectl get pods -o json
+
+# YAML
+kubectl get pods -o yaml
+
+# Wide (more columns)
+kubectl get pods -o wide
+
+# Custom columns
+kubectl get pods -o custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName
+
+# JSONPath
+kubectl get pods -o jsonpath='{.items[*].metadata.name}'
+```
+
+### Filtering and Sorting
+
+```bash
+# Sort by creation time
+kubectl get pods --sort-by=.metadata.creationTimestamp
+
+# Sort by restart count
+kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
+
+# Field selector
+kubectl get pods --field-selector=status.phase=Running
+kubectl get events --field-selector type=Warning
+```
+
+### Watch Resources
+
+```bash
+# Watch pods
+kubectl get pods --watch
+kubectl get pods -w
+
+# Watch events
+kubectl get events --watch
+```
+
+### Dry Run
+
+```bash
+# Client-side dry run
+kubectl create deployment my-dep --image=nginx --dry-run=client -o yaml
+
+# Server-side dry run
+kubectl create deployment my-dep --image=nginx --dry-run=server
+```
+
+## Examples
+
+### ✅ Positive Pattern: Debug Crashing Pod
+
+```bash
+# Step 1: Check pod status
+kubectl get pods -n namespace
+
+# Step 2: Get pod events
+kubectl describe pod pod-name -n namespace | grep -A 10 Events
+
+# Step 3: Check current logs
+kubectl logs pod-name -n namespace --tail=100
+
+# Step 4: Check previous logs (after crash)
+kubectl logs pod-name -n namespace --previous
+
+# Step 5: Check resource limits
+kubectl describe pod pod-name -n namespace | grep -A 5 Limits
+```
+
+### ✅ Positive Pattern: Investigate High Memory Usage
+
+```bash
+# Check top consumers
+kubectl top pods -n namespace --sort-by=memory
+
+# Get specific pod metrics
+kubectl top pod pod-name -n namespace --containers
+
+# Check limits and requests
+kubectl get pod pod-name -n namespace -o jsonpath='{.spec.containers[*].resources}'
+```
+
+### ❌ Negative Pattern: Not Specifying Namespace
+
+```bash
+# ❌ BAD: May look in wrong namespace
+kubectl get pods
+
+# ✅ GOOD: Specify namespace
+kubectl get pods -n my-namespace
+# Or set default namespace
+kubectl config set-context --current --namespace=my-namespace
+```
+
+### ❌ Negative Pattern: Not Checking Previous Logs
+
+```bash
+# ❌ BAD: Only checking current logs for crashed pod
+kubectl logs pod-name
+
+# ✅ GOOD: Check previous container logs
+kubectl logs pod-name --previous
+```
+
+## Troubleshooting
+
+### Pod Not Starting
+
+```bash
+# Check pod status
+kubectl get pod pod-name -n namespace -o yaml
+
+# Check events
+kubectl get events -n namespace --field-selector involvedObject.name=pod-name
+
+# Common issues:
+# - ImagePullBackOff: Check image name and registry access
+kubectl describe pod pod-name -n namespace | grep -A 5 Image
+# - CrashLoopBackOff: Check logs
+kubectl logs pod-name -n namespace --previous
+# - Pending: Check resources and node affinity
+kubectl describe pod pod-name -n namespace | grep -A 10 Events
+```
+
+### Connection Issues
+
+```bash
+# Check kubeconfig
+kubectl config view
+
+# Verify context
+kubectl config current-context
+
+# Test connection
+kubectl cluster-info
+
+# Check authentication
+kubectl auth can-i get pods
+kubectl auth can-i --list
+```
+
+### Resource Not Found
+
+```bash
+# Check namespace
+kubectl get all -n namespace
+
+# List all resources
+kubectl api-resources
+
+# Check resource exists
+kubectl get <resource-type> -A | grep <name>
+```
+
+### Permission Denied
+
+```bash
+# Check permissions
+kubectl auth can-i get pods
+kubectl auth can-i get pods --namespace=prod
+
+# View RBAC
+kubectl get rolebindings -n namespace
+kubectl get clusterrolebindings
+kubectl describe rolebinding <binding-name> -n namespace
+```
+
+## Useful Aliases
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kgd='kubectl get deployments'
+alias kgs='kubectl get services'
+alias kl='kubectl logs'
+alias kex='kubectl exec -it'
+alias kdp='kubectl describe pod'
+alias kdd='kubectl describe deployment'
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/skills/argocd-deployment/SKILL.md` for ArgoCD MCP usage

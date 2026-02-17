@@ -1,0 +1,312 @@
+---
+description: "Kotlin Android performance optimization - memory leaks, profiling, Compose performance. Use when: (1) Optimizing Android apps, (2) Fixing memory leaks, (3) Profiling Android apps, (4) Compose performance, (5) Android performance tuning. Covers memory leak prevention, profiling tools, Compose optimization, and Android performance best practices."
+globs: ["**/*.kt"]
+alwaysApply: false
+---
+
+# Android Performance Optimization
+
+Optimize Android apps for memory, CPU, and UI performance. Profile first, then optimize based on measurements.
+
+---
+
+## Avoid Memory Leaks
+
+**Prevent common memory leak patterns:**
+
+```kotlin
+// ✅ Good: Use applicationContext in singletons
+class AppManager private constructor(context: Context) {
+    companion object {
+        @Volatile
+        private var INSTANCE: AppManager? = null
+        
+        fun getInstance(context: Context): AppManager {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AppManager(context.applicationContext).also { INSTANCE = it }
+            }
+        }
+    }
+}
+
+// ✅ Good: WeakReference for callbacks
+class DataLoader {
+    private var callback: WeakReference<Callback>? = null
+    
+    fun setCallback(callback: Callback) {
+        this.callback = WeakReference(callback)
+    }
+}
+
+// ❌ Bad: Holding Activity context
+class AppManager(context: Context) {
+    private val context: Context = context  // May hold Activity - leak!
+}
+```
+
+---
+
+## Use ViewModelScope for Coroutines
+
+**Always use lifecycle-aware scopes:**
+
+```kotlin
+// ✅ Good: ViewModelScope cancels on ViewModel cleared
+class UserViewModel : ViewModel() {
+    fun loadUser(userId: String) {
+        viewModelScope.launch {
+            val user = repository.getUser(userId)
+            _uiState.value = UiState.Success(user)
+        }
+    }
+}
+
+// ✅ Good: LifecycleScope for UI operations
+class UserFragment : Fragment() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Cancelled when view destroyed
+            observeUserUpdates()
+        }
+    }
+}
+
+// ❌ Bad: GlobalScope - leaks!
+class UserViewModel : ViewModel() {
+    fun loadUser(userId: String) {
+        GlobalScope.launch {  // Not cancelled - leak!
+            val user = repository.getUser(userId)
+            _uiState.value = UiState.Success(user)
+        }
+    }
+}
+```
+
+---
+
+## Unregister Listeners and Observers
+
+**Always unregister in lifecycle callbacks:**
+
+```kotlin
+// ✅ Good: Unregister in onPause/onDestroy
+class LocationFragment : Fragment() {
+    private var locationListener: LocationListener? = null
+    
+    override fun onResume() {
+        super.onResume()
+        locationListener = LocationListener { location ->
+            updateUI(location)
+        }
+        LocationManager.registerListener(locationListener)
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        locationListener?.let {
+            LocationManager.unregisterListener(it)
+            locationListener = null
+        }
+    }
+}
+
+// ❌ Bad: Forgetting to unregister
+class LocationFragment : Fragment() {
+    override fun onResume() {
+        super.onResume()
+        val listener = LocationListener { location ->
+            updateUI(location)
+        }
+        LocationManager.registerListener(listener)  // Never unregistered!
+    }
+}
+```
+
+---
+
+## Optimize Compose Performance
+
+**Use Compose best practices for performance:**
+
+```kotlin
+// ✅ Good: Use remember for expensive computations
+@Composable
+fun ExpensiveComponent(items: List<Item>) {
+    val sortedItems = remember(items) {
+        items.sortedBy { it.price }  // Computed only when items change
+    }
+    
+    LazyColumn {
+        items(sortedItems) { item ->
+            ItemCard(item)
+        }
+    }
+}
+
+// ✅ Good: Use key() for stable identity
+@Composable
+fun UserList(users: List<User>) {
+    LazyColumn {
+        items(
+            items = users,
+            key = { it.id }  // Stable key
+        ) { user ->
+            UserCard(user)
+        }
+    }
+}
+
+// ✅ Good: Use derivedStateOf for derived state
+@Composable
+fun FilteredList(items: List<Item>, filter: String) {
+    val filteredItems = remember {
+        derivedStateOf {
+            items.filter { it.name.contains(filter) }
+        }
+    }
+}
+
+// ❌ Bad: Recomputing on every recomposition
+@Composable
+fun ExpensiveComponent(items: List<Item>) {
+    val sortedItems = items.sortedBy { it.price }  // Recomputes every time!
+    // ...
+}
+```
+
+---
+
+## Avoid Allocations in Tight Loops
+
+**Reuse objects in performance-critical code:**
+
+```kotlin
+// ✅ Good: Reuse StringBuilder
+fun formatManyItems(items: List<Item>): String {
+    val sb = StringBuilder()
+    items.forEach { item ->
+        sb.append(item.name).append(", ")
+    }
+    return sb.toString()
+}
+
+// ✅ Good: Reuse list
+class DataProcessor {
+    private val tempList = mutableListOf<Item>()
+    
+    fun processBatch(items: List<Item>): List<ProcessedItem> {
+        tempList.clear()
+        tempList.addAll(items)
+        // Process tempList
+        return tempList.map(::processItem)
+    }
+}
+
+// ❌ Bad: Allocating in loop
+fun formatManyItems(items: List<Item>): String {
+    var result = ""
+    items.forEach { item ->
+        result += item.name + ", "  // Creates new String each time!
+    }
+    return result
+}
+```
+
+---
+
+## Use Inline Functions for Higher-Order Functions
+
+**Use `inline` to eliminate lambda allocation:**
+
+```kotlin
+// ✅ Good: Inline function eliminates lambda overhead
+inline fun <T> List<T>.fastMap(transform: (T) -> T): List<T> {
+    val result = ArrayList<T>(size)
+    for (item in this) {
+        result.add(transform(item))  // No lambda allocation
+    }
+    return result
+}
+
+// Usage
+val doubled = numbers.fastMap { it * 2 }  // Inlined - no allocation
+
+// ❌ Bad: Non-inline causes lambda allocation
+fun <T> List<T>.slowMap(transform: (T) -> T): List<T> {
+    val result = ArrayList<T>(size)
+    for (item in this) {
+        result.add(transform(item))  // Lambda allocated
+    }
+    return result
+}
+```
+
+---
+
+## Profile Memory Usage
+
+**Use Android Studio Profiler to find leaks:**
+
+```kotlin
+// ✅ Good: Take heap dumps during profiling
+// 1. Use Android Studio Memory Profiler
+// 2. Record allocation during critical flows
+// 3. Take heap dump after usage
+// 4. Look for leaked Activities, Fragments, Views
+
+// ✅ Good: Use LeakCanary in debug builds
+dependencies {
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+}
+
+// LeakCanary automatically detects leaks in debug builds
+
+// ❌ Bad: No memory profiling
+// App crashes with OutOfMemoryError - should have profiled!
+```
+
+---
+
+## Optimize Image Loading
+
+**Use efficient image loading and caching:**
+
+```kotlin
+// ✅ Good: Use Coil or Glide with proper caching
+import coil.ImageLoader
+import coil.request.ImageRequest
+
+val imageLoader = ImageLoader.Builder(context)
+    .memoryCache {
+        MemoryCache.Builder(context)
+            .maxSizePercent(0.25)  // 25% of available memory
+            .build()
+    }
+    .build()
+
+// Load with caching
+imageView.load(imageUrl) {
+    memoryCachePolicy(CachePolicy.ENABLED)
+    diskCachePolicy(CachePolicy.ENABLED)
+}
+
+// ❌ Bad: Loading images without caching
+imageView.load(imageUrl)  // No cache - reloads every time
+```
+
+---
+
+## Related Rules
+
+- [Coroutines Patterns](../language/coroutines-patterns.mdc) - Coroutine performance
+- [Android Best Practices](android-best-practices.mdc) - Android patterns
+
+---
+
+## References
+
+- [Android Performance Best Practices](https://developer.android.com/topic/performance)
+- [Android Memory Profiler](https://developer.android.com/studio/profile/memory-profiler)
+- [LeakCanary](https://square.github.io/leakcanary/)

@@ -1,0 +1,213 @@
+---
+description: "Universal error handling principles - fail fast, explicit errors, proper propagation. Use when: (1) Handling errors, (2) Writing error handling code, (3) Debugging error flows, (4) Designing error handling, (5) Error propagation. Covers fail-fast principle, explicit errors, and proper error propagation patterns."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+tags: ["error-handling", "universal", "exceptions", "fail-fast"]
+---
+
+# Universal Error Handling Principles
+
+**APPLY WHEN:** Handling errors, exceptions, or failure cases in any language.
+
+---
+
+## Core Principles
+
+### 1. Fail Fast
+
+**DO**:
+- Validate inputs at system boundaries (API endpoints, function entry points)
+- Throw/return errors immediately when invariants are violated
+- Don't continue with invalid state
+
+**STOP**:
+- Silently continuing with bad data
+- Deferring error detection
+- Catching exceptions just to ignore them
+
+**Example**:
+```python
+# ✅ Good: Fail fast
+def process_user(user_id: str):
+    if not user_id or not user_id.isdigit():
+        raise ValueError(f"Invalid user_id: {user_id}")
+    # Continue processing...
+
+# ❌ Bad: Silent failure
+def process_user(user_id: str):
+    if not user_id:
+        return None  # Caller doesn't know why it failed
+    # Continue with potentially invalid data...
+```
+
+---
+
+### 2. Explicit Error Types
+
+**DO**:
+- Use typed errors/exceptions (not generic `Exception` or `Error`)
+- Create domain-specific error types
+- Include context (what failed, why, where)
+
+**STOP**:
+- Catching `Exception` broadly without handling
+- Using strings/ints as error codes
+- Losing stack traces
+
+**Example**:
+```scala
+// ✅ Good: Typed errors
+sealed trait UserError
+case class UserNotFound(id: String) extends UserError
+case class InvalidEmail(email: String) extends UserError
+
+// ❌ Bad: Generic exception
+try {
+  // ...
+} catch {
+  case e: Exception => // Too broad!
+}
+```
+
+---
+
+### 3. Don't Swallow Errors
+
+**DO**:
+- Log errors with full context before handling
+- Propagate errors to appropriate handler
+- Transform errors at boundaries (internal → external representation)
+
+**STOP**:
+- Catching and ignoring (`catch { case _ => }`)
+- Logging without rethrowing when appropriate
+- Hiding errors from callers
+
+**Exception**: Top-level handlers (main, request handlers) should catch and handle gracefully
+
+---
+
+### 4. Error Context Preservation
+
+**DO**:
+- Wrap errors with context (what operation was attempted)
+- Preserve original error in chain
+- Include relevant parameters/state
+
+**STOP**:
+- Losing original error information
+- Creating new errors without original cause
+- Exposing internal implementation details to users
+
+**Example**:
+```go
+// ✅ Good: Wrap with context
+if err := db.Save(user); err != nil {
+    return fmt.Errorf("failed to save user %s: %w", user.ID, err)
+}
+
+// ❌ Bad: Lose context
+if err := db.Save(user); err != nil {
+    return errors.New("save failed")  // Lost: which user? why?
+}
+```
+
+---
+
+### 5. Distinguish Expected vs Unexpected Errors
+
+**Expected Errors** (business logic):
+- User not found → Return `None`/`null` or `Either.Left`
+- Validation failure → Return validation error
+- Rate limit exceeded → Return specific error type
+
+**Unexpected Errors** (system failures):
+- Database connection lost → Log and propagate
+- Out of memory → Log and crash/restart
+- Null pointer → Bug, should not happen
+
+**DO**:
+- Handle expected errors explicitly in business logic
+- Let unexpected errors propagate to top-level handler
+- Use type system to distinguish (e.g., `Option` vs `Try`)
+
+---
+
+## Error Handling Patterns by Language
+
+### Functional Languages (Scala, Haskell)
+- **Use**: `Option` for missing values, `Either` for errors, `Try` for exceptions
+- **Prefer**: Composable error handling with `flatMap`/`for-comprehension`
+- **Avoid**: Throwing exceptions in business logic
+
+### Go
+- **Use**: Explicit error returns `(result, error)`
+- **Prefer**: `errors.Is()` and `errors.As()` for error checking
+- **Avoid**: Panic/recover except for truly unrecoverable situations
+
+### Python
+- **Use**: Specific exception types, not bare `except:`
+- **Prefer**: `raise ... from ...` to preserve error chains
+- **Avoid**: Catching `Exception` without re-raising
+
+### Java
+- **Use**: Checked exceptions for recoverable errors
+- **Prefer**: Specific exception types, not `Exception`
+- **Avoid**: Swallowing exceptions silently
+
+### JavaScript/TypeScript
+- **Use**: `Promise.reject()` or `throw` for async errors
+- **Prefer**: Typed error classes, not strings
+- **Avoid**: Unhandled promise rejections
+
+---
+
+## Anti-Patterns
+
+**❌ Silent Failures**
+```python
+try:
+    result = risky_operation()
+except:
+    pass  # BAD: No one knows it failed
+```
+
+**❌ Generic Error Handling**
+```java
+try {
+    // ...
+} catch (Exception e) {
+    log.error("Error");  // BAD: Too broad, loses context
+}
+```
+
+**❌ Error Masking**
+```scala
+try {
+    userService.getUser(id)
+} catch {
+    case _ => User.default  // BAD: Hides the real problem
+}
+```
+
+**✅ Correct Patterns**
+- Validate early, fail fast
+- Use specific error types
+- Preserve error context
+- Handle expected errors, propagate unexpected ones
+- Log with full context
+
+---
+
+## Error Handling Checklist
+
+Before committing code with error handling:
+- [ ] Are errors typed/explicit?
+- [ ] Is error context preserved?
+- [ ] Are expected vs unexpected errors distinguished?
+- [ ] Are errors logged appropriately?
+- [ ] Are errors propagated correctly?
+- [ ] Is there no silent failure?
+- [ ] Are error messages user-friendly (at boundaries)?

@@ -1,0 +1,414 @@
+---
+description: "Modern PHP best practices - type safety, PHP 8+ features, static analysis, SOLID principles. Use when: (1) Writing PHP 8+ code, (2) Using type declarations, (3) Applying SOLID principles, (4) Static analysis with PHPStan/Psalm, (5) Modern PHP patterns. Covers PHP 8 features, type safety, and modern PHP development."
+globs: []
+alwaysApply: false
+---
+
+# Modern PHP Patterns
+
+Use PHP 8+ features, type declarations, and modern patterns for maintainable, type-safe code.
+
+---
+
+## Use Type Declarations Everywhere
+
+**Declare parameter and return types for all functions:**
+
+```php
+// ✅ Good: Full type declarations
+class UserService {
+    public function findUser(int $id): ?User {
+        return $this->repository->findById($id);
+    }
+    
+    public function createUser(string $name, string $email): User {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Invalid email");
+        }
+        return $this->repository->create($name, $email);
+    }
+    
+    /**
+     * @return array<User>
+     */
+    public function getActiveUsers(): array {
+        return $this->repository->findBy(['active' => true]);
+    }
+}
+
+// ❌ Bad: No type declarations
+class UserService {
+    public function findUser($id) {  // What type is $id?
+        return $this->repository->findById($id);
+    }
+    
+    public function createUser($name, $email) {  // No types!
+        return $this->repository->create($name, $email);
+    }
+}
+```
+
+---
+
+## Use Constructor Property Promotion
+
+**Use PHP 8 constructor property promotion:**
+
+```php
+// ✅ Good: Constructor property promotion
+class User {
+    public function __construct(
+        private string $name,
+        private string $email,
+        private DateTimeImmutable $createdAt = new DateTimeImmutable()
+    ) {
+    }
+    
+    public function getName(): string {
+        return $this->name;
+    }
+}
+
+// ❌ Bad: Verbose constructor
+class User {
+    private string $name;
+    private string $email;
+    private DateTimeImmutable $createdAt;
+    
+    public function __construct(string $name, string $email, DateTimeImmutable $createdAt = null) {
+        $this->name = $name;
+        $this->email = $email;
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
+    }
+}
+```
+
+---
+
+## Use Enums for Constants (PHP 8.1+)
+
+**Use enums instead of class constants:**
+
+```php
+// ✅ Good: Enum for status
+enum UserStatus: string {
+    case ACTIVE = 'active';
+    case INACTIVE = 'inactive';
+    case SUSPENDED = 'suspended';
+    
+    public function isActive(): bool {
+        return $this === self::ACTIVE;
+    }
+}
+
+class User {
+    public function __construct(
+        private string $name,
+        private UserStatus $status = UserStatus::ACTIVE
+    ) {
+    }
+    
+    public function getStatus(): UserStatus {
+        return $this->status;
+    }
+}
+
+// ❌ Bad: Class constants
+class UserStatus {
+    const ACTIVE = 'active';
+    const INACTIVE = 'inactive';
+    const SUSPENDED = 'suspended';
+}
+
+class User {
+    private string $status;
+    
+    public function __construct(string $name, string $status = UserStatus::ACTIVE) {
+        $this->status = $status;  // No type safety!
+    }
+}
+```
+
+---
+
+## Use Readonly Properties (PHP 8.2+)
+
+**Use readonly properties for immutability:**
+
+```php
+// ✅ Good: Readonly properties
+class User {
+    public function __construct(
+        public readonly string $name,
+        public readonly string $email,
+        public readonly DateTimeImmutable $createdAt = new DateTimeImmutable()
+    ) {
+    }
+}
+
+$user = new User("John", "john@example.com");
+// $user->name = "Jane";  // Error! Readonly property
+
+// ❌ Bad: Mutable properties
+class User {
+    public string $name;
+    public string $email;
+    
+    public function __construct(string $name, string $email) {
+        $this->name = $name;
+        $this->email = $email;
+    }
+}
+
+$user = new User("John", "john@example.com");
+$user->name = "Jane";  // Allowed but breaks immutability
+```
+
+---
+
+## Use Union Types and Intersection Types
+
+**Use union types for flexible parameters:**
+
+```php
+// ✅ Good: Union types
+class Logger {
+    public function log(string|int|float $message): void {
+        echo date('Y-m-d H:i:s') . " - " . $message . "\n";
+    }
+    
+    public function getUser(int|string $id): ?User {
+        if (is_int($id)) {
+            return $this->findById($id);
+        }
+        return $this->findByEmail($id);
+    }
+}
+
+// ✅ Good: Nullable union
+public function findUser(int|string|null $id): ?User {
+    if ($id === null) {
+        return null;
+    }
+    // ...
+}
+
+// ❌ Bad: No type safety
+class Logger {
+    public function log($message) {  // Any type!
+        echo $message;
+    }
+}
+```
+
+---
+
+## Use Match Expressions (PHP 8.0+)
+
+**Use `match` instead of `switch`:**
+
+```php
+// ✅ Good: Match expression
+class PaymentProcessor {
+    public function processPayment(string $method, float $amount): string {
+        return match($method) {
+            'credit_card' => $this->processCreditCard($amount),
+            'paypal' => $this->processPayPal($amount),
+            'bank_transfer' => $this->processBankTransfer($amount),
+            default => throw new InvalidArgumentException("Unknown payment method: $method")
+        };
+    }
+}
+
+// ✅ Good: Match with conditions
+public function getDiscount(int $quantity): float {
+    return match(true) {
+        $quantity >= 100 => 0.20,
+        $quantity >= 50 => 0.15,
+        $quantity >= 10 => 0.10,
+        default => 0.0
+    };
+}
+
+// ❌ Bad: Switch statement
+public function processPayment(string $method, float $amount): string {
+    switch ($method) {
+        case 'credit_card':
+            return $this->processCreditCard($amount);
+        case 'paypal':
+            return $this->processPayPal($amount);
+        default:
+            return 'unknown';  // No exception, just returns string
+    }
+}
+```
+
+---
+
+## Use Static Analysis Tools
+
+**Enable PHPStan or Psalm for type checking:**
+
+```php
+// ✅ Good: PHPStan annotations
+/**
+ * @param array<string, mixed> $data
+ * @return array<User>
+ */
+public function createUsersFromArray(array $data): array {
+    $users = [];
+    foreach ($data as $item) {
+        /** @var array{name: string, email: string} $item */
+        $users[] = new User($item['name'], $item['email']);
+    }
+    return $users;
+}
+
+// phpstan.neon configuration
+// parameters:
+//     level: 8
+//     paths:
+//         - src
+
+// ❌ Bad: No static analysis
+public function createUsersFromArray($data) {  // No types, no analysis
+    $users = [];
+    foreach ($data as $item) {
+        $users[] = new User($item['name'], $item['email']);  // Might crash!
+    }
+    return $users;
+}
+```
+
+---
+
+## Use Dependency Injection
+
+**Inject dependencies via constructor:**
+
+```php
+// ✅ Good: Constructor injection
+class UserService {
+    public function __construct(
+        private UserRepository $repository,
+        private LoggerInterface $logger,
+        private EventDispatcher $dispatcher
+    ) {
+    }
+    
+    public function createUser(string $name, string $email): User {
+        $user = $this->repository->create($name, $email);
+        $this->dispatcher->dispatch(new UserCreated($user));
+        $this->logger->info("User created: {$user->getId()}");
+        return $user;
+    }
+}
+
+// ❌ Bad: Service locator or global state
+class UserService {
+    public function createUser(string $name, string $email): User {
+        $repository = Container::get(UserRepository::class);  // Service locator
+        $logger = Logger::getInstance();  // Singleton/global
+        // Hard to test, tight coupling
+    }
+}
+```
+
+---
+
+## Use Named Arguments (PHP 8.0+)
+
+**Use named arguments for clarity:**
+
+```php
+// ✅ Good: Named arguments
+class User {
+    public function __construct(
+        private string $name,
+        private string $email,
+        private ?DateTimeImmutable $createdAt = null,
+        private bool $isActive = true
+    ) {
+    }
+}
+
+$user = new User(
+    name: "John Doe",
+    email: "john@example.com",
+    isActive: false  // Clear what this parameter is
+);
+
+// ❌ Bad: Positional arguments with many parameters
+$user = new User(
+    "John Doe",
+    "john@example.com",
+    null,
+    false  // What does false mean?
+);
+```
+
+---
+
+## Handle Exceptions Properly
+
+**Use specific exceptions and don't suppress:**
+
+```php
+// ✅ Good: Specific exceptions
+class UserService {
+    public function findUser(int $id): User {
+        $user = $this->repository->findById($id);
+        
+        if ($user === null) {
+            throw new UserNotFoundException("User not found: $id");
+        }
+        
+        return $user;
+    }
+    
+    public function createUser(string $name, string $email): User {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Invalid email: $email");
+        }
+        
+        try {
+            return $this->repository->create($name, $email);
+        } catch (DatabaseException $e) {
+            $this->logger->error("Failed to create user", ['exception' => $e]);
+            throw new UserCreationException("Could not create user", 0, $e);
+        }
+    }
+}
+
+// ❌ Bad: Generic exceptions or suppression
+class UserService {
+    public function findUser(int $id): ?User {
+        try {
+            return $this->repository->findById($id);
+        } catch (Exception $e) {  // Too broad!
+            return null;  // Suppressing exception
+        }
+    }
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal SOLID, DRY, KISS, YAGNI principles
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection)
+
+**PHP-Specific:**
+- This file provides PHP-specific implementation (PHP 8+ features, type declarations, static analysis)
+- [Style Guide](style-guide.mdc) - PHP style conventions (if exists)
+
+---
+
+## References
+
+- [PHP The Right Way](https://phptherightway.com/)
+- [PHP RFC: Enums](https://wiki.php.net/rfc/enumerations)
+- [PHPStan](https://phpstan.org/)
+- [Psalm](https://psalm.dev/)

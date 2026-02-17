@@ -1,0 +1,515 @@
+---
+description: "curl command-line tool for HTTP/REST API requests - GET, POST, headers, authentication, and response handling. Use when: (1) Making HTTP requests, (2) Testing REST APIs, (3) Sending GET/POST requests, (4) Adding headers/authentication, (5) Debugging API calls. Covers curl commands, HTTP methods, headers, authentication, and response handling."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["http", "rest", "api", "curl", "basics", "cli"]
+---
+
+# curl Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to make HTTP requests, query REST APIs, test endpoints, or debug API responses
+**SKIP WHEN:** Using programmatic HTTP clients or API-specific tools
+
+## Core Directive
+**Use curl for HTTP operations** - Make requests, handle authentication, inspect responses, and debug APIs from the command line.
+
+## Installation
+
+```bash
+# Usually pre-installed on macOS/Linux
+curl --version
+
+# macOS (update)
+brew install curl
+
+# Linux (Debian/Ubuntu)
+apt-get install curl
+```
+
+## Basic Operations
+
+### GET Requests
+
+**Simple GET:**
+```bash
+curl https://api.example.com/endpoint
+```
+
+**GET with query parameters:**
+```bash
+curl "https://api.example.com/search?q=value&limit=10"
+```
+
+**GET with verbose output:**
+```bash
+curl -v https://api.example.com/endpoint
+```
+
+**Save response to file:**
+```bash
+curl https://api.example.com/endpoint -o output.json
+curl https://api.example.com/endpoint --output output.json
+```
+
+**Follow redirects:**
+```bash
+curl -L https://api.example.com/endpoint
+```
+
+### POST Requests
+
+**POST with JSON data:**
+```bash
+curl -X POST https://api.example.com/endpoint \
+  -H "Content-Type: application/json" \
+  -d '{"key":"value"}'
+```
+
+**POST with data from file:**
+```bash
+curl -X POST https://api.example.com/endpoint \
+  -H "Content-Type: application/json" \
+  -d @data.json
+```
+
+**POST form data:**
+```bash
+curl -X POST https://api.example.com/endpoint \
+  -d "key1=value1" \
+  -d "key2=value2"
+```
+
+**POST multipart/form-data:**
+```bash
+curl -X POST https://api.example.com/upload \
+  -F "file=@document.pdf" \
+  -F "description=My document"
+```
+
+### PUT and DELETE Requests
+
+**PUT request:**
+```bash
+curl -X PUT https://api.example.com/resource/123 \
+  -H "Content-Type: application/json" \
+  -d '{"key":"updated_value"}'
+```
+
+**DELETE request:**
+```bash
+curl -X DELETE https://api.example.com/resource/123
+```
+
+### Headers
+
+**Custom headers:**
+```bash
+curl https://api.example.com/endpoint \
+  -H "Accept: application/json" \
+  -H "User-Agent: MyApp/1.0"
+```
+
+**Authorization header:**
+```bash
+curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Multiple headers:**
+```bash
+curl https://api.example.com/endpoint \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+**Show response headers:**
+```bash
+curl -i https://api.example.com/endpoint
+curl --include https://api.example.com/endpoint
+```
+
+**Show only response headers:**
+```bash
+curl -I https://api.example.com/endpoint
+curl --head https://api.example.com/endpoint
+```
+
+## Authentication
+
+### Basic Authentication
+
+```bash
+curl -u username:password https://api.example.com/endpoint
+curl --user username:password https://api.example.com/endpoint
+```
+
+**Prompt for password:**
+```bash
+curl -u username https://api.example.com/endpoint
+```
+
+### Bearer Token
+
+```bash
+curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### API Key
+
+```bash
+curl https://api.example.com/endpoint \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### OAuth 2.0
+
+```bash
+curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer $(cat token.txt)"
+```
+
+## Common Patterns
+
+### Silent Mode (No Progress)
+
+```bash
+curl -s https://api.example.com/endpoint
+curl --silent https://api.example.com/endpoint
+```
+
+**Silent with errors shown:**
+```bash
+curl -sS https://api.example.com/endpoint
+```
+
+### Output Response Code
+
+```bash
+curl -w "%{http_code}\n" -o /dev/null -s https://api.example.com/endpoint
+```
+
+**Check if endpoint is up:**
+```bash
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.example.com/endpoint)
+if [ $STATUS -eq 200 ]; then
+  echo "OK"
+else
+  echo "Failed: $STATUS"
+fi
+```
+
+### Timing Requests
+
+```bash
+curl -w "@-" -o /dev/null -s https://api.example.com/endpoint <<'EOF'
+    time_namelookup:  %{time_namelookup}s\n
+       time_connect:  %{time_connect}s\n
+    time_appconnect:  %{time_appconnect}s\n
+   time_pretransfer:  %{time_pretransfer}s\n
+      time_redirect:  %{time_redirect}s\n
+ time_starttransfer:  %{time_starttransfer}s\n
+                    ----------\n
+         time_total:  %{time_total}s\n
+EOF
+```
+
+### Loop Through Endpoints
+
+```bash
+for id in {1..10}; do
+  curl -s "https://api.example.com/resource/$id" | jq '.name'
+done
+```
+
+### Retry on Failure
+
+```bash
+curl --retry 3 --retry-delay 5 https://api.example.com/endpoint
+```
+
+### Timeout
+
+```bash
+curl --connect-timeout 10 --max-time 30 https://api.example.com/endpoint
+```
+
+## Advanced Options
+
+### SSL/TLS
+
+**Ignore SSL certificate errors (not recommended for production):**
+```bash
+curl -k https://api.example.com/endpoint
+curl --insecure https://api.example.com/endpoint
+```
+
+**Specify SSL certificate:**
+```bash
+curl --cert client.crt --key client.key https://api.example.com/endpoint
+```
+
+**Specify CA certificate:**
+```bash
+curl --cacert ca.crt https://api.example.com/endpoint
+```
+
+### Proxy
+
+```bash
+curl -x http://proxy.example.com:8080 https://api.example.com/endpoint
+curl --proxy http://proxy.example.com:8080 https://api.example.com/endpoint
+```
+
+**Proxy with authentication:**
+```bash
+curl -x http://user:pass@proxy.example.com:8080 https://api.example.com/endpoint
+```
+
+### Upload File
+
+```bash
+curl --upload-file document.pdf https://api.example.com/upload
+```
+
+### Download File with Progress
+
+```bash
+curl -O https://example.com/file.zip
+curl --remote-name https://example.com/file.zip
+```
+
+**With progress bar:**
+```bash
+curl -# -O https://example.com/file.zip
+```
+
+### Cookies
+
+**Save cookies:**
+```bash
+curl -c cookies.txt https://api.example.com/login
+```
+
+**Send cookies:**
+```bash
+curl -b cookies.txt https://api.example.com/endpoint
+```
+
+**Manual cookie:**
+```bash
+curl -b "session=abc123" https://api.example.com/endpoint
+```
+
+### Rate Limiting
+
+```bash
+# Limit bandwidth to 1MB/s
+curl --limit-rate 1M https://example.com/largefile
+```
+
+## Debugging
+
+### Verbose Output
+
+```bash
+curl -v https://api.example.com/endpoint
+curl --verbose https://api.example.com/endpoint
+```
+
+**Shows:**
+- Request headers
+- Response headers
+- SSL handshake
+- Connection details
+
+### Trace Requests
+
+```bash
+curl --trace trace.txt https://api.example.com/endpoint
+curl --trace-ascii trace.txt https://api.example.com/endpoint
+```
+
+### Show Error Details
+
+```bash
+curl -f https://api.example.com/endpoint
+curl --fail https://api.example.com/endpoint
+# Exit with error code on HTTP error (4xx, 5xx)
+```
+
+## Common API Patterns
+
+### REST API with JSON
+
+```bash
+# GET
+curl -s https://api.example.com/users | jq
+
+# POST
+curl -X POST https://api.example.com/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"john@example.com"}' | jq
+
+# PUT
+curl -X PUT https://api.example.com/users/123 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Jane"}' | jq
+
+# DELETE
+curl -X DELETE https://api.example.com/users/123
+```
+
+### Pagination
+
+```bash
+# Page through results
+for page in {1..5}; do
+  curl -s "https://api.example.com/items?page=$page&limit=20" | jq '.items[]'
+done
+```
+
+### GraphQL API
+
+```bash
+curl -X POST https://api.example.com/graphql \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "query { user(id: 123) { name email } }"
+  }' | jq
+```
+
+### Health Check Endpoint
+
+```bash
+curl -f -s https://api.example.com/health || echo "Service down"
+```
+
+## Examples
+
+### ✅ Positive Pattern: Check Response Before Processing
+
+```bash
+# Step 1: Check if endpoint responds
+curl -f -s -o /dev/null -w "%{http_code}" https://api.example.com/endpoint
+
+# Step 2: If 200, get data
+if [ $? -eq 0 ]; then
+  curl -s https://api.example.com/endpoint | jq
+fi
+```
+
+### ✅ Positive Pattern: Authenticated Request with Error Handling
+
+```bash
+RESPONSE=$(curl -s -w "\n%{http_code}" \
+  -H "Authorization: Bearer $TOKEN" \
+  https://api.example.com/endpoint)
+
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+BODY=$(echo "$RESPONSE" | sed '$d')
+
+if [ "$HTTP_CODE" -eq 200 ]; then
+  echo "$BODY" | jq
+else
+  echo "Error: HTTP $HTTP_CODE"
+  echo "$BODY"
+fi
+```
+
+### ❌ Negative Pattern: Not Handling Errors
+
+```bash
+# ❌ BAD: No error handling
+curl https://api.example.com/endpoint | jq
+
+# ✅ GOOD: Check for errors
+curl -f https://api.example.com/endpoint | jq || echo "Request failed"
+```
+
+### ❌ Negative Pattern: Ignoring SSL Warnings in Production
+
+```bash
+# ❌ BAD: Insecure in production
+curl -k https://api.example.com/endpoint
+
+# ✅ GOOD: Fix certificate issues properly
+curl --cacert ca.crt https://api.example.com/endpoint
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```bash
+# Test connection with verbose output
+curl -v https://api.example.com/endpoint
+
+# Check DNS resolution
+curl -v https://api.example.com/endpoint 2>&1 | grep "Trying"
+
+# Test with different DNS
+curl --dns-servers 8.8.8.8 https://api.example.com/endpoint
+```
+
+### SSL/TLS Errors
+
+```bash
+# Show SSL details
+curl -v https://api.example.com/endpoint 2>&1 | grep -A 10 "SSL connection"
+
+# Test with specific TLS version
+curl --tlsv1.2 https://api.example.com/endpoint
+curl --tlsv1.3 https://api.example.com/endpoint
+```
+
+### Timeout Issues
+
+```bash
+# Increase timeout
+curl --connect-timeout 30 --max-time 60 https://api.example.com/endpoint
+
+# Show timing
+curl -w "Total: %{time_total}s\n" -o /dev/null -s https://api.example.com/endpoint
+```
+
+### Authentication Failures
+
+```bash
+# Verify token/credentials
+curl -v -H "Authorization: Bearer $TOKEN" https://api.example.com/endpoint 2>&1 | grep "401\|403"
+
+# Test without auth to see error message
+curl -i https://api.example.com/endpoint
+```
+
+## Useful Aliases
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+alias curlj='curl -s | jq'
+alias curlt='curl -w "\nTime: %{time_total}s\n" -o /dev/null -s'
+alias curlh='curl -I'
+```
+
+## Environment Variables
+
+```bash
+# Set default options
+export CURL_CA_BUNDLE=/path/to/ca-bundle.crt
+
+# HTTP proxy
+export http_proxy=http://proxy.example.com:8080
+export https_proxy=http://proxy.example.com:8080
+
+# No proxy for specific domains
+export no_proxy=localhost,127.0.0.1,.example.com
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/jq.mdc` for JSON processing and filtering

@@ -1,0 +1,452 @@
+---
+description: "Standard Go project structure and organization patterns. Use when: (1) Organizing Go projects, (2) Structuring packages, (3) Managing Go modules, (4) Following Go conventions, (5) Building maintainable Go code. Covers standard Go layout, package organization, and project structure best practices."
+globs: []
+alwaysApply: false
+---
+
+# Go Project Structure
+
+Standard project layout based on [golang-standards/project-layout](https://github.com/golang-standards/project-layout).
+
+## Directory Structure
+
+### Core Directories
+
+```
+myproject/
+├── cmd/                    # Main applications
+│   ├── server/            # Server executable
+│   │   └── main.go
+│   └── worker/            # Worker executable
+│       └── main.go
+├── internal/              # Private application code
+│   ├── api/              # API handlers
+│   ├── config/           # Configuration loading
+│   ├── service/          # Business logic
+│   ├── repository/       # Data access
+│   └── models/           # Domain models
+├── pkg/                   # Public library code
+│   └── utils/            # Reusable utilities
+├── api/                   # API definitions
+│   ├── openapi/          # OpenAPI specs
+│   └── proto/            # Protocol buffer files
+├── resources/             # Runtime resources
+│   ├── configs/          # Configuration files
+│   └── i18n/             # Translations
+├── scripts/               # Build and install scripts
+├── test/                  # Additional test data
+├── docs/                  # Documentation
+├── go.mod                 # Go modules file
+└── go.sum                 # Dependencies checksum
+```
+
+## cmd/ - Application Entry Points
+
+### Pattern: One directory per executable
+```go
+// ✅ GOOD: cmd/server/main.go
+package main
+
+import (
+    "log"
+    "myproject/internal/api"
+    "myproject/internal/service"
+)
+
+func main() {
+    // Initialize dependencies
+    svc := service.NewUserService()
+    srv := api.NewServer(svc)
+    
+    log.Fatal(srv.Run())
+}
+
+// Keep main.go minimal - setup and wiring only
+```
+
+## internal/ - Private Code
+
+### Purpose
+Private application code that **cannot** be imported by other projects.
+
+```go
+// ✅ GOOD: Organize by domain/layer
+internal/
+├── api/                  # HTTP handlers, gRPC services
+│   ├── handler.go
+│   ├── middleware.go
+│   └── routes.go
+├── config/               # Configuration loading
+│   └── config.go
+├── service/              # Business logic
+│   ├── user.go
+│   └── order.go
+├── repository/           # Data access
+│   ├── user_repo.go
+│   └── order_repo.go
+└── models/               # Domain types
+    ├── user.go
+    └── order.go
+```
+
+### Layered Architecture Example
+```go
+// internal/config/config.go
+package config
+
+import (
+    "fmt"
+    "os"
+
+    "gopkg.in/yaml.v3"
+)
+
+type Config struct {
+    Server   ServerConfig   `yaml:"server"`
+    Database DatabaseConfig `yaml:"database"`
+}
+
+type ServerConfig struct {
+    Port int    `yaml:"port"`
+    Host string `yaml:"host"`
+}
+
+type DatabaseConfig struct {
+    Host     string `yaml:"host"`
+    Port     int    `yaml:"port"`
+    Name     string `yaml:"name"`
+    User     string `yaml:"user"`
+    Password string `yaml:"password"`
+}
+
+func Load(env string) (*Config, error) {
+    path := fmt.Sprintf("resources/configs/%s.yaml", env)
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, fmt.Errorf("reading config: %w", err)
+    }
+    
+    var cfg Config
+    if err := yaml.Unmarshal(data, &cfg); err != nil {
+        return nil, fmt.Errorf("parsing config: %w", err)
+    }
+    return &cfg, nil
+}
+
+// internal/models/user.go
+package models
+
+type User struct {
+    ID    int
+    Name  string
+    Email string
+}
+
+// internal/repository/user_repo.go
+package repository
+
+import "myproject/internal/models"
+
+type UserRepository interface {
+    FindByID(id int) (*models.User, error)
+    Save(user *models.User) error
+}
+
+type userRepository struct {
+    db *sql.DB
+}
+
+func NewUserRepository(db *sql.DB) UserRepository {
+    return &userRepository{db: db}
+}
+
+func (r *userRepository) FindByID(id int) (*models.User, error) {
+    // DB logic
+}
+
+// internal/service/user.go
+package service
+
+import "myproject/internal/repository"
+
+type UserService struct {
+    repo repository.UserRepository
+}
+
+func NewUserService(repo repository.UserRepository) *UserService {
+    return &UserService{repo: repo}
+}
+
+func (s *UserService) GetUser(id int) (*models.User, error) {
+    // Business logic
+    return s.repo.FindByID(id)
+}
+
+// internal/api/user_handler.go
+package api
+
+type UserHandler struct {
+    service *service.UserService
+}
+
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+    // HTTP handling
+    id := extractID(r)
+    user, err := h.service.GetUser(id)
+    // ...
+}
+```
+
+## pkg/ - Public Library Code
+
+### Purpose
+Code that **can** be imported by external projects.
+
+```go
+// ✅ GOOD: Only put truly reusable code here
+pkg/
+├── logger/               # Logging utilities
+│   └── logger.go
+├── validator/            # Validation helpers
+│   └── validator.go
+└── httpclient/          # HTTP client wrapper
+    └── client.go
+
+// pkg/logger/logger.go
+package logger
+
+// This can be imported by other projects
+func NewLogger(level string) *Logger {
+    // ...
+}
+```
+
+### Decision: internal/ vs pkg/
+```go
+// ✅ internal/ - Application-specific logic
+internal/service/order.go      // Order business logic (specific to this app)
+
+// ✅ pkg/ - Generic, reusable utilities
+pkg/validator/email.go         // Email validation (reusable anywhere)
+
+// ❌ BAD: Don't put app-specific code in pkg/
+pkg/service/order.go           // Order logic is app-specific!
+```
+
+## api/ - API Definitions
+
+### OpenAPI/Swagger
+```
+api/
+├── openapi/
+│   └── api.yaml          # OpenAPI specification
+└── proto/
+    └── service.proto     # gRPC proto definitions
+```
+
+## resources/ - Runtime Resources
+
+### configs/ - Configuration Files
+
+```
+resources/configs/
+├── development.yaml
+├── production.yaml
+└── test.yaml
+```
+
+```yaml
+# resources/configs/development.yaml
+server:
+  host: localhost
+  port: 8080
+
+database:
+  host: localhost
+  port: 5432
+  name: myapp_dev
+  user: dev
+  password: devpass
+```
+
+```go
+// ✅ GOOD: Load config in main using internal/config
+func main() {
+    env := os.Getenv("APP_ENV")
+    if env == "" {
+        env = "development"
+    }
+    
+    cfg, err := config.Load(env)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Use cfg.Server.Port, cfg.Database.Host, etc.
+}
+```
+
+### i18n/ - Translations
+
+```
+resources/i18n/
+├── en.json
+├── es.json
+└── de.json
+```
+
+```go
+// ✅ GOOD: Embed translations for distribution
+//go:embed resources/i18n/*.json
+var translations embed.FS
+
+func LoadTranslations(lang string) (map[string]string, error) {
+    data, err := translations.ReadFile(fmt.Sprintf("resources/i18n/%s.json", lang))
+    if err != nil {
+        return nil, err
+    }
+    var t map[string]string
+    return t, json.Unmarshal(data, &t)
+}
+```
+
+## Package Organization Patterns
+
+### Flat Structure (Small Projects)
+```
+myproject/
+├── main.go
+├── user.go
+├── order.go
+└── database.go
+```
+
+### Domain-Driven (Medium Projects)
+```
+internal/
+├── user/
+│   ├── handler.go
+│   ├── service.go
+│   ├── repository.go
+│   └── model.go
+└── order/
+    ├── handler.go
+    ├── service.go
+    ├── repository.go
+    └── model.go
+```
+
+### Layered (Large Projects)
+```
+internal/
+├── api/          # All HTTP handlers
+├── service/      # All business logic
+├── repository/   # All data access
+└── models/       # All domain types
+```
+
+## Dependency Direction
+
+```
+cmd/ (main)
+  ↓ depends on
+internal/api/ (handlers)
+  ↓ depends on
+internal/service/ (business logic)
+  ↓ depends on
+internal/repository/ (data access)
+  ↓ depends on
+internal/models/ (domain types)
+```
+
+### Dependency Injection Example
+```go
+// ✅ GOOD: Wire dependencies in main
+func main() {
+    // Database
+    db, err := sql.Open("postgres", connStr)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Repositories
+    userRepo := repository.NewUserRepository(db)
+    
+    // Services
+    userService := service.NewUserService(userRepo)
+    
+    // Handlers
+    userHandler := api.NewUserHandler(userService)
+    
+    // Server
+    router := http.NewServeMux()
+    router.HandleFunc("/users/", userHandler.GetUser)
+    
+    log.Fatal(http.ListenAndServe(":8080", router))
+}
+```
+
+## Testing Structure
+
+### Parallel test packages
+```
+myproject/
+├── user.go
+├── user_test.go          # package user (white-box)
+└── user_external_test.go # package user_test (black-box)
+```
+
+### Test data
+```
+test/
+├── fixtures/             # Test data files
+│   └── users.json
+└── integration/          # Integration test helpers
+    └── setup.go
+```
+
+## Common Mistakes
+
+### ❌ BAD: Putting everything in one package
+```
+myproject/
+└── main.go  (5000 lines)
+```
+
+### ❌ BAD: Over-engineering small projects
+```
+myproject/                # For a 500-line project
+├── cmd/
+├── internal/
+│   ├── adapters/
+│   ├── domain/
+│   ├── ports/
+│   └── usecases/
+└── pkg/
+```
+
+### ❌ BAD: Circular dependencies
+```go
+// internal/user/user.go
+import "myproject/internal/order"  // User depends on Order
+
+// internal/order/order.go
+import "myproject/internal/user"   // Order depends on User
+// ❌ CIRCULAR DEPENDENCY!
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection, separation of concerns)
+
+**Go-Specific:**
+- This file provides Go-specific project structure patterns (cmd/, internal/, pkg/ directories)
+
+---
+
+## References
+
+- [Standard Go Project Layout](https://github.com/golang-standards/project-layout)
+- [Organizing Go Code (Go Blog)](https://go.dev/blog/organizing-go-code)
+- [Go Modules Reference](https://go.dev/ref/mod)

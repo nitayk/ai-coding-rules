@@ -1,0 +1,71 @@
+---
+description: "Patterns for tracing Kafka topics and service discovery"
+globs: ["**/*Consumer*.scala", "**/*Producer*.scala", "**/*Kafka*.scala", "**/*.conf"]
+alwaysApply: false
+---
+
+# Kafka & Service Discovery Patterns
+
+## Triggers
+**APPLY WHEN:** Tracing data flows, finding producers/consumers, mapping service architecture.
+
+---
+
+## 1. Kafka Topic Tracing
+
+**Goal:** Map Producer → Topic → Consumer.
+
+### Step 1: Find Producers
+- **Action**: Search ALL repos for `.store` + `topicName`.
+- **Validation**: Must find code calling `.store()`, not just config string.
+
+### Step 2: Find Consumers
+- **Pattern A (Services)**: Search `src/main/resources/` for `topicName`.
+- **Pattern B (Streams)**: Search code for `.stream` + `topicName`.
+- **Pattern C (IDP)**: Search `idp-configurations/` for `topicName`.
+
+### Step 3: Keys (Critical Distinction)
+- **Message Key**: Ordering/Compaction (2nd arg to `.store()`).
+- **Partition Key**: Distribution (explicit argument).
+- **Action**: Verify BOTH. They are often different.
+
+---
+
+## 2. Service Entry Points
+
+**Goal**: Find where execution starts.
+
+| Template | Type | Entry Pattern |
+|---|---|---|
+| `ConsumerMainTemplate` | Kafka | `*ConsumerMain.scala` |
+| `WebServiceTemplate` | HTTP | `*Main.scala` (w/ routes) |
+| `KafkaStreamsMainTemplate` | Streams | `*StreamsMain.scala` |
+| `JobMainTemplate` | Cron | `*JobMain.scala` |
+
+**Action**: `find . -name "*Main.scala" | grep <service>`
+
+---
+
+## 3. Cross-Service Tracing
+
+**Goal**: Trace flow across boundaries.
+
+1. **Origin**: Find `.store("originTopic")`.
+2. **Transit**: Find who consumes `originTopic`.
+3. **Processing**: Trace logic in consumer (`MATCH (consumer)-[:CALLS*]->(next_producer)`).
+4. **Next Hop**: Find next `.store("nextTopic")`.
+
+---
+
+## 4. Verification Checklist
+
+- [ ] Found actual `.store()` call (Producers).
+- [ ] Found consumer config/code.
+- [ ] Verified Message Key vs Partition Key.
+- [ ] Checked for multiple producers (don't stop at first).
+- [ ] **Saved to Knowledge**: `knowledge/infrastructure/kafka/verified_kafka_flow.json`
+
+### ❌ Common Mistakes
+- Trusting config without finding code usage.
+- Assuming 1:1 producer/consumer ratio.
+- Confusing Message Key with Partition Key.

@@ -1,0 +1,485 @@
+---
+description: "GitHub CLI (gh) for managing repositories, pull requests, issues, and GitHub operations from the command line. Use when: (1) Managing GitHub repositories, (2) Creating/reviewing PRs, (3) Managing issues, (4) GitHub operations from CLI, (5) Automating GitHub workflows. Covers gh commands, PR management, issue tracking, and GitHub CLI operations."
+globs: ["**/*"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-01-21"
+tags: ["github", "cli", "basics", "git", "pr", "issues"]
+---
+
+# GitHub CLI (gh) Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to investigate GitHub repositories, pull requests, issues, workflows, or manage GitHub resources via CLI
+**SKIP WHEN:** Using GitHub web UI or GitHub API directly
+
+## Core Directive
+**Use gh CLI for GitHub operations** - Manage repositories, PRs, issues, and workflows from the command line with full GitHub integration.
+
+## Installation
+
+```bash
+# macOS
+brew install gh
+
+# Linux (Debian/Ubuntu)
+sudo apt install gh
+
+# Verify installation
+gh --version
+
+# Authenticate
+gh auth login
+```
+
+## Common Operations
+
+### Authentication
+
+**Login to GitHub:**
+```bash
+gh auth login
+```
+
+**Check auth status:**
+```bash
+gh auth status
+```
+
+**Switch accounts:**
+```bash
+gh auth switch
+```
+
+### Repository Operations
+
+**View repository details:**
+```bash
+gh repo view
+gh repo view owner/repo
+gh repo view owner/repo --json nameWithOwner,url,isPrivate
+```
+
+**Clone repository:**
+```bash
+gh repo clone owner/repo
+gh repo clone owner/repo path/to/dir
+```
+
+**List repositories:**
+```bash
+gh repo list
+gh repo list owner
+gh repo list owner --limit 50
+gh repo list --json name,url,isPrivate
+```
+
+**Create repository:**
+```bash
+gh repo create my-new-repo --public
+gh repo create my-new-repo --private --description "My new project"
+gh repo create org/my-repo --internal
+```
+
+**Fork repository:**
+```bash
+gh repo fork owner/repo
+gh repo fork owner/repo --clone
+```
+
+### Pull Requests
+
+**List pull requests:**
+```bash
+gh pr list
+gh pr list --state open
+gh pr list --state closed
+gh pr list --author username
+gh pr list --label bug
+gh pr list --json number,title,state,author
+```
+
+**View pull request:**
+```bash
+gh pr view 123
+gh pr view 123 --json title,body,state,author,commits
+gh pr view 123 --web
+```
+
+**Create pull request:**
+```bash
+gh pr create
+gh pr create --title "Fix bug" --body "Description"
+gh pr create --draft
+gh pr create --base main --head feature-branch
+```
+
+**Checkout pull request:**
+```bash
+gh pr checkout 123
+```
+
+**Review pull request:**
+```bash
+gh pr review 123
+gh pr review 123 --approve
+gh pr review 123 --request-changes --body "Needs changes"
+gh pr review 123 --comment --body "Looks good"
+```
+
+**Merge pull request:**
+```bash
+gh pr merge 123
+gh pr merge 123 --squash
+gh pr merge 123 --rebase
+gh pr merge 123 --merge
+```
+
+**Get PR status:**
+```bash
+gh pr status
+gh pr checks 123
+```
+
+### Issues
+
+**List issues:**
+```bash
+gh issue list
+gh issue list --state open
+gh issue list --assignee username
+gh issue list --label bug
+gh issue list --json number,title,state,assignees
+```
+
+**View issue:**
+```bash
+gh issue view 456
+gh issue view 456 --json title,body,state,assignees,labels
+gh issue view 456 --web
+```
+
+**Create issue:**
+```bash
+gh issue create
+gh issue create --title "Bug report" --body "Description"
+gh issue create --label bug --assignee username
+```
+
+**Close issue:**
+```bash
+gh issue close 456
+gh issue close 456 --comment "Fixed in #123"
+```
+
+**Reopen issue:**
+```bash
+gh issue reopen 456
+```
+
+### Workflows (GitHub Actions)
+
+**List workflows:**
+```bash
+gh workflow list
+```
+
+**View workflow runs:**
+```bash
+gh run list
+gh run list --workflow=ci.yml
+gh run list --status=failure
+gh run list --json databaseId,status,conclusion,headBranch
+```
+
+**View specific run:**
+```bash
+gh run view 123456789
+gh run view 123456789 --log
+gh run view 123456789 --web
+```
+
+**Rerun workflow:**
+```bash
+gh run rerun 123456789
+gh run rerun 123456789 --failed
+```
+
+**Watch workflow run:**
+```bash
+gh run watch 123456789
+```
+
+### Releases
+
+**List releases:**
+```bash
+gh release list
+gh release list --limit 10
+```
+
+**View release:**
+```bash
+gh release view v1.0.0
+gh release view latest
+```
+
+**Create release:**
+```bash
+gh release create v1.0.0
+gh release create v1.0.0 --title "Version 1.0.0" --notes "Release notes"
+gh release create v1.0.0 dist/*.zip
+```
+
+**Download release assets:**
+```bash
+gh release download v1.0.0
+gh release download v1.0.0 --pattern "*.zip"
+```
+
+## Common Patterns
+
+### Investigate PR Status
+
+```bash
+# Step 1: List open PRs
+gh pr list --state open
+
+# Step 2: View specific PR
+gh pr view 123
+
+# Step 3: Check CI status
+gh pr checks 123
+
+# Step 4: View PR diff
+gh pr diff 123
+```
+
+### Find Issues by Label
+
+```bash
+# List all bugs
+gh issue list --label bug
+
+# List high priority issues
+gh issue list --label priority:high
+
+# Combine labels
+gh issue list --label bug --label priority:high
+```
+
+### Check Workflow Failures
+
+```bash
+# List failed runs
+gh run list --status=failure
+
+# View logs for failed run
+gh run view 123456789 --log
+
+# Rerun failed jobs
+gh run rerun 123456789 --failed
+```
+
+### Repository Statistics
+
+```bash
+# Get PR stats
+gh pr list --state all --json number --jq 'length'
+gh pr list --state open --json number --jq 'length'
+gh pr list --state merged --json number --jq 'length'
+
+# Get issue stats
+gh issue list --state all --json number --jq 'length'
+gh issue list --state open --json number --jq 'length'
+gh issue list --state closed --json number --jq 'length'
+```
+
+## Advanced Options
+
+### JSON Output and jq
+
+```bash
+# Get specific fields
+gh pr list --json number,title,state,author
+
+# Filter with jq
+gh pr list --json number,title,author | jq '.[] | select(.author.login == "username")'
+
+# Format output
+gh repo view --json nameWithOwner,url,isPrivate | jq -r '.nameWithOwner'
+```
+
+### Filtering and Search
+
+```bash
+# PR filters
+gh pr list --author username
+gh pr list --assignee username
+gh pr list --label bug
+gh pr list --base main
+gh pr list --head feature-branch
+
+# Issue filters
+gh issue list --author username
+gh issue list --assignee username
+gh issue list --mention username
+gh issue list --milestone v1.0
+```
+
+### API Access
+
+```bash
+# Make API requests
+gh api repos/:owner/:repo
+gh api repos/:owner/:repo/pulls
+gh api repos/:owner/:repo/issues
+
+# With parameters
+gh api repos/:owner/:repo/pulls --field state=open
+
+# Pagination
+gh api --paginate repos/:owner/:repo/issues
+```
+
+## Examples
+
+### ✅ Positive Pattern: Investigate PR Before Review
+
+```bash
+# Step 1: View PR details
+gh pr view 123
+
+# Step 2: Check CI status
+gh pr checks 123
+
+# Step 3: View diff
+gh pr diff 123
+
+# Step 4: Checkout locally if needed
+gh pr checkout 123
+```
+
+### ✅ Positive Pattern: Monitor Workflow Status
+
+```bash
+# List recent runs
+gh run list --limit 5
+
+# Watch specific run in real-time
+gh run watch 123456789
+
+# If failed, view logs
+gh run view 123456789 --log
+```
+
+### ❌ Negative Pattern: Not Checking PR Status
+
+```bash
+# ❌ BAD: Merging without checking CI
+gh pr merge 123
+
+# ✅ GOOD: Check status first
+gh pr checks 123
+# Review output, then merge
+gh pr merge 123
+```
+
+### ❌ Negative Pattern: Creating PR Without Context
+
+```bash
+# ❌ BAD: No title or description
+gh pr create
+
+# ✅ GOOD: Provide context
+gh pr create --title "Fix: Resolve memory leak in parser" --body "Fixes #456"
+```
+
+## Troubleshooting
+
+### Authentication Issues
+
+```bash
+# Check auth status
+gh auth status
+
+# Re-authenticate
+gh auth login
+
+# Use different token
+gh auth login --with-token < token.txt
+```
+
+### Repository Access Issues
+
+```bash
+# Verify repository exists
+gh repo view owner/repo
+
+# Check permissions
+gh api repos/:owner/:repo --jq '.permissions'
+
+# If private repo, ensure authenticated
+gh auth status
+```
+
+### API Rate Limits
+
+```bash
+# Check rate limit
+gh api rate_limit
+
+# Use authenticated requests (higher limits)
+gh auth login
+```
+
+### Command Not Found
+
+```bash
+# Verify installation
+gh --version
+
+# Update gh CLI
+brew upgrade gh  # macOS
+
+# Check available commands
+gh help
+```
+
+## Environment Variables
+
+```bash
+# Set default repository
+export GH_REPO="owner/repo"
+
+# Set GitHub token
+export GH_TOKEN="ghp_..."
+
+# Set default host
+export GH_HOST="github.com"
+
+# Enable debug mode
+export GH_DEBUG=1
+```
+
+## Configuration
+
+**Config file location:**
+```
+~/.config/gh/config.yml
+```
+
+**Set editor:**
+```bash
+gh config set editor vim
+```
+
+**Set default protocol:**
+```bash
+gh config set git_protocol ssh
+gh config set git_protocol https
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/skills/git-workflow/SKILL.md` for Git workflows
