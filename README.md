@@ -18,43 +18,45 @@ Supports both **Cursor** and **Claude Code**.
 
 ## Quick Start
 
-### Recommended: Single clone + link (personal use)
+### Recommended: Global install (personal use)
 
-Clone once, link into any project. Update once, all projects benefit.
+Install once, every Cursor project gets everything. No per-project setup.
 
 ```bash
-# One-time setup: clone to your home directory
+# One-time: clone to your home directory
 git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
 
-# Link into any project (creates symlink, no duplication)
-bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app          # Cursor only
-bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app --both   # Cursor + Claude
+# Install globally
+bash ~/ai-coding-rules/install-global.sh
 
-# Then install (syncs skills/agents/commands/hooks)
-cd ~/projects/my-app
-bash .cursor/rules/shared/install-cursor.sh
+# Restart Cursor -- done! Every project now has 34 skills + 200+ rules.
 ```
 
-Add to your project's `.gitignore`:
+This copies skills to `~/.cursor/skills-cursor/` and rules to `~/.cursor/rules/`,
+which Cursor loads for ALL projects automatically.
+
+To update:
+```bash
+cd ~/ai-coding-rules && git pull && bash update-community.sh && bash install-global.sh
 ```
-.cursor/rules/shared   # symlink to global ai-coding-rules
+
+To uninstall: `bash ~/ai-coding-rules/install-global.sh --uninstall`
+
+### Alternative: Per-project link (when you want project-specific setup)
+
+```bash
+bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app --both
+cd ~/projects/my-app && bash .cursor/rules/shared/install-cursor.sh
 ```
 
 ### Alternative: Git submodule (team/open-source projects)
 
-If you want version-pinned rules committed to the project repo:
+If you want version-pinned rules committed to a shared project repo:
 
 ```bash
-# Cursor
 git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
 bash .cursor/rules/shared/install-cursor.sh
-
-# Claude Code
-git submodule add https://github.com/nitayk/ai-coding-rules.git .claude/rules/shared
-bash .claude/rules/shared/install-claude.sh
 ```
-
-Restart Cursor / start new Claude session to discover skills.
 
 ## Skills Inventory
 
