@@ -129,8 +129,33 @@ Install with: `npx skills add owner/repo --skill "skill-name"`
 
 ## Updating
 
+### Update community skills from upstream
+
+Community skills (from obra/superpowers and anthropics/skills) can be updated to their latest versions:
+
 ```bash
-# Update the submodule to latest
+cd .cursor/rules/shared  # or .claude/rules/shared
+
+# Preview what would change
+bash update-community.sh --dry-run
+
+# See diffs before applying
+bash update-community.sh --diff
+
+# Apply updates
+bash update-community.sh
+
+# Review and commit
+git diff
+git add -A && git commit -m "chore: update community skills from upstream"
+```
+
+See [SOURCES.md](SOURCES.md) for full provenance tracking.
+
+### Update this repo as a submodule
+
+```bash
+# Pull latest from this repo
 git submodule update --remote .cursor/rules/shared  # or .claude/rules/shared
 
 # Re-run install to sync new skills
