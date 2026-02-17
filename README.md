@@ -18,25 +18,43 @@ Supports both **Cursor** and **Claude Code**.
 
 ## Quick Start
 
-### Cursor
+### Recommended: Single clone + link (personal use)
 
-Add as submodule and install:
+Clone once, link into any project. Update once, all projects benefit.
 
 ```bash
-git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
+# One-time setup: clone to your home directory
+git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
+
+# Link into any project (creates symlink, no duplication)
+bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app          # Cursor only
+bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app --both   # Cursor + Claude
+
+# Then install (syncs skills/agents/commands/hooks)
+cd ~/projects/my-app
 bash .cursor/rules/shared/install-cursor.sh
 ```
 
-Restart Cursor to discover skills, agents, and commands.
+Add to your project's `.gitignore`:
+```
+.cursor/rules/shared   # symlink to global ai-coding-rules
+```
 
-### Claude Code
+### Alternative: Git submodule (team/open-source projects)
 
-Add as submodule and install:
+If you want version-pinned rules committed to the project repo:
 
 ```bash
+# Cursor
+git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
+bash .cursor/rules/shared/install-cursor.sh
+
+# Claude Code
 git submodule add https://github.com/nitayk/ai-coding-rules.git .claude/rules/shared
 bash .claude/rules/shared/install-claude.sh
 ```
+
+Restart Cursor / start new Claude session to discover skills.
 
 ## Skills Inventory
 
@@ -152,14 +170,21 @@ git add -A && git commit -m "chore: update community skills from upstream"
 
 See [SOURCES.md](SOURCES.md) for full provenance tracking.
 
-### Update this repo as a submodule
+### Update this repo (symlink approach)
 
 ```bash
-# Pull latest from this repo
-git submodule update --remote .cursor/rules/shared  # or .claude/rules/shared
+cd ~/ai-coding-rules
+git pull
+bash update-community.sh   # also pull latest from upstream sources
+```
 
-# Re-run install to sync new skills
-bash .cursor/rules/shared/install-cursor.sh  # or install-claude.sh
+All linked projects get the updates immediately (symlinks).
+
+### Update this repo (submodule approach)
+
+```bash
+git submodule update --remote .cursor/rules/shared  # or .claude/rules/shared
+bash .cursor/rules/shared/install-cursor.sh          # re-sync skills
 ```
 
 ## Credits
