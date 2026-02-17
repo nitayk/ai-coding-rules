@@ -18,45 +18,64 @@ Supports both **Cursor** and **Claude Code**.
 
 ## Quick Start
 
-### Recommended: Global install (personal use)
+### Option A: Per-project setup (recommended if you also use work repos)
 
-Install once, every Cursor project gets everything. No per-project setup.
+Cleanest separation -- your personal tools stay in personal projects, zero
+chance of mixing with org repos.
 
 ```bash
 # One-time: clone to your home directory
 git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
 
-# Install globally
+# Setup any personal project (copies skills + rules + agents + commands)
+bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
+
+# Restart Cursor -- done! 34 skills + 200+ rules in that project.
+```
+
+To update a project later:
+```bash
+cd ~/ai-coding-rules && git pull && bash update-community.sh
+bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app   # re-copies
+```
+
+### Option B: Global skills install (if all your projects are personal)
+
+Installs skills globally so every Cursor project gets them. Rules still need
+per-project setup (Cursor limitation -- rules can't live at user level on disk).
+
+```bash
+git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
+
+# Skills + agents + commands -> ~/.cursor/ (global)
 bash ~/ai-coding-rules/install-global.sh
 
-# Restart Cursor -- done! Every project now has 34 skills + 200+ rules.
+# Rules -> per project (Cursor requires this)
+bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
 ```
 
-This copies skills to `~/.cursor/skills-cursor/` and rules to `~/.cursor/rules/`,
-which Cursor loads for ALL projects automatically.
+> **Warning**: Global skills also appear in work/org projects.
+> If your org repos already have `.cursor/skills/`, you'll get duplicates.
 
-To update:
-```bash
-cd ~/ai-coding-rules && git pull && bash update-community.sh && bash install-global.sh
-```
+### Option C: Git submodule (team/open-source projects)
 
-To uninstall: `bash ~/ai-coding-rules/install-global.sh --uninstall`
-
-### Alternative: Per-project link (when you want project-specific setup)
-
-```bash
-bash ~/ai-coding-rules/link-to-project.sh ~/projects/my-app --both
-cd ~/projects/my-app && bash .cursor/rules/shared/install-cursor.sh
-```
-
-### Alternative: Git submodule (team/open-source projects)
-
-If you want version-pinned rules committed to a shared project repo:
+Version-pinned rules committed to the project repo:
 
 ```bash
 git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
 bash .cursor/rules/shared/install-cursor.sh
 ```
+
+### What goes where (Cursor architecture)
+
+| What | Global (`~/.cursor/`) | Project (`.cursor/`) | How |
+|------|----------------------|---------------------|-----|
+| **Skills** | `~/.cursor/skills/` | `.cursor/skills/` | Both work, project takes precedence |
+| **Rules** (.mdc) | **Not supported** on disk (Settings UI only) | `.cursor/rules/` | Must be per-project |
+| **Agents** | `~/.cursor/agents/` | `.cursor/agents/` | Both work |
+| **Commands** | `~/.cursor/commands/` | `.cursor/commands/` | Both work |
+
+Source: [Cursor Skills Docs](https://cursor.com/docs/context/skills), [Cursor Rules Docs](https://cursor.com/docs/context/rules)
 
 ## Skills Inventory
 
@@ -149,45 +168,26 @@ Install with: `npx skills add owner/repo --skill "skill-name"`
 
 ## Updating
 
-### Update community skills from upstream
-
-Community skills (from obra/superpowers and anthropics/skills) can be updated to their latest versions:
-
-```bash
-cd .cursor/rules/shared  # or .claude/rules/shared
-
-# Preview what would change
-bash update-community.sh --dry-run
-
-# See diffs before applying
-bash update-community.sh --diff
-
-# Apply updates
-bash update-community.sh
-
-# Review and commit
-git diff
-git add -A && git commit -m "chore: update community skills from upstream"
-```
-
-See [SOURCES.md](SOURCES.md) for full provenance tracking.
-
-### Update this repo (symlink approach)
+### Pull latest + update community sources
 
 ```bash
 cd ~/ai-coding-rules
 git pull
-bash update-community.sh   # also pull latest from upstream sources
+bash update-community.sh          # fetch latest from obra/superpowers + anthropics/skills
+git add -A && git commit -m "chore: update community skills"
 ```
 
-All linked projects get the updates immediately (symlinks).
-
-### Update this repo (submodule approach)
+### Re-apply to projects
 
 ```bash
-git submodule update --remote .cursor/rules/shared  # or .claude/rules/shared
-bash .cursor/rules/shared/install-cursor.sh          # re-sync skills
+# Per-project (Option A)
+bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
+
+# Or global skills (Option B)
+bash ~/ai-coding-rules/install-global.sh
 ```
+
+See [SOURCES.md](SOURCES.md) for full provenance tracking.
 
 ## Credits
 
