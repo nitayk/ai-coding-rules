@@ -19,17 +19,21 @@
 
 ```
 ai-coding-rules/
-├── ROUTER.mdc          <- Always loaded, keyword-based routing
-├── index.mdc           <- Complete catalog (load on demand)
-├── generic/            <- Universal best practices (all languages)
-├── backend/            <- Scala, Python, Go, Java, PHP
-├── frontend/           <- JavaScript/TypeScript
-├── mobile/             <- Swift, Kotlin, Objective-C, CocoaPods, Gradle
-├── tools/              <- CLI references (curl, jq, yq, git, docker, kcat, kubectl, aws-cli, gh-cli, gcloud, helm, terraform, ripgrep)
-├── meta/               <- Style guides, continuous improvement
-├── rules/              <- Investigation patterns, core rules
-├── mcp/                <- MCP configuration examples
-└── docs/               <- Setup guides, Cursor feature docs
+├── ROUTER.mdc            <- Always loaded, keyword-based routing
+├── index.mdc             <- Complete catalog (load on demand)
+├── skills/               <- 57 multi-step workflow skills
+├── agents/               <- 9 specialized subagents
+├── commands/             <- 12 slash commands
+├── hooks/                <- Quality, security, observability, ECC hooks
+├── generic/              <- Universal best practices (all languages)
+├── backend/              <- Scala, Python, Go, Java, PHP rules
+├── frontend/             <- JavaScript/TypeScript rules
+├── mobile/               <- Swift, Kotlin, Objective-C, CocoaPods, Gradle
+├── tools/                <- 13 CLI tool guides (curl, jq, yq, git, docker, etc.)
+├── meta/                 <- Style guides, continuous improvement
+├── rules/                <- Investigation patterns, core rules
+├── mcp/                  <- MCP configuration examples
+└── docs/                 <- Cursor feature guides, technology references
 ```
 
 ## Rule Loading Priority

@@ -104,7 +104,7 @@ alwaysApply: false
 ## Java Rules (`shared/backend/java/`)
 
 ### Index & Navigation
-- **java/index.md** - Java rules index for legacy Android code
+- **java/index.mdc** - Java rules index for legacy Android code
 
 **Note**: For detailed language features listings, load `.cursor/rules/shared/backend/java/language/index.mdc` which contains the complete catalog.
 
@@ -162,7 +162,7 @@ alwaysApply: false
 ## Go Rules (`shared/backend/go/`)
 
 ### Index & Navigation
-- **go/index.md** - Go rules index (Under construction)
+- **go/index.mdc** - Go rules index
 
 **Status**: Go best practices will be added as the codebase grows.
 
@@ -334,30 +334,38 @@ alwaysApply: false
 
 ## Documentation Files (`shared/docs/`)
 
-### Cursor 2.4+ Feature Guides
+### Cursor Feature Guides (`shared/docs/cursor-features/`)
 | File | Purpose |
 |---|---|
-| `rules-guide.mdc` | **Complete Rules Guide**: Project Rules, Team Rules, User Rules, AGENTS.md, best practices |
-| `semantic-search.mdc` | **Semantic Search Guide**: Finding code by meaning, indexing, privacy, configuration |
-| `mentions-guide.mdc` | **@ Mentions Guide**: File references, folder navigation, documentation integration |
-| `mcp-complete-guide.mdc` | **Complete MCP Guide**: Transport methods, OAuth, install links, extension API, debugging |
+| `rules-guide.mdc` | Project Rules, Team Rules, User Rules, AGENTS.md |
+| `semantic-search.mdc` | Finding code by meaning, indexing, privacy |
+| `mentions-guide.mdc` | @ Mentions: file references, folder navigation |
+| `plugins-guide.mdc` | Plugin system and marketplace |
+| `cursor-automations-guide.mdc` | Automation workflows |
+| `cursor-security-guide.mdc` | Security and sandboxing |
+| `sandbox-guide.mdc` | Network and filesystem controls |
+
+### Technology References (`shared/docs/technologies/`)
+| File | Purpose |
+|---|---|
+| `kafka-reference-guide.mdc` | Kafka CLI, topics, consumer groups |
+| `redis-reference-guide.mdc` | redis-cli, commands, production admin |
+| `gotenberg-reference-guide.mdc` | PDF generation service |
+| `schema-registry.mdc` | Schema Registry usage |
+
+### Hooks (`shared/hooks/`)
+| File | Purpose |
+|---|---|
+| `hooks/README.md` | Hook system documentation |
+| `hooks/quality/` | Code formatting, YAML validation |
+| `hooks/security/` | Secret scanning, dangerous command blocking |
+| `hooks/observability/` | Audit logging |
+| `hooks/ecc/` | ECC memory lifecycle, compaction nudges |
 
 ### Setup & Configuration
 | File | Purpose |
 |---|---|
-| `mcp/example-config.json` | **MCP SETUP**: Example configuration for all available MCP tools |
-
-### Legacy Documentation (May be outdated)
-| File | Purpose |
-|---|---|
-| `MCP_SETUP_GUIDE.mdc` | How to set up MCP servers (Context7 and others) |
-| `AGENT_CONTEXT_LOADING.mdc` | How the context loading system works |
-| `AGENT_TEST_GUIDE.mdc` | Comprehensive test scenarios for validating MDC chaining |
-| `RULE_CATEGORIZATION.mdc` | Documentation of rule organization |
-| `TEST_PROMPT.mdc` | Test prompt for verifying agent understanding |
-| `REVIEW_INSTRUCTIONS.mdc` | Instructions for reviewing rule changes |
-| `REVIEW_REQUEST_1_ARCHITECTURE.mdc` | Architecture review questions |
-| `REVIEW_REQUEST_2_CONTENT_MCP.mdc` | Content and MCP review questions |
+| `mcp/example-config.json` | Example MCP configuration for public servers |
 
 ---
 
@@ -375,8 +383,8 @@ alwaysApply: false
 - **Complete Scala overview** → `shared/backend/scala/index.mdc`
 
 ### Python & Go
-- **Python patterns** → `shared/backend/python/index.mdc` (Under construction)
-- **Go patterns** → `shared/backend/go/index.mdc` (Under construction)
+- **Python patterns** → `shared/backend/python/index.mdc` (21 rules)
+- **Go patterns** → `shared/backend/go/index.mdc` (17 rules)
 
 ### Mobile (Android)
 - **Kotlin patterns** → `shared/mobile/kotlin/index.mdc`

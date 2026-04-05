@@ -8,13 +8,13 @@ Supports both **Cursor** and **Claude Code**.
 
 | Category | Count | Source |
 |----------|-------|--------|
-| **Skills** | 34 | obra/superpowers, anthropics/skills, custom |
-| **Agents** | 1 | obra/superpowers |
-| **Commands** | 3 | obra/superpowers |
-| **Hooks** | 2 | obra/superpowers |
+| **Skills** | 57 | obra/superpowers, anthropics/skills, mcr, Unity, custom |
+| **Agents** | 9 | architect, code-reviewer, data-validator, and more |
+| **Commands** | 12 | brainstorm, create-pr, fix-issue, council, and more |
+| **Hooks** | 20+ | Quality, security, observability, ECC |
 | **Cursor Rules** | 200+ | Custom (Scala, Python, Go, Java, PHP, JS/TS, Swift, Kotlin, Obj-C) |
 | **Claude Rules** | 7 | Custom |
-| **CLI Tool Guides** | 8 | Custom (curl, jq, git, docker, kcat, kubectl, aws-cli, gh-cli) |
+| **CLI Tool Guides** | 13 | curl, jq, yq, git, docker, kcat, kubectl, aws-cli, gcloud, helm, terraform, ripgrep, gh-cli |
 
 ## Quick Start
 
@@ -30,7 +30,7 @@ git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
 # Setup any personal project (copies skills + rules + agents + commands)
 bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
 
-# Restart Cursor -- done! 34 skills + 200+ rules in that project.
+# Restart Cursor -- done! 57 skills + 200+ rules in that project.
 ```
 
 To update a project later:
@@ -79,64 +79,104 @@ Source: [Cursor Skills Docs](https://cursor.com/docs/context/skills), [Cursor Ru
 
 ## Skills Inventory
 
-### Development Workflow (from [obra/superpowers](https://github.com/obra/superpowers) - 53k stars)
-
+### Planning & Design
 | Skill | Description |
 |-------|-------------|
 | `brainstorming` | Socratic design refinement before coding |
-| `test-driven-development` | RED-GREEN-REFACTOR cycle with anti-patterns reference |
-| `systematic-debugging` | 4-phase root cause process |
-| `verification-before-completion` | Evidence before claims |
-| `executing-plans` | Batch execution with human checkpoints |
-| `subagent-driven-development` | Fresh subagent per task with two-stage review |
 | `writing-plans` | Break work into 2-5 min bite-sized tasks |
-| `dispatching-parallel-agents` | Concurrent subagent workflows |
-| `requesting-code-review` | Pre-review checklist |
-| `receiving-code-review` | Responding to feedback with rigor |
-| `using-git-worktrees` | Parallel development branches |
-| `finishing-a-development-branch` | Merge/PR/cleanup decision workflow |
-| `using-superpowers` | Introduction to the skills system |
-| `writing-skills` | Create new skills following best practices |
+| `executing-plans` | Batch execution with human checkpoints |
+| `prd-generation` | PRD generation via structured conversation |
+| `task-breakdown` | Break PRDs into parent tasks and sub-tasks |
 
-### Document and Design (from [anthropics/skills](https://github.com/anthropics/skills) - 70k stars)
-
+### Development Workflows
 | Skill | Description |
 |-------|-------------|
+| `tdd-workflow` | Red-Green-Refactor cycle |
+| `test-driven-development` | RED-GREEN-REFACTOR with anti-patterns reference |
+| `git-workflow` | Stable-state commit workflow for complex tasks |
+| `pr-workflow` | Full PR lifecycle (pre-checks, monitoring, merge) |
+| `create-pr` | Quick PR creation with template detection |
+| `fix-issue` | Fix a GitHub issue end-to-end |
+| `setup-local-dev` | Persistent dev server with pm2 |
+| `finishing-a-development-branch` | Merge/PR/cleanup decision workflow |
+
+### Code Quality
+| Skill | Description |
+|-------|-------------|
+| `best-practices-enforcement` | Validates code against universal standards |
+| `code-cleanup` | Three-phase cleanup (AI slop, dead code, anti-patterns) |
+| `code-review-excellence` | Effective code review practices |
+| `code-optimization` | Performance and efficiency optimization |
+| `code-migration` | Code migration patterns |
+| `requesting-code-review` | Pre-review checklist |
+| `receiving-code-review` | Responding to feedback with rigor |
+| `verification-before-completion` | Evidence before claims |
+| `security-audit` | Security vulnerability scanning |
+
+### Debugging & Testing
+| Skill | Description |
+|-------|-------------|
+| `systematic-debugging` | 4-phase root cause process |
+| `debug-workflow` | Log-Reproduce-Fix cycle |
+| `webapp-testing` | Playwright-based web app testing |
+| `test-until-pass` | Iterative test-fix loop |
+
+### Multi-Agent & Parallel
+| Skill | Description |
+|-------|-------------|
+| `dispatching-parallel-agents` | Concurrent subagent workflows |
+| `subagent-driven-development` | Fresh subagent per task with two-stage review |
+| `multi-agent-branching` | Feature-branch isolation for concurrent agents |
+| `using-git-worktrees` | Parallel development branches |
+| `mass-repo-orchestration` | Multi-repo batch operations |
+| `council` | Multi-perspective decision making |
+
+### Research & Knowledge
+| Skill | Description |
+|-------|-------------|
+| `deep-research` | Multi-source research with citations |
+| `search-first` | Research before coding |
+| `onboard-developer` | Developer onboarding guide |
+| `generate-docs` | Auto-generate documentation |
+| `generate-changelog` | Generate changelogs from git history |
+| `doc-coauthoring` | Collaborative document creation |
+| `address-pr-feedback` | Systematic PR feedback handling |
+
+### Frontend & Documents
+| Skill | Description |
+|-------|-------------|
+| `frontend-design` | Production-grade frontend interfaces |
+| `web-artifacts-builder` | Multi-component HTML artifacts |
+| `agent-browser` | Browser automation skill |
 | `docx` | Word document creation, editing, tracked changes |
 | `pdf` | PDF extraction, creation, merge/split, forms |
 | `xlsx` | Spreadsheets with formulas, formatting, analysis |
 | `pptx` | PowerPoint creation and editing |
-| `mcp-builder` | Guide for building MCP servers |
-| `skill-creator` | Guide for creating effective skills |
-| `webapp-testing` | Playwright-based web app testing |
-| `frontend-design` | Frontend design patterns |
-| `web-artifacts-builder` | Web artifact creation |
+| `gdoc` | Google Docs integration |
 
-### Custom Skills (original, not available elsewhere)
-
+### Meta & Tools
 | Skill | Description |
 |-------|-------------|
+| `skill-creator` | Guide for creating effective skills |
+| `writing-skills` | Create new skills following best practices |
+| `mcp-builder` | Guide for building MCP servers |
 | `session-memory` | Persistent context across sessions |
-| `git-workflow` | Stable-state commit workflow for complex tasks |
-| `pr-workflow` | Full PR lifecycle (pre-checks, monitoring, merge) |
-| `prd-generation` | PRD generation via structured conversation |
-| `task-breakdown` | Break PRDs into parent tasks and sub-tasks |
-| `multi-agent-branching` | Feature-branch isolation for concurrent agents |
-| `setup-local-dev` | Persistent dev server with pm2 |
-| `tdd-workflow` | Red-Green-Refactor cycle |
-| `code-cleanup` | Three-phase cleanup (AI slop, dead code, anti-patterns) |
-| `best-practices-enforcement` | Validates code against universal standards |
-| `debug-workflow` | Log-Reproduce-Fix cycle |
+| `using-superpowers` | Introduction to the skills system |
+| `agent-token-optimization` | LLM token cost optimization |
+| `continuous-learning-v2` | Instinct-based learning system |
+| `strategic-compact` | Context compaction at logical intervals |
+| `prompt-optimizer` | Optimize LLM prompts |
+| `repository-organization` | Restructure messy repos |
 
 ## Cursor Rules System
 
 The intelligent **Router** (`ROUTER.mdc`) auto-detects your intent and loads the right rules:
 
-- **generic/** - Architecture, code quality, testing, performance, security, debugging, communication
+- **generic/** - Architecture, code quality, testing, performance, security, debugging, communication, agent behavior
 - **backend/** - Scala, Python, Go, Java, PHP patterns
-- **frontend/** - JavaScript/TypeScript, Vue, React
+- **frontend/** - JavaScript/TypeScript, Vue, React, accessibility, performance, security
 - **mobile/** - Swift, Kotlin, Objective-C, CocoaPods, Gradle
-- **tools/** - CLI references for curl, jq, git, docker, kcat, kubectl, aws-cli, gh-cli
+- **tools/** - CLI references for curl, jq, yq, git, docker, kcat, kubectl, aws-cli, gcloud, helm, terraform, ripgrep, gh-cli
 
 ## Optional Power-Ups
 
@@ -195,6 +235,7 @@ Built on the shoulders of giants:
 
 - [obra/superpowers](https://github.com/obra/superpowers) by Jesse Vincent - The autonomous dev workflow
 - [anthropics/skills](https://github.com/anthropics/skills) by Anthropic - Official Claude skills
+- [ironsource-mobile/mobile-cursor-rules](https://github.com/ironsource-mobile/mobile-cursor-rules) - Generic rules, agents, hooks
 - [Agent Skills Standard](https://agentskills.io) - The open SKILL.md specification
 
 ## License
