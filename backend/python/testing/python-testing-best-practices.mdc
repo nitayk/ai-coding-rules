@@ -10,7 +10,7 @@ Critical testing patterns to ensure tests actually verify behavior, not just tha
 
 ---
 
-## 🚨 The #1 Testing Anti-Pattern: Testing Structure, Not Behavior
+## CRITICAL: The #1 Testing Anti-Pattern - Testing Structure, Not Behavior
 
 **This bug pattern cost us hours of debugging!**
 
@@ -272,7 +272,7 @@ def test_parser_handles_case_class():
 
 ---
 
-## ⚠️ Common Testing Pitfalls
+## Common Testing Pitfalls
 
 ### Pitfall 1: Testing Implementation, Not Behavior
 

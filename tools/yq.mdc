@@ -1,0 +1,167 @@
+---
+description: "yq - YAML processor (like jq for JSON). Use when: (1) Parsing YAML, (2) Filtering YAML, (3) Editing YAML files, (4) Extracting values from YAML. Covers yq syntax for read and write operations."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["yaml", "yq", "parsing", "cli", "kubernetes", "config"]
+---
+
+# yq Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to parse, filter, transform, or edit YAML (Kubernetes manifests, config files, CI config)
+**SKIP WHEN:** Simple YAML viewing or using programmatic YAML libraries
+
+## Core Directive
+**Use yq for YAML operations** - Parse, filter, and edit YAML from the command line. Complements jq for JSON.
+
+## Installation
+
+```bash
+# macOS
+brew install yq
+
+# Linux (check: mikefarah/yq vs kislyuk/yq - this guide assumes mikefarah/yq)
+# mikefarah/yq (Go-based, jq-like syntax):
+brew install yq  # or: go install github.com/mikefarah/yq/v4@latest
+
+# Verify (mikefarah version shows v4.x)
+yq --version
+```
+
+**Note**: Two popular `yq` implementations exist. This guide uses **mikefarah/yq** (jq-like syntax). If using kislyuk/yq (jq wrapper), syntax differs.
+
+## Basic Operations
+
+### Read Values
+
+```bash
+# Pretty print
+yq file.yaml
+yq '.' file.yaml
+
+# Access field
+yq '.key' file.yaml
+yq '.metadata.name' file.yaml
+
+# Array index
+yq '.items[0]' file.yaml
+yq '.items[0].name' file.yaml
+
+# All array elements
+yq '.items[]' file.yaml
+yq '.items[].name' file.yaml
+```
+
+### Filter and Transform
+
+```bash
+# Select specific keys
+yq '.metadata | {name, namespace}' file.yaml
+
+# Filter array
+yq '.items[] | select(.kind == "Deployment")' file.yaml
+
+# Map/transform
+yq '.replicas = 3' file.yaml
+yq '.image.tag = "v1.2.3"' file.yaml
+```
+
+### Multiple Files
+
+```bash
+# Process multiple files
+yq '.metadata.name' deployment.yaml service.yaml
+
+# Read from stdin
+cat file.yaml | yq '.key'
+```
+
+## Common Patterns
+
+### Kubernetes Manifests
+
+```bash
+# Get deployment name
+yq '.metadata.name' deployment.yaml
+
+# Get image
+yq '.spec.template.spec.containers[0].image' deployment.yaml
+
+# Get all container names
+yq '.spec.template.spec.containers[].name' deployment.yaml
+
+# Update image tag
+yq -i '.spec.template.spec.containers[0].image = "myimage:v2"' deployment.yaml
+```
+
+### CI/CD (GitHub Actions, GitLab CI)
+
+```bash
+# Get job names
+yq '.jobs | keys' .github/workflows/ci.yaml
+
+# Get steps from specific job
+yq '.jobs.build.steps' .github/workflows/ci.yaml
+```
+
+### Inline Edit (-i)
+
+```bash
+# Edit in place
+yq -i '.replicas = 5' deployment.yaml
+yq -i '.spec.template.spec.containers[0].image = "nginx:1.21"' deployment.yaml
+```
+
+## Output Formats
+
+```bash
+# YAML (default)
+yq '.' file.yaml
+
+# JSON
+yq -o=json '.' file.yaml
+yq output=json '.' file.yaml
+
+# XML (if needed)
+yq -o=xml '.' file.yaml
+```
+
+## Piping with Other Tools
+
+```bash
+# yq -> jq (YAML to JSON to jq)
+yq -o=json '.' config.yaml | jq '.key'
+
+# kubectl -> yq
+kubectl get deployment myapp -o yaml | yq '.spec.replicas'
+```
+
+## Examples
+
+### ✅ Positive Pattern: Handle Missing Keys
+
+```bash
+# Optional field (no error if missing)
+yq '.optional?.key' file.yaml
+
+# With default
+yq '.replicas // 1' file.yaml
+```
+
+### ❌ Negative Pattern: Assuming kislyuk/yq Syntax
+
+```bash
+# mikefarah/yq (this guide)
+yq '.key' file.yaml
+
+# kislyuk/yq uses jq syntax directly
+yq -r '.key' file.yaml  # -r for raw
+```
+
+## Related Rules
+
+- See `tools/jq.mdc` for JSON processing (similar concepts)
+- See `tools/kubectl.mdc` for Kubernetes operations
+- See `tools/curl.mdc` for fetching YAML from APIs

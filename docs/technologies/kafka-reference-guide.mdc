@@ -1,0 +1,280 @@
+# Kafka Reference Guide
+
+**Technical Efficiency Guide** - How to work effectively with Kafka streaming platform.
+
+> **Purpose**: Deep technical knowledge for efficient investigation, understanding consumer lag, partition strategies, and avoiding anti-patterns. Referenced BY skills/agents when investigating Kafka issues.
+
+**What's Inside**:
+- ✅ Investigation patterns (what to monitor, what indicates problems)
+- ✅ Consumer/Producer best practices (lag, throughput, ordering)
+- ✅ Partition strategies (count selection, key distribution)
+- ✅ Performance considerations (batching, compression, replication)
+- ✅ Anti-patterns (prime partitions, low replication, changing partition count)
+
+**Location**: `.cursor/rules/shared/technologies/kafka-reference-guide.mdc`
+
+---
+
+## 📋 Table of Contents
+
+1. [Kafka Architecture](#kafka-architecture)
+2. [Topics & Partitioning](#topics--partitioning)
+3. [Producers](#producers)
+4. [Consumers](#consumers)
+5. [Performance Best Practices](#performance-best-practices)
+6. [Scaling Best Practices](#scaling-best-practices)
+7. [Anti-Patterns](#anti-patterns)
+
+---
+
+## Kafka Architecture
+
+### Core Components
+
+- **Brokers**: Kafka servers that store and serve data
+- **Topics**: Logical channels for organizing messages
+- **Partitions**: Subdivisions of topics for parallel processing
+- **Consumer Groups**: Sets of consumers that share work
+- **Producers**: Applications that publish messages
+- **Consumers**: Applications that subscribe to messages
+
+### KRaft Mode (Recommended)
+
+**CRITICAL**: For new deployments, use KRaft mode instead of ZooKeeper.
+
+**Benefits**:
+- ZooKeeper was entirely removed in Kafka 4.0
+- Supports up to **2 million partitions** (vs 200,000 with ZooKeeper)
+- Faster controller failovers
+- Simplified architecture
+
+**Source**: [Kafka Best Practices](https://karafka.io/docs/Kafka-Best-Practices/)
+
+---
+
+## Topics & Partitioning
+
+### Partition Count Strategy (CRITICAL)
+
+**Choose partition counts with many divisors**: 6, 12, 24, 60
+
+**Benefits**:
+- Enables flexible consumer scaling
+- Easy to distribute across consumer groups
+
+**❌ Avoid prime numbers**: 3, 7, 11
+
+**Why**: Prime numbers make it harder to evenly distribute consumers.
+
+### Partition Count is Permanent
+
+**CRITICAL**: Partition counts are effectively permanent.
+
+```
+⚠️ WARNING: While you can ADD partitions later, doing so breaks key-based ordering
+   because hash(key) % partition_count changes.
+```
+
+**Best Practice**: Calculate partition needs upfront:
+- Consider max expected throughput
+- Plan for future growth
+- Stay under 4,000 partitions per broker
+
+### Partition Limits
+
+**Performance degradation occurs above 4,000 partitions per broker**:
+- Longer recovery times
+- Increased metadata overhead
+- Controller performance issues
+
+**Source**: [Kafka Scaling Best Practices](https://www.confluent.io/learn/kafka-scaling-best-practices/)
+
+### Message Ordering Guarantees
+
+**CRITICAL**: Messages are only ordered **within a partition**.
+
+- ✅ Same partition = guaranteed order
+- ❌ Different partitions = NO order guarantee
+
+**Use case**: If order matters, use the same partition key.
+
+```java
+// ✅ GOOD: Same key = same partition = ordered
+producer.send(new ProducerRecord<>("topic", "user-123", message));
+
+// ❌ BAD: Different keys = different partitions = unordered
+producer.send(new ProducerRecord<>("topic", UUID.randomUUID(), message));
+```
+
+---
+
+## Producers
+
+### Best Practices
+
+1. **Use compression**: `snappy` or `lz4` for better throughput
+2. **Batch messages**: Configure `batch.size` and `linger.ms`
+3. **Idempotence**: Enable `enable.idempotence=true` for exactly-once semantics
+4. **Acks configuration**: 
+   - `acks=all` for durability (recommended)
+   - `acks=1` for better performance (leader only)
+   - `acks=0` for fire-and-forget (not recommended)
+
+---
+
+## Consumers
+
+### Consumer Group Protocol
+
+**Kafka 4.0+ New Consumer Protocol**: `group.protocol=consumer`
+
+**Benefits**:
+- Up to **20x faster rebalancing** when available
+- More efficient group coordination
+
+**Source**: [Kafka Best Practices](https://karafka.io/docs/Kafka-Best-Practices/)
+
+### Consumer Best Practices
+
+1. **Set appropriate poll intervals**: `max.poll.interval.ms`
+2. **Process in batches**: Better throughput than one-by-one
+3. **Handle rebalancing gracefully**: Implement `ConsumerRebalanceListener`
+4. **Commit offsets appropriately**: 
+   - Manual commits for exactly-once
+   - Auto-commit for at-least-once (with idempotent processing)
+
+---
+
+## Performance Best Practices
+
+### Replication and Durability (CRITICAL)
+
+**Set replication factor to 3 or higher at topic creation time.**
+
+```
+⚠️ CRITICAL: Setting replication factor AFTER creation requires expensive 
+   partition reassignment that copies data over the network.
+```
+
+**Best Practice**: Get this right initially.
+
+```bash
+# ✅ GOOD: Set replication at creation
+kafka-topics.sh --create --topic my-topic \
+  --partitions 12 \
+  --replication-factor 3
+
+# ❌ BAD: Changing later requires network-intensive reassignment
+kafka-topics.sh --alter --topic my-topic \
+  --replication-factor 3  # Expensive operation!
+```
+
+**Source**: [Kafka Best Practices](https://karafka.io/docs/Kafka-Best-Practices/)
+
+### Performance Optimization
+
+1. **Use columnar formats**: Avro, Parquet for better compression
+2. **Monitor lag**: Consumer lag indicates performance issues
+3. **Tune fetch settings**: `fetch.min.bytes`, `fetch.max.wait.ms`
+4. **Use latest client versions**: Performance improvements in newer versions
+
+---
+
+## Scaling Best Practices
+
+### Holistic Scaling Approach (CRITICAL)
+
+**Effective Kafka scaling requires optimizing ALL components together**:
+- Producers
+- Brokers
+- Consumers
+- Metadata services (KRaft/ZooKeeper)
+- Storage
+
+**❌ Common Mistake**: Adding brokers without adjusting partitions or tuning consumer groups.
+
+**Result**: Wasted resources, uneven load, higher latency, operational overhead.
+
+**Source**: [Kafka Scaling Best Practices](https://www.confluent.io/learn/kafka-scaling-best-practices/)
+
+### Scaling Strategy
+
+1. **Monitor metrics**:
+   - Throughput (messages/sec)
+   - Latency (end-to-end)
+   - Consumer lag
+   - CPU/memory/disk usage
+
+2. **Scale appropriately**:
+   - **Throughput bottleneck** → Add partitions or brokers
+   - **Latency issues** → Optimize consumer processing
+   - **Storage issues** → Add retention policies or brokers
+
+3. **Rebalance evenly**:
+   - Use Kafka's automatic partition reassignment
+   - Monitor partition distribution across brokers
+
+---
+
+## Anti-Patterns
+
+### ❌ Anti-Pattern 1: Prime Number Partitions
+
+```
+❌ BAD: 3, 7, 11 partitions (hard to distribute evenly)
+✅ GOOD: 6, 12, 24, 60 partitions (many divisors)
+```
+
+### ❌ Anti-Pattern 2: Too Many Partitions Per Broker
+
+```
+❌ BAD: 5,000+ partitions per broker (degraded performance)
+✅ GOOD: Stay under 4,000 partitions per broker
+```
+
+### ❌ Anti-Pattern 3: Changing Partition Count Later
+
+```
+❌ BAD: Add partitions after creation (breaks key-based ordering)
+✅ GOOD: Calculate partition needs upfront
+```
+
+### ❌ Anti-Pattern 4: Low Replication Factor
+
+```
+❌ BAD: replication-factor=1 (data loss on broker failure)
+✅ GOOD: replication-factor=3+ (durability)
+```
+
+### ❌ Anti-Pattern 5: Using ZooKeeper for New Deployments
+
+```
+❌ BAD: ZooKeeper (removed in Kafka 4.0)
+✅ GOOD: KRaft mode (supports 2M partitions, faster failovers)
+```
+
+---
+
+## Related Documentation
+
+- **CLI Tool**: `.cursor/rules/shared/tools/kcat.mdc` (kcat/kafkacat usage for testing)
+- **Schema Registry**: `.cursor/rules/shared/technologies/schema-registry.mdc` (Schema Registry REST API reference)
+
+---
+
+## References
+
+- [Kafka Best Practices](https://karafka.io/docs/Kafka-Best-Practices/)
+- [Kafka Optimization Best Practices](https://redpanda.com/guides/kafka-performance-kafka-optimization)
+- [Kafka Scaling Best Practices](https://www.confluent.io/learn/kafka-scaling-best-practices/)
+
+---
+
+**Last Updated**: 2026-01-25  
+**Maintained By**: Platform Team  
+**Sources**: 
+- Kafka official documentation
+- Production experience
+- Community best practices (2026)
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

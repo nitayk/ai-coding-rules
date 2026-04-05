@@ -20,6 +20,8 @@ alwaysApply: false
 |----------------|-----------|
 | **vitest**, vue testing, component testing, frontend testing | `vitest-best-practices.mdc` |
 | **vue component testing**, test utils, vue test utils | `vue-component-testing.mdc` |
+| **playwright**, e2e playwright, @playwright/test | `playwright-best-practices.mdc` |
+| **cypress**, e2e cypress, cypress.config | `cypress-best-practices.mdc` |
 
 ---
 
@@ -29,6 +31,8 @@ alwaysApply: false
 |------|---------|----------|
 | [Vitest Best Practices](vitest-best-practices.mdc) | Vitest testing patterns and best practices | vitest, vue testing, component testing |
 | [Vue Component Testing](vue-component-testing.mdc) | @vue/test-utils patterns | vue component testing, test utils |
+| [Playwright Best Practices](playwright-best-practices.mdc) | Playwright E2E patterns - locators, POM, assertions | playwright, e2e |
+| [Cypress Best Practices](cypress-best-practices.mdc) | Cypress E2E patterns - data-cy, intercept, isolation | cypress, e2e |
 
 ---
 
@@ -38,6 +42,8 @@ alwaysApply: false
 |------|------|
 | Vitest patterns | `vitest-best-practices.mdc` |
 | Vue component testing | `vue-component-testing.mdc` |
+| Playwright E2E | `playwright-best-practices.mdc` |
+| Cypress E2E | `cypress-best-practices.mdc` |
 
 ---
 
@@ -46,3 +52,5 @@ alwaysApply: false
 - **Language**: See `../language/index.mdc` for language patterns
 - **Frameworks**: See `../frameworks/index.mdc` for framework patterns
 - **Generic**: See `.cursor/rules/shared/generic/testing/core-principles.mdc` for universal testing principles
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

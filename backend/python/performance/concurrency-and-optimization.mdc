@@ -31,6 +31,8 @@ def parallel_processing():
 ### 2. Threading (I/O-Bound Tasks)
 Use `threading` for tasks that wait for I/O operations (e.g., file reading, network requests). Threads share memory and are lightweight but are limited by the GIL for CPU tasks.
 
+**When threading helps (despite the GIL):** The GIL is released on blocking I/O (sockets, file ops) and in C extensions. Use threads for: (1) **Application responsiveness** – keep UI responsive while doing background work; (2) **Multiuser/network apps** – serve many connections; (3) **Work delegation** – parallel HTTP requests, external API calls, file indexing. For CPU-bound pure-Python code, threads do not speed things up; use multiprocessing instead. **Hybrid:** Multiple processes with multiple threads each (e.g., Gunicorn gthread workers) can utilize multicore + I/O parallelism.
+
 ```python
 # ✅ GOOD: using threading for I/O-bound tasks
 import threading
@@ -142,6 +144,8 @@ def fibonacci(n):
 ## Profiling
 
 Always profile before optimizing. Premature optimization can lead to complex, unmaintainable code.
+
+**Memory profiling:** Python does not release memory eagerly. Use `memory_profiler` or `objgraph` for memory leaks. `objgraph.show_refs()` / `show_backrefs()` help visualize object retention.
 
 ### cProfile
 Use `cProfile` to identify bottlenecks.

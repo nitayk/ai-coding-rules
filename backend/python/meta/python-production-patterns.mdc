@@ -1,0 +1,217 @@
+---
+description: "Python production readiness - virtual envs, dependency management, pre-commit, environment config, modular design. Use when: (1) Setting up Python projects, (2) Deploying to production, (3) Managing dependencies, (4) Configuring apps. Covers pyproject.toml, Poetry, pre-commit, env vars."
+globs: ["**/*.py", "**/pyproject.toml", "**/requirements*.txt"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["production", "python", "deployment", "tooling"]
+---
+
+# Python Production Patterns
+
+Patterns for production-ready Python projects. Based on 2024-2025 best practices: virtual envs mandatory, Poetry/uv for deps, pre-commit standard.
+
+---
+
+## Triggers
+
+**APPLY WHEN**: Setting up new projects, configuring deployment, managing dependencies, or ensuring production readiness.
+**SKIP WHEN**: One-off scripts or exploratory code.
+
+---
+
+## Core Directive
+
+**Write modules, not scripts.** Use virtual environments, managed dependencies, and environment-based configuration. Python 3.12+ is the standard baseline.
+
+---
+
+## Virtual Environments Are Mandatory
+
+```python
+# Good: Always use venv
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+
+# Bad: System Python for project work
+pip install -r requirements.txt  # Pollutes system
+```
+
+---
+
+## Dependency Management
+
+### Prefer pyproject.toml and Modern Tools
+
+```toml
+# Good: pyproject.toml (PEP 621)
+[project]
+name = "myapp"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.0",
+    "httpx>=0.25",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "mypy"]
+```
+
+### Use Poetry or uv
+
+```bash
+# Good: Poetry or uv for reproducible installs
+poetry add pydantic httpx
+poetry add --group dev pytest ruff mypy
+
+# Or uv (faster)
+uv pip install -r pyproject.toml
+```
+
+### Avoid Deprecated Tools
+
+- pipenv: Deprecated for new projects
+- setup.py-only: Prefer pyproject.toml
+
+---
+
+## Environment Configuration
+
+### Never Hardcode Config
+
+```python
+# Good: Environment variables
+import os
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    db_url: str
+    log_level: str = "INFO"
+    model_config = {"env_file": ".env", "extra": "ignore"}
+
+settings = Settings()
+
+# Bad: Hardcoded
+DB_URL = "postgresql://localhost/mydb"
+```
+
+### Use .env for Local Development Only
+
+- Add `.env` to `.gitignore`
+- Provide `.env.example` with placeholder values
+- Production: inject via orchestration (K8s secrets, etc.)
+
+---
+
+## Pre-commit Hooks
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+```
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+---
+
+## Code Quality in CI
+
+```yaml
+# Example: GitHub Actions
+- run: ruff check .
+- run: ruff format --check .
+- run: mypy src/
+- run: pytest
+```
+
+---
+
+## Modular Design
+
+### src Layout
+
+```
+project_root/
+├── src/
+│   └── mypackage/
+│       ├── __init__.py
+│       ├── api.py
+│       └── services/
+├── tests/
+├── pyproject.toml
+└── README.md
+```
+
+### Public API via __all__
+
+```python
+# src/mypackage/__init__.py
+from .api import PublicClass, public_function
+
+__all__ = ["PublicClass", "public_function"]
+```
+
+---
+
+## Exit Only from main
+
+```python
+# Good: main handles exit
+def main() -> int:
+    try:
+        run_app()
+        return 0
+    except ConfigError as e:
+        print(f"Config error: {e}", file=sys.stderr)
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+# Bad: Library calls sys.exit
+def load_config(path: str) -> Config:
+    if not os.path.exists(path):
+        sys.exit(1)  # Caller cannot handle
+```
+
+---
+
+## Logging Over print for Production
+
+```python
+# Good: Structured logging
+import logging
+logger = logging.getLogger(__name__)
+logger.info("Processing %d items", count)
+
+# Bad: print for operational messages
+print(f"Processing {count} items")
+```
+
+---
+
+## Related Rules
+
+- [Architecture Design Patterns](../architecture/design-patterns.mdc) - src layout, DI
+- [Security Patterns](python-security-patterns.mdc) - Secrets, env config
+- [PEP 8 Style Guide](pep8-style-guide.mdc) - Formatting
+
+---
+
+## References
+
+- [PEP 621 – pyproject.toml](https://peps.python.org/pep-0621/)
+- [Poetry Documentation](https://python-poetry.org/docs/)
+- [uv: Fast Python Package Installer](https://github.com/astral-sh/uv)

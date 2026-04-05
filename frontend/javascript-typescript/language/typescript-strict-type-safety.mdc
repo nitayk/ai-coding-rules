@@ -15,7 +15,7 @@ Use TypeScript's type system effectively. Avoid `any`, use `unknown` for untrust
 **Never use `any` - it disables type checking. Use `unknown` for untrusted data:**
 
 ```typescript
-// ✅ Good: Use unknown for untrusted data
+// Good: Use unknown for untrusted data
 function parseUserData(data: unknown): User {
   if (isUser(data)) {
     return data;
@@ -34,7 +34,7 @@ function isUser(data: unknown): data is User {
   );
 }
 
-// ❌ Bad: Using any disables type safety
+// Bad: Using any disables type safety
 function parseUserData(data: any): User {
   return data;  // No type checking!
 }
@@ -43,7 +43,7 @@ function parseUserData(data: any): User {
 **For API responses, validate at boundaries:**
 
 ```typescript
-// ✅ Good: Validate API responses with unknown
+// Good: Validate API responses with unknown
 async function fetchUser(id: string): Promise<User> {
   const response = await fetch(`/api/users/${id}`);
   const data: unknown = await response.json();
@@ -54,7 +54,7 @@ async function fetchUser(id: string): Promise<User> {
   throw new Error("Invalid user data from API");
 }
 
-// ❌ Bad: Assuming API response shape
+// Bad: Assuming API response shape
 async function fetchUser(id: string): Promise<User> {
   const response = await fetch(`/api/users/${id}`);
   return await response.json();  // No validation!
@@ -68,7 +68,7 @@ async function fetchUser(id: string): Promise<User> {
 **Use strict TypeScript configuration for maximum type safety:**
 
 ```json
-// ✅ Good: Strict tsconfig.json
+// Good: Strict tsconfig.json
 {
   "compilerOptions": {
     "strict": true,
@@ -96,7 +96,7 @@ async function fetchUser(id: string): Promise<User> {
 **Create type guards to safely narrow `unknown` types:**
 
 ```typescript
-// ✅ Good: Type guard function
+// Good: Type guard function
 type User = {
   id: string;
   name: string;
@@ -119,11 +119,11 @@ function isUser(data: unknown): data is User {
 function processUser(data: unknown) {
   if (isUser(data)) {
     // TypeScript knows data is User here
-    console.log(data.name);  // ✅ Type-safe
+    console.log(data.name);  // Type-safe
   }
 }
 
-// ❌ Bad: Type assertion without validation
+// Bad: Type assertion without validation
 function processUser(data: unknown) {
   const user = data as User;  // Unsafe! No runtime check
   console.log(user.name);  // Might crash at runtime
@@ -137,7 +137,7 @@ function processUser(data: unknown) {
 **Use discriminated unions for type-safe state machines:**
 
 ```typescript
-// ✅ Good: Discriminated union
+// Good: Discriminated union
 type LoadingState =
   | { status: "idle" }
   | { status: "loading" }
@@ -157,7 +157,7 @@ function handleState(state: LoadingState) {
   }
 }
 
-// ❌ Bad: Union without discriminator
+// Bad: Union without discriminator
 type BadState =
   | { data?: User; error?: string }
   | { data?: User; error?: string };
@@ -177,7 +177,7 @@ function handleBadState(state: BadState) {
 **Use `as const` to preserve literal types:**
 
 ```typescript
-// ✅ Good: as const preserves literal types
+// Good: as const preserves literal types
 const colors = ["red", "green", "blue"] as const;
 type Color = typeof colors[number];  // "red" | "green" | "blue"
 
@@ -185,10 +185,10 @@ function setColor(color: Color) {
   // Only accepts literal strings
 }
 
-setColor("red");  // ✅
-setColor("yellow");  // ❌ Type error
+setColor("red");  // Valid
+setColor("yellow");  // Type error
 
-// ❌ Bad: Without as const, types widen
+// Bad: Without as const, types widen
 const colors = ["red", "green", "blue"];  // string[]
 type Color = typeof colors[number];  // string
 
@@ -196,7 +196,7 @@ function setColor(color: Color) {
   // Accepts any string!
 }
 
-setColor("yellow");  // ✅ No error, but wrong!
+setColor("yellow");  // No error, but wrong!
 ```
 
 ---
@@ -206,7 +206,7 @@ setColor("yellow");  // ✅ No error, but wrong!
 **Use `noUncheckedIndexedAccess` and handle undefined:**
 
 ```typescript
-// ✅ Good: Handle undefined from indexed access
+// Good: Handle undefined from indexed access
 const users: User[] = [];
 const firstUser = users[0];  // User | undefined (with noUncheckedIndexedAccess)
 
@@ -214,10 +214,10 @@ if (firstUser) {
   console.log(firstUser.name);  // Safe access
 }
 
-// ✅ Good: Use optional chaining
+// Good: Use optional chaining
 const userName = users[0]?.name;  // string | undefined
 
-// ❌ Bad: Assuming index exists
+// Bad: Assuming index exists
 const firstUser = users[0];  // Might be undefined!
 console.log(firstUser.name);  // Runtime error if undefined
 ```
@@ -229,7 +229,7 @@ console.log(firstUser.name);  // Runtime error if undefined
 **Leverage TypeScript's utility types:**
 
 ```typescript
-// ✅ Good: Utility types for transformations
+// Good: Utility types for transformations
 type User = {
   id: string;
   name: string;
@@ -249,7 +249,7 @@ type UserWithoutEmail = Omit<User, "email">;
 // Make specific fields required
 type UserWithRequiredEmail = User & { email: string };
 
-// ❌ Bad: Manually creating similar types
+// Bad: Manually creating similar types
 type PartialUser = {
   id?: string;
   name?: string;
@@ -265,7 +265,7 @@ type PartialUser = {
 **Always validate data from external sources:**
 
 ```typescript
-// ✅ Good: Validate at API boundary
+// Good: Validate at API boundary
 import { z } from "zod";  // Or use io-ts, valibot
 
 const UserSchema = z.object({
@@ -283,7 +283,7 @@ async function fetchUser(id: string): Promise<User> {
   return user;  // Now type-safe
 }
 
-// ❌ Bad: Trusting external data
+// Bad: Trusting external data
 async function fetchUser(id: string): Promise<User> {
   const response = await fetch(`/api/users/${id}`);
   return await response.json();  // No validation!
@@ -294,8 +294,8 @@ async function fetchUser(id: string): Promise<User> {
 
 ## Related Rules
 
-- [Error Handling Patterns](error-handling-patterns.mdc) - Type-safe error handling
-- [Modern JavaScript Patterns](../language/modern-javascript-patterns.mdc) - JS patterns
+- [Generic Error Handling](../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns
+- [API Defensive Programming](api-defensive-programming.mdc) - Safe property access, schema resilience
 
 ---
 

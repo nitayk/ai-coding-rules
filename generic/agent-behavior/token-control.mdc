@@ -1,0 +1,51 @@
+---
+description: "Reduce token waste from long command output. Use when running builds, large searches, or verbose commands. Redirect output to file; prefer git grep for large codebases."
+globs: []
+alwaysApply: false
+---
+
+# Token Control
+
+**Purpose**: Long command output consumes context tokens. Redirect verbose output to files; prefer efficient search tools.
+
+## When to Apply
+
+- Running long builds (`sbt compile`, `jam.pl`, `npm run build`)
+- Searching large codebases
+- Any command that may produce >10K chars of output
+
+## Rules
+
+### 1. Redirect Long Output to File
+
+```bash
+# BAD: Full build log in context
+sbt compile
+
+# GOOD: Only success/failure in context
+sbt compile > /tmp/build.log 2>&1 && echo "OK" || echo "FAIL - check /tmp/build.log"
+```
+
+### 2. Prefer git grep Over grep
+
+For large codebases, `grep -r` can timeout. `git grep` is faster and respects .gitignore.
+
+```bash
+# BAD: May timeout on large repos
+grep -r "pattern" .
+
+# GOOD: Faster, respects .gitignore
+git grep "pattern" .
+```
+
+### 3. Use Quiet Flags When Available
+
+```bash
+sbt -batch compile  # Less verbose
+npm run build --silent  # If supported
+```
+
+## Related
+
+- See `tools/git.mdc` for git grep syntax
+- See `/code-structure-analysis` skill for grep usage in investigations

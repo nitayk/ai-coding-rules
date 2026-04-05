@@ -1,0 +1,171 @@
+---
+description: "Use guard clauses and early returns to reduce nesting and improve readability. Use when: (1) Writing conditionals, (2) Validating inputs, (3) Reducing nesting, (4) Simplifying control flow, (5) Writing readable code. Covers early returns, guard clauses, and happy-path emphasis."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["control-flow", "guard-clauses", "early-return", "readability", "nesting"]
+---
+
+# Guard Clauses and Early Returns
+
+**APPLY WHEN:** Writing functions with validation, error handling, or multiple conditions.
+
+**Core Principle**: **Handle exceptional cases first, then continue with the happy path.** Reduce nesting by returning early instead of wrapping the main logic in `else` blocks.
+
+---
+
+## The Problem: Nested Conditionals
+
+**STOP**: Deep nesting that hides the main logic:
+
+```python
+# ❌ Bad: Deep nesting
+def process_order(order_id: int):
+    if order_id > 0:
+        order = fetch_order(order_id)
+        if order:
+            if order.status != "cancelled":
+                if order.total > 0:
+                    return process_order(order)
+    return None
+```
+
+---
+
+## The Solution: Guard Clauses
+
+**DO**: Return early for invalid/exceptional cases; keep happy path at top level:
+
+```python
+# ✅ Good: Guard clauses, happy path clear
+def process_order(order_id: int):
+    if order_id <= 0:
+        return None
+    order = fetch_order(order_id)
+    if not order:
+        return None
+    if order.status == "cancelled":
+        return None
+    if order.total <= 0:
+        return None
+    # Happy path - minimal nesting
+    return process_order(order)
+```
+
+---
+
+## Benefits
+
+| Benefit | Description |
+|---------|-------------|
+| **Readability** | Main logic is visible without scrolling through nested blocks |
+| **Cognitive load** | Each condition is independent; no mental stack of nested contexts |
+| **Maintainability** | Adding new validation = adding one more guard, not another nesting level |
+| **Testing** | Each guard is a clear exit point; easy to test each path |
+
+---
+
+## Patterns by Language
+
+### Go (explicit error returns)
+```go
+func ProcessOrder(orderID int) (*Order, error) {
+    if orderID <= 0 {
+        return nil, fmt.Errorf("invalid order ID: %d", orderID)
+    }
+    order, err := fetchOrder(orderID)
+    if err != nil {
+        return nil, fmt.Errorf("fetch order: %w", err)
+    }
+    if order.Status == "cancelled" {
+        return nil, fmt.Errorf("order %d is cancelled", orderID)
+    }
+    return processOrder(order), nil
+}
+```
+
+### Python
+```python
+def process_order(order_id: int) -> Order | None:
+    if order_id <= 0:
+        return None
+    order = fetch_order(order_id)
+    if order is None:
+        return None
+    if order.status == "cancelled":
+        return None
+    return process_order(order)
+```
+
+### Scala
+```scala
+def processOrder(orderId: Int): Option[Order] = {
+  if (orderId <= 0) return None
+  val order = fetchOrder(orderId)
+  if (order.isEmpty) return None
+  if (order.get.status == "cancelled") return None
+  Some(processOrder(order.get))
+}
+```
+
+### JavaScript/TypeScript
+```typescript
+function processOrder(orderId: number): Order | null {
+  if (orderId <= 0) return null;
+  const order = fetchOrder(orderId);
+  if (!order) return null;
+  if (order.status === "cancelled") return null;
+  return processOrder(order);
+}
+```
+
+### Java/Kotlin
+```java
+public Order processOrder(int orderId) {
+    if (orderId <= 0) return null;
+    Order order = fetchOrder(orderId);
+    if (order == null) return null;
+    if ("cancelled".equals(order.getStatus())) return null;
+    return processOrder(order);
+}
+```
+
+---
+
+## When to Use
+
+**Use guard clauses when**:
+- Validating function arguments
+- Checking preconditions before main logic
+- Handling error cases that exit early
+- Replacing nested `if-else` (especially 3+ levels)
+
+**Consider alternatives when**:
+- Logic is symmetric (e.g., `if A then X else Y`—both branches are equal)
+- Multiple conditions combine (consider extracting to named function)
+- Language has pattern matching (e.g., Scala `match`, Rust `match`)
+
+---
+
+## Anti-Pattern: Arrow Code
+
+**STOP**: "Arrow code" where indentation grows with each condition:
+
+```
+if
+  if
+    if
+      if
+        do something
+```
+
+**DO**: Flatten with guards so the main logic stays at base indentation.
+
+---
+
+## Related Rules
+
+- [Error Handling Universal Patterns](../error-handling/universal-patterns.mdc) - Fail fast, explicit errors
+- [Trust Boundaries](../defensive-programming/trust-boundaries.mdc) - Validate at boundaries
+- [Code Quality Core Principles](../code-quality/core-principles.mdc) - KISS, readability

@@ -20,6 +20,9 @@ alwaysApply: false
 |----------------|-----------|
 | **typescript strict**, ts strict, strict type safety, type guards, avoid any | `typescript-strict-type-safety.mdc` |
 | **api defensive**, safe property access, schema change resilience | `api-defensive-programming.mdc` |
+| **async**, promises, await, retry, timeout, concurrent | `async-patterns.mdc` |
+| **error handling**, try catch, error boundaries, graceful degradation | `error-handling-patterns.mdc` |
+| **modern javascript**, es6, es modules, destructuring, const let | `modern-javascript-patterns.mdc` |
 
 ---
 
@@ -29,6 +32,9 @@ alwaysApply: false
 |------|---------|----------|
 | [TypeScript Strict Type Safety](typescript-strict-type-safety.mdc) | Strict mode, avoid any, use unknown, type guards | typescript strict, ts strict, strict type safety |
 | [API Defensive Programming](api-defensive-programming.mdc) | Safe property access, schema change resilience | api defensive, safe property access |
+| [Async Patterns](async-patterns.mdc) | Promises, async/await, retries, timeouts, AbortController | async, promises, retry, timeout |
+| [Error Handling Patterns](error-handling-patterns.mdc) | Try/catch, error boundaries, custom errors | error handling, try catch, error boundaries |
+| [Modern JavaScript Patterns](modern-javascript-patterns.mdc) | ES6+, const/let, destructuring, modules | modern javascript, es6, es modules |
 
 ---
 
@@ -38,6 +44,9 @@ alwaysApply: false
 |------|------|
 | TypeScript strict | `typescript-strict-type-safety.mdc` |
 | API safety | `api-defensive-programming.mdc` |
+| Async patterns | `async-patterns.mdc` |
+| Error handling | `error-handling-patterns.mdc` |
+| Modern JS | `modern-javascript-patterns.mdc` |
 
 ---
 

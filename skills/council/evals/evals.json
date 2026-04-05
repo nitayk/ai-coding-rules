@@ -1,0 +1,38 @@
+{
+  "skill_name": "council",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to understand how authentication works in this codebase before we refactor it. Can you explore the auth flow across the services?",
+      "expected_output": "Synthesis of authentication flow across the codebase, including key components, data flow, and integration points. Should spawn multiple agents for parallel exploration.",
+      "files": [],
+      "expectations": [
+        "Output includes a synthesis document covering authentication/identity flow",
+        "Output mentions at least two of: gamerToken, Identity Mesh, caller whitelist, ads-sdk-gateway",
+        "Output includes file paths or component references for refactoring"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/council n=5, find all places we use the Kafka consumer pattern",
+      "expected_output": "Comprehensive list of Kafka consumer usage locations with context. Should use 5 agents for exploration.",
+      "files": [],
+      "expectations": [
+        "Output includes a synthesis or list of Kafka consumer usage locations",
+        "Output mentions at least 2 distinct files or services using Kafka consumer",
+        "Output provides context (topic, consumer group, or usage pattern) for findings"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We're getting this error in production: 'Connection refused to Redis'. I need to understand how Redis is used across our services before we fix it.",
+      "expected_output": "Map of Redis usage across the codebase - which services connect, for what purpose, configuration. Synthesis from multi-agent exploration.",
+      "files": [],
+      "expectations": [
+        "Output includes a map or synthesis of Redis usage across services",
+        "Output identifies at least 2 services or components that use Redis",
+        "Output mentions configuration, connection, or usage purpose for Redis"
+      ]
+    }
+  ]
+}

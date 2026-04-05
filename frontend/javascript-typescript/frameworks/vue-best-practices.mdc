@@ -18,7 +18,7 @@ alwaysApply: false
 ### 1. Prefer Composition API for New Code
 ```vue
 <script setup lang="ts">
-// ✅ GOOD: Composition API with <script setup>
+// Good: Composition API with <script setup>
 import { ref, computed, onMounted } from 'vue';
 
 interface Props {
@@ -44,7 +44,7 @@ onMounted(() => {
 
 ### 2. Use Typed Props and Emits
 ```typescript
-// ✅ GOOD: Fully typed component interface
+// Good: Fully typed component interface
 <script setup lang="ts">
 interface Props {
   modelValue: string;
@@ -72,7 +72,7 @@ function handleSubmit() {
 }
 </script>
 
-// ❌ BAD: Untyped props
+// Bad: Untyped props
 <script setup>
 const props = defineProps(['modelValue', 'placeholder']);
 </script>
@@ -80,7 +80,7 @@ const props = defineProps(['modelValue', 'placeholder']);
 
 ### 3. Extract Reusable Logic into Composables
 ```typescript
-// ✅ GOOD: Composable for reusable logic
+// Good: Composable for reusable logic
 // composables/useClickOutside.ts
 import { onMounted, onBeforeUnmount, Ref } from 'vue';
 
@@ -123,12 +123,12 @@ useClickOutside(dropdownRef, () => {
 
 ### 4. Avoid `any` - Use Proper Types
 ```typescript
-// ❌ BAD: Using 'any' loses type safety
+// Bad: Using 'any' loses type safety
 const handleData = (data: any) => {
   return data.someProperty;  // No type checking
 };
 
-// ✅ GOOD: Define proper interfaces
+// Good: Define proper interfaces
 interface ApiResponse {
   id: string;
   data: {
@@ -227,35 +227,35 @@ onMounted(() => {
 
 ### Use `ref` vs `reactive` Correctly
 ```typescript
-// ✅ GOOD: Use ref for primitives and single values
+// Good: Use ref for primitives and single values
 const count = ref(0);
 const name = ref('John');
 const user = ref<User | null>(null);
 
-// ✅ GOOD: Use reactive for objects with many properties
+// Good: Use reactive for objects with many properties
 const state = reactive({
   loading: false,
   error: null,
   data: [],
 });
 
-// ❌ BAD: Don't destructure reactive()
+// Bad: Don't destructure reactive()
 const { loading } = reactive({ loading: false });  // Loses reactivity!
 
-// ✅ GOOD: Use toRefs to destructure
+// Good: Use toRefs to destructure
 const state = reactive({ loading: false });
 const { loading } = toRefs(state);  // Maintains reactivity
 ```
 
 ### Avoid Mutating Props
 ```typescript
-// ❌ BAD: Mutating props directly
+// Bad: Mutating props directly
 const props = defineProps<{ count: number }>();
 function increment() {
   props.count++;  // ERROR! Props are readonly
 }
 
-// ✅ GOOD: Emit events to parent
+// Good: Emit events to parent
 const props = defineProps<{ count: number }>();
 const emit = defineEmits<{ (e: 'update:count', value: number): void }>();
 
@@ -263,7 +263,7 @@ function increment() {
   emit('update:count', props.count + 1);
 }
 
-// ✅ ALSO GOOD: Use v-model pattern
+// Also good: Use v-model pattern
 const props = defineProps<{ modelValue: number }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>();
 ```
@@ -275,7 +275,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>();
 ### 1. Use `v-once` for Static Content
 ```vue
 <template>
-  <!-- ✅ GOOD: Static content rendered once -->
+  <!-- Good: Static content rendered once -->
   <div v-once>
     <h1>{{ staticTitle }}</h1>
     <p>This content never changes</p>
@@ -286,7 +286,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>();
 ### 2. Use `v-memo` for Conditional Re-rendering
 ```vue
 <template>
-  <!-- ✅ GOOD: Only re-render when dependencies change -->
+  <!-- Good: Only re-render when dependencies change -->
   <div v-memo="[user.id, user.lastUpdated]">
     <UserCard :user="user" />
   </div>
@@ -295,7 +295,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>();
 
 ### 3. Lazy Load Components
 ```typescript
-// ✅ GOOD: Lazy load heavy components
+// Good: Lazy load heavy components
 const HeavyChart = defineAsyncComponent(() =>
   import('./components/HeavyChart.vue')
 );
@@ -314,29 +314,29 @@ const HeavyChart = defineAsyncComponent({
 
 ## Common Pitfalls
 
-### ❌ DON'T: Access Lifecycle Too Early
+### DON'T: Access Lifecycle Too Early
 ```typescript
-// ❌ BAD: Accessing DOM in setup (not mounted yet)
+// Bad: Accessing DOM in setup (not mounted yet)
 <script setup>
 const myElement = ref<HTMLElement | null>(null);
 console.log(myElement.value);  // null! Not mounted yet
 
-// ✅ GOOD: Wait for onMounted
+// Good: Wait for onMounted
 onMounted(() => {
   console.log(myElement.value);  // Now available
 });
 </script>
 ```
 
-### ❌ DON'T: Create Reactive State in Computed
+### DON'T: Create Reactive State in Computed
 ```typescript
-// ❌ BAD: Side effects in computed
+// Bad: Side effects in computed
 const doubledAndLogged = computed(() => {
   console.log('Computing...');  // Side effect!
   return count.value * 2;
 });
 
-// ✅ GOOD: Use watch for side effects
+// Good: Use watch for side effects
 const doubled = computed(() => count.value * 2);
 
 watch(doubled, (newValue) => {
@@ -344,14 +344,14 @@ watch(doubled, (newValue) => {
 });
 ```
 
-### ❌ DON'T: Forget to Clean Up Listeners
+### DON'T: Forget to Clean Up Listeners
 ```typescript
-// ❌ BAD: No cleanup
+// Bad: No cleanup
 onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
 
-// ✅ GOOD: Clean up in onBeforeUnmount
+// Good: Clean up in onBeforeUnmount
 onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
@@ -366,7 +366,7 @@ onBeforeUnmount(() => {
 ## Testing Vue Components
 
 ```typescript
-// ✅ GOOD: Test user interactions, not implementation
+// Good: Test user interactions, not implementation
 import { mount } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
 import MyButton from './MyButton.vue';
@@ -400,7 +400,7 @@ describe('MyButton', () => {
 See [@Vuex Patterns](vuex-state-management.mdc) for detailed Vuex patterns.
 
 ```typescript
-// ✅ GOOD: Type-safe Vuex access
+// Good: Type-safe Vuex access
 import { useStore } from 'vuex';
 import { RootState } from '@/store/types';
 

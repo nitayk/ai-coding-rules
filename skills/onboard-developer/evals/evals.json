@@ -1,0 +1,17 @@
+{
+  "skill_name": "onboard-developer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a new developer joining. Create an onboarding guide for this project.",
+      "expected_output": "Comprehensive onboarding guide: project overview, setup, code structure, workflow, common tasks, resources. Checklist and suggested first issues.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/onboard frontend - new dev is joining the frontend team, focus the guide on that",
+      "expected_output": "Frontend-focused onboarding guide. Setup for frontend dev, relevant structure, frontend workflow, frontend-specific tasks and resources.",
+      "files": []
+    }
+  ]
+}

@@ -45,3 +45,5 @@ alwaysApply: false
 
 - **Language**: See `../language/index.mdc` for language patterns
 - **Generic**: See `.cursor/rules/shared/generic/testing/core-principles.mdc` for universal testing principles
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

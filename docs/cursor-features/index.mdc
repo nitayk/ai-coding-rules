@@ -1,0 +1,66 @@
+---
+description: "Cursor feature guides - rules, semantic search, mentions, plugins, sandbox, security. Use when: (1) How rules work, (2) Semantic search setup, (3) @ mentions, (4) Plugins/marketplace, (5) Sandbox config, (6) Cursor security. Routes to Cursor IDE feature guides."
+globs: []
+alwaysApply: false
+---
+
+# Cursor Features Index
+
+**Purpose**: Guides for **Cursor IDE features** — how to use rules, semantic search, @ mentions, plugins, sandbox, and security.
+
+**Not here**: Rules architecture (→ `meta/`), install/symlinks (→ `scripts/`).
+
+**Chaining**: Root Router → This Index → Feature Guide Files
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **rules guide**, cursor rules, project rules, team rules, user rules | `rules-guide.mdc` |
+| **semantic search**, code search, semantic code search | `semantic-search.mdc` |
+| **mentions**, @ mentions, file references, folder navigation | `mentions-guide.mdc` |
+| **mcp guide**, mcp setup, mcp configuration, mcp complete | `../mcp/complete-guide.mdc` |
+| **plugins**, marketplace, plugin manifest, plugin.json, build plugin, install plugin | `plugins-guide.mdc` |
+| **sandbox**, network access, allowlist, denylist, sandbox.json, network policy | `sandbox-guide.mdc` |
+| **cursor security**, auto-run, mcp trust, cve, rule review | `cursor-security-guide.mdc` |
+| **automations**, always-on agents, scheduled agents, cloud agent triggers, cursor automations | `cursor-automations-guide.mdc` |
+
+---
+
+## Cursor Feature Guides (Leaves)
+
+| File | Purpose |
+|------|---------|
+| [Rules Guide](rules-guide.mdc) | Project/team/user rules, AGENTS.md, best practices |
+| [Semantic Search](semantic-search.mdc) | Finding code by meaning, indexing, privacy |
+| [Mentions Guide](mentions-guide.mdc) | @ file references, folder navigation |
+| [MCP Complete Guide](../mcp/complete-guide.mdc) | MCP transport, OAuth, install links |
+| [Plugins Guide](plugins-guide.mdc) | Plugins & marketplace, manifest, building |
+| [Sandbox Guide](sandbox-guide.mdc) | Network policy, sandbox.json, filesystem restrictions |
+| [Cursor Security](cursor-security-guide.mdc) | Auto-Run, MCP trust, CVEs |
+| [Cursor Automations](cursor-automations-guide.mdc) | Always-on agents, triggers, tools, use cases |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Rules system | `rules-guide.mdc` |
+| Semantic search | `semantic-search.mdc` |
+| @ mentions | `mentions-guide.mdc` |
+| MCP setup | `../mcp/complete-guide.mdc` |
+| Plugins & marketplace | `plugins-guide.mdc` |
+| Sandbox & network | `sandbox-guide.mdc` |
+| Cursor security | `cursor-security-guide.mdc` |
+| Automations (always-on agents) | `cursor-automations-guide.mdc` |
+
+---
+
+## Related
+
+- **Rules architecture** (graph structure, routing) → `meta/graph-structure.md`
+- **Install/symlinks** → `scripts/symlinks-support.md`
+- **Root catalog** → `../index.mdc`

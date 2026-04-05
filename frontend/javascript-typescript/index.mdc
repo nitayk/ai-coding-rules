@@ -22,7 +22,13 @@ alwaysApply: false
 |----------------|----------------------|
 | **frameworks**, react, vue, vuex, framework patterns | `.cursor/rules/shared/frontend/javascript-typescript/frameworks/index.mdc` |
 | **language**, typescript, javascript, type safety, api defensive | `.cursor/rules/shared/frontend/javascript-typescript/language/index.mdc` |
-| **testing**, vitest, vue testing, component testing | `.cursor/rules/shared/frontend/javascript-typescript/testing/index.mdc` |
+| **async**, promises, await, retry, timeout, concurrent | `language/async-patterns.mdc` |
+| **error handling**, try catch, error boundaries, graceful degradation | `language/error-handling-patterns.mdc` |
+| **modern javascript**, es6, es modules, destructuring | `language/modern-javascript-patterns.mdc` |
+| **testing**, vitest, vue testing, playwright, cypress, component testing | `.cursor/rules/shared/frontend/javascript-typescript/testing/index.mdc` |
+| **accessibility**, a11y, wcag, aria, screen reader | `meta/accessibility-best-practices.mdc` |
+| **security**, xss, csrf, input validation | `meta/security-best-practices.mdc` |
+| **performance**, bundle size, lazy loading, tree-shaking | `meta/performance-best-practices.mdc` |
 
 ---
 
@@ -30,14 +36,13 @@ alwaysApply: false
 
 ### Core Language Patterns (`language/`)
 **Load**: `.cursor/rules/shared/frontend/javascript-typescript/language/index.mdc` ← Points to language pattern files
-- **[@Modern JavaScript Best Practices](language/modern-javascript-patterns.mdc)** - ES6+, async/await, modules
-- **[@TypeScript Type Safety](language/typescript-type-safety.mdc)** - Interfaces, generics, utility types
 - **[@TypeScript Strict Type Safety](language/typescript-strict-type-safety.mdc)** - Strict mode, avoid any, use unknown, type guards
 - **[@API Defensive Programming](language/api-defensive-programming.mdc)** - Safe property access, schema change resilience, backward compatibility
-- **[@Error Handling](language/error-handling-patterns.mdc)** - Try/catch, promises, error boundaries
-- **[@Async Patterns](language/async-patterns.mdc)** - Promises, async/await, concurrent operations
+- **[@Modern JavaScript Patterns](language/modern-javascript-patterns.mdc)** - ES6+, const/let, destructuring, modules
+- **[@Error Handling Patterns](language/error-handling-patterns.mdc)** - Try/catch, error boundaries, graceful degradation
+- **[@Async Patterns](language/async-patterns.mdc)** - Promises, async/await, retries, timeouts, AbortController
 
-### Architecture & Design
+### Architecture & Design (Planned)
 - **[@Module Organization](architecture/module-organization.mdc)** - ES modules, exports, barrel files
 - **[@Component Design](architecture/component-design-patterns.mdc)** - Composition, single responsibility
 - **[@State Management](architecture/state-management-patterns.mdc)** - Vuex, local state, reactive patterns
@@ -51,13 +56,14 @@ alwaysApply: false
 
 ### Testing (`testing/`)
 **Load**: `.cursor/rules/shared/frontend/javascript-typescript/testing/index.mdc` ← Points to testing pattern files
-- **[@Testing Best Practices](testing/javascript-testing-best-practices.mdc)** - Vitest, Jest, mocking
+- **[@Testing Best Practices](testing/vitest-best-practices.mdc)** - Vitest, Jest, mocking
 - **[@Vue Component Testing](testing/vue-component-testing.mdc)** - @vue/test-utils patterns
 
-### Code Quality & Style
-- **[@Code Style Guide](meta/javascript-typescript-style-guide.mdc)** - ESLint, Prettier, naming
-- **[@Performance Optimization](meta/performance-best-practices.mdc)** - Bundle size, lazy loading
-- **[@Security Patterns](meta/security-best-practices.mdc)** - XSS, CSRF, input validation
+### Code Quality & Meta (`meta/`)
+- **[@Code Style Guide](meta/javascript-typescript-style-guide.mdc)** - ESLint, Prettier, naming (Planned)
+- **[@Performance Best Practices](meta/performance-best-practices.mdc)** - Bundle size, tree-shaking, lazy loading
+- **[@Security Best Practices](meta/security-best-practices.mdc)** - XSS, CSRF, input validation
+- **[@Accessibility Best Practices](meta/accessibility-best-practices.mdc)** - WCAG, ARIA, semantic HTML, keyboard nav
 
 ---
 
@@ -99,7 +105,7 @@ alwaysApply: false
 
 ## Common Patterns
 
-### ✅ DO: Use Modern JavaScript
+### DO: Use Modern JavaScript
 ```typescript
 // Use const/let, not var
 const apiUrl = 'https://api.example.com';
@@ -119,7 +125,7 @@ async function fetchData(): Promise<Data> {
 }
 ```
 
-### ✅ DO: Leverage TypeScript
+### DO: Leverage TypeScript
 ```typescript
 // Define interfaces for data shapes
 interface User {
@@ -137,7 +143,7 @@ function first<T>(arr: T[]): T | undefined {
 }
 ```
 
-### ❌ DON'T: Mix Patterns
+### DON'T: Mix Patterns
 ```typescript
 // BAD: Mixing callbacks and promises
 function badAsync(callback) {
@@ -155,8 +161,8 @@ async function goodAsync(): Promise<Response> {
 
 ## Integration with Existing Rules
 
-- **Error Handling**: See `@language/error-handling-patterns.mdc`
-- **Testing**: See `@testing/javascript-testing-best-practices.mdc`
+- **Error Handling**: See `language/error-handling-patterns.mdc` and `generic/error-handling/universal-patterns.mdc`
+- **Testing**: See `@testing/vitest-best-practices.mdc`
 - **Git Workflow**: See `.cursor/rules/shared/skills/git-workflow/SKILL.md`
 - **Refactoring**: See `.cursor/rules/shared/skills/service-refactoring/SKILL.md`
 
@@ -205,5 +211,7 @@ module.exports = {
 
 ---
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-03-04
 **Maintainers**: DevOps/Platform Team
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

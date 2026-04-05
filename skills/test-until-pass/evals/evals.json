@@ -1,0 +1,17 @@
+{
+  "skill_name": "test-until-pass",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our tests are failing. Fix them - run tests and keep fixing until they pass.",
+      "expected_output": "Tests run, failures analyzed, fixes applied. Loop continues until all pass or max iterations. Final status reported.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/test-until-pass auth - the auth tests are failing and we need them green before merge",
+      "expected_output": "Auth-related tests run, failures fixed iteratively. All auth tests pass or clear report on remaining issues.",
+      "files": []
+    }
+  ]
+}

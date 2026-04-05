@@ -1,0 +1,169 @@
+---
+description: "Cursor Plugins & Marketplace guide - plugin structure, manifest format, building custom plugins, installing from marketplace. Use when: (1) Understanding plugins system, (2) Building custom plugins, (3) Installing marketplace plugins, (4) Packaging rules/skills/agents as plugins."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-02-18"
+tags: ["plugins", "marketplace", "distribution", "packaging"]
+---
+
+# Cursor Plugins & Marketplace Guide
+
+Plugins package rules, skills, agents, commands, MCP servers, and hooks into distributable bundles. They work across the IDE, CLI, and Cloud. Available since Cursor 2.5.
+
+## What Plugins Contain
+
+A plugin can bundle any combination of:
+
+| Component | Description |
+|-----------|-------------|
+| Rules | Persistent AI guidance (`.mdc` files) |
+| Skills | Specialized agent capabilities (`SKILL.md`) |
+| Agents | Custom subagent configurations |
+| Commands | Agent-executable command files |
+| MCP Servers | Model Context Protocol integrations (`.mcp.json`) |
+| Hooks | Automation scripts triggered by events (`hooks.json`) |
+
+## Installing Plugins
+
+Install from the [Cursor Marketplace](https://cursor.com/marketplace) or in-editor:
+- Use `/add-plugin` in Agent chat
+- Browse Cursor Settings > Plugins
+
+Manage installed components:
+- **MCP servers**: Toggle on/off in Cursor Settings > Features > Model Context Protocol
+- **Rules/Skills**: Manage in Cursor Settings > Rules section. Toggle between Always, Agent Decides, and Manual modes.
+
+## Plugin Structure
+
+```
+my-plugin/
+├── .cursor-plugin/
+│   └── plugin.json        # Required: plugin manifest
+├── rules/                 # Auto-discovered .mdc/.md files
+├── skills/                # Auto-discovered SKILL.md dirs
+│   └── my-skill/
+│       └── SKILL.md
+├── agents/                # Auto-discovered .md files
+├── commands/              # Auto-discovered .md/.txt files
+├── hooks/
+│   └── hooks.json         # Hook definitions
+├── .mcp.json              # MCP server definitions
+├── scripts/               # Hook and utility scripts
+├── assets/
+│   └── logo.svg           # Plugin logo
+└── README.md
+```
+
+## Plugin Manifest (`plugin.json`)
+
+Every plugin requires `.cursor-plugin/plugin.json`:
+
+```json
+{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "description": "Brief plugin description",
+  "author": {
+    "name": "Your Name",
+    "email": "optional@email.com"
+  },
+  "keywords": ["category", "tags"],
+  "logo": "assets/logo.svg",
+  "license": "MIT"
+}
+```
+
+**Required**: Only `name` (lowercase, kebab-case, alphanumerics + hyphens + periods).
+
+**Optional**: `description`, `version`, `author`, `homepage`, `repository`, `license`, `keywords`, `logo`, `rules`, `agents`, `skills`, `commands`, `hooks`, `mcpServers`.
+
+## Component Discovery
+
+When manifest does not specify explicit paths, automatic folder-based discovery applies:
+
+| Component | Default Location | Discovery Method |
+|-----------|-----------------|-----------------|
+| Skills | `skills/` | Subdirectory containing `SKILL.md` |
+| Rules | `rules/` | All `.md`, `.mdc`, `.markdown` files |
+| Agents | `agents/` | All `.md`, `.mdc`, `.markdown` files |
+| Commands | `commands/` | All `.md`, `.mdc`, `.markdown`, `.txt` files |
+| Hooks | `hooks/hooks.json` | Parsed for hook event names |
+| MCP | `.mcp.json` | Parsed for server entries |
+| Root Skill | `SKILL.md` at root | Single-skill plugin (only if no `skills/` dir) |
+
+Specifying a manifest field (e.g., `"skills": "./my-skills/"`) replaces folder discovery for that component.
+
+## Multi-Plugin Repositories
+
+A single Git repo can host multiple plugins via `.cursor-plugin/marketplace.json` at the repo root:
+
+```json
+{
+  "name": "my-marketplace",
+  "owner": { "name": "Org Name" },
+  "metadata": { "description": "Plugin collection" },
+  "plugins": [
+    {
+      "name": "plugin-one",
+      "source": "plugin-one",
+      "description": "First plugin"
+    },
+    {
+      "name": "plugin-two",
+      "source": "plugin-two",
+      "description": "Second plugin"
+    }
+  ]
+}
+```
+
+Each plugin directory uses its own `.cursor-plugin/plugin.json`. Marketplace entry values merge with per-plugin manifest (manifest takes precedence).
+
+**Max 500 plugins per marketplace manifest.**
+
+## Publishing
+
+1. Create plugin following the structure above
+2. Host in a public Git repository
+3. Submit at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish)
+
+**Submission checklist**:
+- Valid `.cursor-plugin/plugin.json` manifest
+- Plugin tested locally
+- All paths relative (no `..`, no absolute paths)
+- README documents usage and configuration
+- All rules, skills, agents, commands have proper frontmatter
+- `name` is unique, lowercase, kebab-case
+
+**Coming soon**: Private team marketplaces for internal org distribution.
+
+## Plugin Template
+
+Use the [plugin template](https://github.com/cursor/plugin-template) to bootstrap new plugins. Includes two starters:
+- `starter-simple`: Rules and skills only
+- `starter-advanced`: Rules, skills, agents, commands, hooks, MCP, and scripts
+
+Run `node scripts/validate-template.mjs` to validate before submission.
+
+## Governance
+
+Treat plugins like open source. License, security, and reliability checks still apply.
+
+**Before installing or publishing:**
+- **License**: Check plugin license; ensure compatibility with your use case
+- **Security**: Review what the plugin runs (hooks, MCP servers, scripts). Plugins can execute code
+- **Reliability**: Prefer plugins with clear maintenance, versioning, and documentation
+
+**For teams:** Establish consensus on which plugins are approved. Unvetted plugins in shared environments introduce risk. See `cursor-security-guide.mdc` for MCP trust and auto-run considerations.
+
+## See Also
+
+- [Official Plugin Docs](https://cursor.com/docs/plugins)
+- [Building Plugins](https://cursor.com/docs/plugins/building)
+- [Cursor Marketplace](https://cursor.com/marketplace)
+- [Plugin Template](https://github.com/cursor/plugin-template)
+- [Cursor Rules Style Guide](../meta/cursor-rules-style-guide.mdc) for file format standards
+- [Cursor Security](cursor-security-guide.mdc) for MCP trust and auto-run
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

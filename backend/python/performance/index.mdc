@@ -45,3 +45,5 @@ alwaysApply: false
 
 - **Language**: See `../language/index.mdc` for async patterns
 - **Generic**: See `.cursor/rules/shared/generic/performance/core-principles.mdc` for universal performance principles
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

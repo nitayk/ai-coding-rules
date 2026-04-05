@@ -1,0 +1,178 @@
+---
+description: "ripgrep (rg) - fast recursive grep for code search. Use when: (1) Searching codebases, (2) Finding patterns in files, (3) Fast text search, (4) Regex search. Faster than grep -r, respects .gitignore. Covers rg syntax, filters, and search patterns."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["ripgrep", "rg", "grep", "search", "cli", "code-search"]
+---
+
+# ripgrep (rg) Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to search codebases, find patterns in files, or perform fast text/regex search
+**SKIP WHEN:** Semantic search needed (use Cursor semantic search) or simple single-file search
+
+## Core Directive
+**Use ripgrep for code search** - Fast, recursive, respects .gitignore. Prefer over `grep -r` for large codebases.
+
+## Installation
+
+```bash
+# macOS
+brew install ripgrep
+
+# Linux (Debian/Ubuntu)
+sudo apt-get install ripgrep
+
+# Verify
+rg --version
+```
+
+## Basic Operations
+
+### Simple Search
+
+```bash
+# Search current directory recursively
+rg "pattern"
+
+# Search specific path
+rg "pattern" path/to/dir
+
+# Case-insensitive
+rg -i "pattern"
+
+# Literal string (no regex)
+rg -F "exact.string"
+```
+
+### File Filtering
+
+```bash
+# Only Scala files
+rg "pattern" --type scala
+rg "pattern" -t scala
+
+# Only exclude test files
+rg "pattern" --type-add 'test:*.{Test,Spec}.scala' -T test
+
+# Include hidden files
+rg "pattern" --hidden
+
+# Follow symlinks
+rg "pattern" --follow
+```
+
+### Output Control
+
+```bash
+# Show line numbers (default)
+rg "pattern"
+
+# No line numbers
+rg "pattern" -N
+
+# Show context (2 lines before/after)
+rg "pattern" -C 2
+rg "pattern" -B 2 -A 2
+
+# Only filenames (no match content)
+rg "pattern" -l
+
+# Count matches per file
+rg "pattern" --count
+rg "pattern" -c
+
+# Invert match (lines NOT matching)
+rg "pattern" -v
+```
+
+### Advanced Patterns
+
+```bash
+# Regex with capture groups
+rg "fn (\w+)\(" --replace 'function: $1'
+
+# Multiple patterns (OR)
+rg "pattern1|pattern2"
+
+# Word boundary
+rg "\bClassName\b"
+
+# Negative lookahead
+rg "foo(?!bar)"
+```
+
+## Common Patterns
+
+### Find All Usages
+
+```bash
+rg "functionName" --type scala
+rg "ClassName" -t java -t scala
+```
+
+### Search in Specific File Types
+
+```bash
+rg "TODO" -t py -t ts -t scala
+rg "deprecated" --type-add 'code:*.{scala,py,ts,tsx}' -t code
+```
+
+### Exclude Directories
+
+```bash
+# Exclude node_modules, target, .git (default)
+rg "pattern"
+
+# Custom exclusions
+rg "pattern" --glob '!*.min.js' --glob '!vendor/*'
+```
+
+### Limit Results (Large Codebases)
+
+```bash
+# Stop after N matches (reduces token usage)
+rg "pattern" -m 10
+rg "pattern" -m 100
+```
+
+## ripgrep vs grep vs git grep
+
+| Tool | Use When |
+|------|----------|
+| **rg** | General code search, fast, respects .gitignore, regex |
+| **git grep** | Git-tracked files only, very fast, respects .gitignore (see token-control) |
+| **grep -r** | Simple cases; may timeout on large repos |
+
+**Token control**: For very large codebases, `git grep` can be faster. Prefer `rg -m N` to limit output when redirecting to context.
+
+## Examples
+
+### ✅ Positive Pattern: Limit Output for Large Searches
+
+```bash
+# ❌ BAD: May produce huge output
+rg "pattern" .
+
+# ✅ GOOD: Limit when unsure of result size
+rg "pattern" -m 50
+rg "pattern" -l  # Just filenames
+```
+
+### ✅ Positive Pattern: Use Type Filter
+
+```bash
+# ❌ BAD: Search everything including binaries
+rg "Config" .
+
+# ✅ GOOD: Limit to source files
+rg "Config" -t scala -t py
+```
+
+## Related Rules
+
+- See `generic/agent-behavior/token-control.mdc` - Redirect long output; prefer git grep for very large codebases
+- See `tools/git.mdc` for git grep syntax
+- See `tools/jq.mdc` for piping rg output to jq

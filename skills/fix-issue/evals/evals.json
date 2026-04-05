@@ -1,0 +1,17 @@
+{
+  "skill_name": "fix-issue",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fix GitHub issue #42 - it's about the null pointer in the user service",
+      "expected_output": "Issue fetched, analyzed, fix implemented with tests. Feature branch created. Commit references #42. Fix addresses the null pointer.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/fix-issue 123",
+      "expected_output": "Issue 123 fetched via gh, fix implemented following TDD if applicable. Branch fix/123-*, commit with conventional format. Tests pass.",
+      "files": []
+    }
+  ]
+}

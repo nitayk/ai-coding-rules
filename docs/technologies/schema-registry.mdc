@@ -1,0 +1,419 @@
+---
+description: "Schema Registry REST API for investigating Avro, JSON Schema, and Protobuf schemas - query subjects, versions, compatibility, and schema evolution. Use when: (1) Investigating schemas, (2) Querying schema subjects/versions, (3) Checking compatibility, (4) Schema evolution, (5) Schema Registry operations. Covers Schema Registry API, Avro/JSON Schema/Protobuf, compatibility checks, and schema management."
+globs: []
+alwaysApply: false
+version: "2.0.0"
+last_updated: "2025-01-21"
+tags: ["schema-registry", "kafka", "data", "api", "avro"]
+---
+
+# Schema Registry Reference Guide
+
+**Technical Efficiency Guide** - How to investigate schemas and work effectively with Schema Registry.
+
+> **Purpose**: Deep technical knowledge for efficient schema investigation, understanding subject naming strategies, compatibility checks, and schema evolution. Referenced BY skills/agents when investigating Kafka schemas.
+
+**What's Inside**:
+- ✅ Schema Registry REST API patterns (how to query efficiently)
+- ✅ Subject naming strategies (TopicNameStrategy, RecordNameStrategy, TopicRecordNameStrategy)
+- ✅ Compatibility checks (what to check, how to verify)
+- ✅ Schema evolution patterns (how schemas change over time)
+- ✅ Investigation workflows (common patterns for debugging)
+
+**Location**: `.cursor/rules/shared/technologies/schema-registry.mdc`
+
+---
+
+## Prerequisites
+
+This guide uses:
+- **curl** for HTTP requests - see `.cursor/rules/shared/tools/curl.mdc` for detailed usage
+- **jq** for JSON processing - see `.cursor/rules/shared/tools/jq.mdc` for filtering and formatting
+
+## Base URL
+
+**Production Schema Registry:**
+```
+https://schema-registry.example.com
+```
+
+**Local/Development:**
+```
+http://localhost:8081
+```
+
+## Common Operations
+
+### List All Subjects
+
+**Get all registered subjects:**
+```bash
+curl -X GET https://schema-registry.example.com/subjects
+```
+
+**Response:**
+```json
+[
+  "MyTopic",
+  "UserEvent-value",
+  "OrderEvent-key"
+]
+```
+
+### Get Subject Versions
+
+**List all versions for a subject:**
+```bash
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions
+```
+
+**Response:**
+```json
+[1, 2, 3, 4]
+```
+
+### Get Latest Schema Version
+
+**Get latest schema for subject:**
+```bash
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions/latest
+```
+
+**Response:**
+```json
+{
+  "subject": "MyTopic",
+  "version": 4,
+  "id": 42,
+  "schema": "{\"type\":\"record\",\"name\":\"MyTopic\",\"fields\":[...]}"
+}
+```
+
+### Get Specific Schema Version
+
+**Get version 2 of subject:**
+```bash
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions/2
+```
+
+**Response:**
+```json
+{
+  "subject": "MyTopic",
+  "version": 2,
+  "id": 15,
+  "schema": "{\"type\":\"record\",\"name\":\"MyTopic\",\"fields\":[...]}"
+}
+```
+
+### Get Schema by Global ID
+
+**Get schema using its global ID:**
+```bash
+curl -X GET https://schema-registry.example.com/schemas/ids/42
+```
+
+**Response:**
+```json
+{
+  "schema": "{\"type\":\"record\",\"name\":\"MyTopic\",\"fields\":[...]}",
+  "schemaType": "AVRO"
+}
+```
+
+### Check Schema Existence
+
+**Check if schema already exists (returns existing or registers new):**
+```bash
+curl -X POST \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data '{"schema": "{\"type\": \"string\"}"}' \
+  https://schema-registry.example.com/subjects/MySubject
+```
+
+**Response (if exists):**
+```json
+{
+  "subject": "MySubject",
+  "version": 1,
+  "id": 5,
+  "schema": "\"string\""
+}
+```
+
+### Test Schema Compatibility
+
+**Test if new schema is compatible with latest version:**
+```bash
+curl -X POST \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data '{
+    "schema": "{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"age\",\"type\":\"int\"},{\"name\":\"email\",\"type\":[\"null\",\"string\"],\"default\":null}]}"
+  }' \
+  https://schema-registry.example.com/compatibility/subjects/MyTopic/versions/latest
+```
+
+**Response (compatible):**
+```json
+{
+  "is_compatible": true
+}
+```
+
+**Response (incompatible):**
+```json
+{
+  "is_compatible": false,
+  "messages": [
+    "Field 'email' is missing default value"
+  ]
+}
+```
+
+**Test against specific version:**
+```bash
+curl -X POST \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data '{"schema": "{\"type\": \"string\"}"}' \
+  https://schema-registry.example.com/compatibility/subjects/MyTopic/versions/2
+```
+
+### Get Subject Compatibility Level
+
+**Get compatibility level for subject:**
+```bash
+curl -X GET https://schema-registry.example.com/config/MyTopic
+```
+
+**Response:**
+```json
+{
+  "compatibilityLevel": "BACKWARD"
+}
+```
+
+### Get Global Compatibility Level
+
+**Get default compatibility level:**
+```bash
+curl -X GET https://schema-registry.example.com/config
+```
+
+**Response:**
+```json
+{
+  "compatibilityLevel": "BACKWARD"
+}
+```
+
+## Common Patterns
+
+### Investigate Schema Evolution
+
+```bash
+# Step 1: Get all versions
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions
+
+# Step 2: Get each version to see changes
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions/1 | jq '.schema'
+curl -X GET https://schema-registry.example.com/subjects/MyTopic/versions/2 | jq '.schema'
+
+# Step 3: Compare schemas (use jq diff or manual comparison)
+```
+
+### Find Schema for Kafka Topic
+
+**CRITICAL**: Subject name depends on Schema Registry strategy configured for the producer/consumer.
+
+#### Schema Registry Subject Name Strategies
+
+Schema Registry uses different strategies to determine subject names. The strategy is configured in producer/consumer clients.
+
+1. **TopicNameStrategy** (`"topicName"`):
+   - Subject name = Topic name (with optional `-value`/`-key` suffix)
+   - Example: Topic `"user-events"` → Subject `"user-events"` or `"user-events-value"`/`"user-events-key"`
+   - **Use case**: One schema per topic
+
+2. **RecordNameStrategy** (`"recordName"`):
+   - Subject name = Avro record name (from schema's `name` field)
+   - Example: Topic `"user-events"` with record `"UserEvent"` → Subject `"UserEvent"`
+   - **Use case**: Multiple schemas per topic (different record names in same topic)
+   - **Benefit**: Allows multiple message types in one topic
+
+3. **TopicRecordNameStrategy** (`"topicRecordName"`):
+   - Subject name = Topic name + Record name
+   - Example: Topic `"user-events"` with record `"UserEvent"` → Subject `"user-events-UserEvent"`
+   - **Use case**: Multiple schemas per topic with topic-scoped naming
+
+#### Finding the Correct Subject
+
+```bash
+# Step 1: List all subjects to find the pattern
+curl -X GET https://schema-registry.example.com/subjects | jq
+
+# Step 2: Filter by topic name (if TopicNameStrategy)
+TOPIC="user-events"
+curl -X GET https://schema-registry.example.com/subjects | jq ".[] | select(. | contains(\"${TOPIC}\"))"
+
+# Step 3: Filter by record name (if RecordNameStrategy)
+RECORD="UserEvent"
+curl -X GET https://schema-registry.example.com/subjects | jq ".[] | select(. == \"${RECORD}\")"
+
+# Step 4: Get schema once subject is identified
+SUBJECT="UserEvent"  # or "user-events" or "user-events-UserEvent" depending on strategy
+curl -X GET https://schema-registry.example.com/subjects/${SUBJECT}/versions/latest | jq
+```
+
+**How to determine strategy**:
+- Check producer/consumer configuration: Look for `schema.registry.subject.name.strategy` or `schemaRegistryStrategy` config
+- Check Kafka client config: `key.subject.name.strategy` / `value.subject.name.strategy`
+- Common defaults: TopicNameStrategy for most clients
+
+### Pretty Print Avro Schema
+
+```bash
+# Get schema and format with jq
+curl -s -X GET https://schema-registry.example.com/subjects/MyTopic/versions/latest | \
+  jq -r '.schema' | jq
+```
+
+### Check Schema Compatibility Before Deploy
+
+```bash
+# Step 1: Get current schema
+CURRENT_SCHEMA=$(curl -s -X GET https://schema-registry.example.com/subjects/MySubject/versions/latest | jq -r '.schema')
+
+# Step 2: Test new schema compatibility
+curl -X POST \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data "{\"schema\": $(echo $NEW_SCHEMA | jq -c .)}" \
+  https://schema-registry.example.com/compatibility/subjects/MySubject/versions/latest
+```
+
+## Examples
+
+### ✅ Positive Pattern: Investigate Schema Before Consuming
+
+```bash
+# Step 1: Find subject name (may be topic-name-value or topic-name-key)
+curl -X GET https://schema-registry.example.com/subjects | jq '.[] | select(. | contains("MyTopic"))'
+
+# Step 2: Get latest schema
+curl -X GET https://schema-registry.example.com/subjects/MyTopic-value/versions/latest | jq '.schema' | jq
+
+# Step 3: Understand schema structure before consuming messages
+```
+
+### ✅ Positive Pattern: Debug Schema Mismatch
+
+```bash
+# Step 1: Get all versions to see evolution
+curl -X GET https://schema-registry.example.com/subjects/MySubject/versions
+
+# Step 2: Get each version to compare
+for version in $(curl -s -X GET https://schema-registry.example.com/subjects/MySubject/versions | jq -r '.[]'); do
+  echo "=== Version $version ==="
+  curl -s -X GET https://schema-registry.example.com/subjects/MySubject/versions/$version | jq '.schema' | jq
+done
+
+# Step 3: Identify breaking changes
+```
+
+### ❌ Negative Pattern: Assuming Schema Format
+
+```bash
+# ❌ BAD: Consuming Kafka messages without checking schema
+kcat -b <broker>:9092 -t <topic> -C
+
+# ✅ GOOD: Check schema first
+SUBJECT="<topic>-value"
+curl -X GET https://schema-registry.example.com/subjects/${SUBJECT}/versions/latest | jq '.schema'
+# Then consume with appropriate format
+kcat -b <broker>:9092 -t <topic> -r <schema-registry-url> -s avro -C
+```
+
+### ❌ Negative Pattern: Not Checking Compatibility
+
+```bash
+# ❌ BAD: Registering schema without compatibility check
+curl -X POST ... /subjects/MySubject/versions
+
+# ✅ GOOD: Test compatibility first
+curl -X POST ... /compatibility/subjects/MySubject/versions/latest
+# If compatible, then register
+```
+
+## Troubleshooting
+
+### Subject Not Found
+
+**CRITICAL**: Subject name depends on Schema Registry strategy!
+
+```bash
+# List all subjects to find correct name
+curl -X GET https://schema-registry.example.com/subjects | jq
+
+# Common naming patterns by strategy:
+# - TopicNameStrategy: <topic-name> or <topic-name>-value/<topic-name>-key
+# - RecordNameStrategy: <record-name> (from Avro schema)
+# - TopicRecordNameStrategy: <topic-name>-<record-name>
+```
+
+**Multi-Schema Support** (RecordNameStrategy):
+- When using `recordName` strategy, a single topic can have multiple schemas
+- Each schema is registered under its record name as the subject
+- Example: Topic `"events"` can have subjects `"UserEvent"`, `"OrderEvent"`, `"PaymentEvent"`
+- To find all schemas for a topic: List all subjects and identify which record names are used in that topic
+
+### Schema Format Issues
+
+```bash
+# Verify schema is valid JSON
+curl -X GET https://schema-registry.example.com/subjects/MySubject/versions/latest | jq '.schema' | jq
+
+# If jq fails, schema may be malformed
+# Check schema registry logs for details
+```
+
+### Compatibility Check Fails
+
+```bash
+# Step 1: Get current compatibility level
+curl -X GET https://schema-registry.example.com/config/MySubject
+
+# Step 2: Understand compatibility rules:
+# - BACKWARD: New schema can read data written with old schema
+# - FORWARD: Old schema can read data written with new schema
+# - FULL: Both backward and forward compatible
+# - NONE: No compatibility checks
+
+# Step 3: Adjust schema to meet compatibility requirements
+```
+
+### Authentication Required
+
+```bash
+# If schema registry requires auth, add headers:
+curl -X GET \
+  -H "Authorization: Bearer <token>" \
+  https://schema-registry.example.com/subjects
+```
+
+## Schema Types
+
+**Supported schema types:**
+- **AVRO**: Most common, binary format
+- **JSON Schema**: JSON-based schema definition
+- **Protobuf**: Protocol Buffers schema
+
+**Check schema type:**
+```bash
+curl -X GET https://schema-registry.example.com/schemas/ids/42 | jq '.schemaType'
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/kcat.mdc` for consuming Kafka messages with schemas
+- See `.cursor/rules/shared/technologies/kafka-reference-guide.mdc` for Kafka patterns
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

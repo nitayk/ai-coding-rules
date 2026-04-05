@@ -1,0 +1,17 @@
+{
+  "skill_name": "generate-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I added a new API endpoint. Generate documentation for my recent changes.",
+      "expected_output": "Documentation generated for new endpoint - JSDoc/TSDoc or equivalent. README or API docs updated. Follows project conventions.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/docs src/api/ - document the API changes we made",
+      "expected_output": "API documentation for src/api/ changes. Endpoints, parameters, responses documented. Migration guide if breaking changes.",
+      "files": []
+    }
+  ]
+}

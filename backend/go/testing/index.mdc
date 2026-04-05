@@ -19,6 +19,7 @@ alwaysApply: false
 | Keywords/Intent | Load File |
 |----------------|-----------|
 | **table-driven tests**, go testing, testing patterns | `table-driven-tests.mdc` |
+| **mocking**, integration tests, fuzz testing | `mocking-and-integration.mdc` |
 
 ---
 
@@ -27,6 +28,7 @@ alwaysApply: false
 | File | Purpose | Keywords |
 |------|---------|----------|
 | [Table-Driven Tests](table-driven-tests.mdc) | Idiomatic Go testing pattern for multiple test cases | table-driven tests, testing patterns |
+| [Mocking and Integration](mocking-and-integration.mdc) | Mocking, integration tests, fuzz testing | mocking, integration, fuzz |
 
 ---
 
@@ -35,6 +37,7 @@ alwaysApply: false
 | Need | Load |
 |------|------|
 | Table-driven tests | `table-driven-tests.mdc` |
+| Mocking, integration, fuzz | `mocking-and-integration.mdc` |
 
 ---
 
@@ -42,3 +45,5 @@ alwaysApply: false
 
 - **Language**: See `../language/index.mdc` for language patterns
 - **Generic**: See `.cursor/rules/shared/generic/testing/core-principles.mdc` for universal testing principles
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

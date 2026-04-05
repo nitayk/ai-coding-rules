@@ -70,7 +70,7 @@ class User(BaseModel):
 ```
 
 ### Settings Management
-Use `BaseSettings` for environment variable handling.
+Use `BaseSettings` for environment variable handling (Pydantic v2).
 
 ```python
 from pydantic_settings import BaseSettings
@@ -79,8 +79,7 @@ class Settings(BaseSettings):
     app_name: str = "My App"
     db_url: str
 
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 settings = Settings()
 # Access via settings.db_url

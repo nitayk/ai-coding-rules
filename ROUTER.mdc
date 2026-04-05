@@ -40,6 +40,11 @@ alwaysApply: true
 | **gh cli**, github cli, gh pr, gh issue | `.cursor/rules/shared/tools/gh-cli.mdc` |
 | **aws cli**, s3 cli, ec2 cli, cloudwatch, ssm | `.cursor/rules/shared/tools/aws-cli.mdc` |
 | **kubectl**, kubernetes cli, pod logs, k8s | `.cursor/rules/shared/tools/kubectl.mdc` |
+| **terraform**, infra as code, tf plan, tf apply | `.cursor/rules/shared/tools/terraform.mdc` |
+| **helm**, helm chart, helm install, helm template | `.cursor/rules/shared/tools/helm.mdc` |
+| **gcloud**, gcp cli, google cloud cli | `.cursor/rules/shared/tools/gcloud.mdc` |
+| **yq**, yaml parser, yaml filter | `.cursor/rules/shared/tools/yq.mdc` |
+| **ripgrep**, rg, search code | `.cursor/rules/shared/tools/ripgrep.mdc` |
 | **tools**, cli tools, tool reference | `.cursor/rules/shared/tools/index.mdc` |
 | **parallel**, worktree, independent tasks, isolation | Use `/using-git-worktrees` skill |
 | **plan**, implementation plan, spec, design doc | Use `/writing-plans` skill |
@@ -63,29 +68,75 @@ alwaysApply: true
 Skills are automatically discovered from `skills/` directory. No router mapping needed.
 
 Available Skills (use slash commands or natural language):
+
+**Planning & Design**:
 - `/brainstorming` - Explore intent and design before implementation
 - `/writing-plans` - Create implementation plans before coding
 - `/executing-plans` - Execute plans with review checkpoints
-- `/tdd-workflow` - Test-Driven Development (Red-Green-Refactor)
-- `/pr-workflow` - Full PR lifecycle (create, monitor, merge)
-- `/git-workflow` - Git workflow for complex tasks
-- `/best-practices-enforcement` - Enforce code quality standards
-- `/systematic-debugging` - Structured debugging methodology
 - `/prd-generation` - Generate Product Requirements Documents
 - `/task-breakdown` - Break features into actionable tasks
-- `/dispatching-parallel-agents` - Run independent tasks concurrently
-- `/frontend-design` - Production-grade frontend interfaces
-- `/code-cleanup` - Detect AI slop, dead code, anti-patterns
-- `/skill-creator` - Create new skills
-- `/using-git-worktrees` - Isolated feature work via worktrees
-- `/multi-agent-branching` - Prevent concurrent agent conflicts
+
+**Development Workflows**:
+- `/tdd-workflow` - Test-Driven Development (Red-Green-Refactor)
+- `/test-driven-development` - TDD before implementation code
+- `/git-workflow` - Git workflow for complex tasks
+- `/pr-workflow` - Full PR lifecycle (create, monitor, merge)
+- `/create-pr` - Quick PR creation
+- `/fix-issue` - Fix a GitHub issue
 - `/setup-local-dev` - Persistent dev server via pm2
+- `/finishing-a-development-branch` - Integration options after dev
+
+**Code Quality**:
+- `/best-practices-enforcement` - Enforce code quality standards
+- `/code-cleanup` - Detect AI slop, dead code, anti-patterns
+- `/code-review-excellence` - Effective code review practices
+- `/code-optimization` - Performance and efficiency optimization
+- `/code-migration` - Code migration patterns
+- `/requesting-code-review` - Verify work before merging
+- `/receiving-code-review` - Handle review feedback with rigor
 - `/verification-before-completion` - Verify before claiming done
+- `/security-audit` - Security vulnerability scanning
+
+**Debugging & Testing**:
+- `/systematic-debugging` - Structured debugging methodology
+- `/debug-workflow` - Debug investigation workflow
 - `/webapp-testing` - Browser testing with Playwright
+- `/test-until-pass` - Iterative test-fix loop
+
+**Multi-Agent & Parallel**:
+- `/dispatching-parallel-agents` - Run independent tasks concurrently
+- `/subagent-driven-development` - Execute plans with subagents
+- `/multi-agent-branching` - Prevent concurrent agent conflicts
+- `/using-git-worktrees` - Isolated feature work via worktrees
+- `/mass-repo-orchestration` - Multi-repo batch operations
+- `/council` - Multi-perspective decision making
+
+**Frontend & Documents**:
+- `/frontend-design` - Production-grade frontend interfaces
 - `/web-artifacts-builder` - Multi-component HTML artifacts
-- `/pdf` `/docx` `/pptx` `/xlsx` - Document format skills
+- `/pdf` `/docx` `/pptx` `/xlsx` `/gdoc` - Document format skills
+
+**Research & Knowledge**:
+- `/deep-research` - Multi-source research with citations
+- `/search-first` - Research before coding
+- `/onboard-developer` - Developer onboarding guide
+- `/generate-docs` - Auto-generate documentation
+- `/generate-changelog` - Generate changelogs
+- `/doc-coauthoring` - Collaborative document creation
+- `/address-pr-feedback` - Systematic PR feedback handling
+
+**Meta & Tools**:
+- `/skill-creator` - Create new skills
+- `/writing-skills` - Write and verify skills
 - `/mcp-builder` - Build MCP servers
 - `/session-memory` - Persist context across sessions
+- `/using-superpowers` - Skill discovery and invocation
+- `/agent-browser` - Browser automation skill
+- `/agent-token-optimization` - LLM token cost optimization
+- `/continuous-learning-v2` - Instinct-based learning system
+- `/strategic-compact` - Context compaction at logical intervals
+- `/prompt-optimizer` - Optimize LLM prompts
+- `/repository-organization` - Restructure messy repos
 
 ---
 

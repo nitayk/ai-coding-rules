@@ -1,0 +1,73 @@
+---
+description: "Cursor IDE security best practices - Auto-Run, MCP trust, rule review, known CVEs. Use when: (1) Configuring Cursor for teams, (2) Reviewing MCP servers, (3) Understanding security risks, (4) Shared/collaborative environments."
+globs: []
+alwaysApply: false
+tags: ["security", "cursor", "mcp", "auto-run", "enterprise"]
+---
+
+# Cursor Security Guide
+
+**APPLY WHEN:** Configuring Cursor for teams, reviewing MCP servers, or operating in shared environments.
+
+---
+
+## 1. Auto-Run Settings
+
+**Recommendation:** Disable Auto-Run or use "Ask Every Time" for sensitive operations.
+
+| Setting | Risk | Recommendation |
+|---------|------|----------------|
+| Run Everything | Agent can execute any command without confirmation | Avoid in shared/collaborative environments |
+| Ask Every Time | User approves each command | Safer default |
+| Run in Sandbox | Commands run with sandbox restrictions | Use with `sandbox.json` for network/filesystem limits |
+
+**Where:** Settings > Cursor Settings > Agents > Auto-Run
+
+**See:** `sandbox-guide.mdc` for sandbox configuration.
+
+---
+
+## 2. MCP Trust and Review
+
+- **Review MCP servers** before adding to `mcp.json` - they can read/write files and make network requests
+- **Use environment variables** for API keys and secrets - never hardcode in `mcp.json`
+- **Limit permissions** - run sensitive MCPs locally, not in shared configs
+- **Known issues:** Modifications to previously approved MCP configs may execute without additional warnings (MCP trust bypass)
+
+---
+
+## 3. Rule and Config Review
+
+- **Review rules before commit** - rules are injected into agent context and can influence behavior
+- **Avoid secrets in rules** - never put API keys, tokens, or credentials in `.mdc` or rule files
+- **Check `.cursorrules`** - if present, ensure it does not contain malicious or unexpected instructions
+
+---
+
+## 4. Known CVEs (Reference)
+
+| CVE | Description | Mitigation |
+|-----|-------------|------------|
+| CVE-2025-54136 | MCP trust bypass - config modifications may execute without re-approval | Review MCP config changes; keep Cursor updated |
+| CVE-2025-59944 | Sensitive file overwrite via case-insensitive paths (e.g. `mcp.json`) | Update to Cursor 1.6.23+ |
+| CurXecute (CVE-2025-54135) | Prompt injection leading to code execution | Keep Cursor updated; validate external inputs |
+
+**Action:** Keep Cursor IDE updated to the latest version.
+
+---
+
+## 5. Sandbox and Network
+
+- Use `sandbox.json` to restrict network access and filesystem paths
+- Default network policy: blocked. Allow only required domains
+- See `sandbox-guide.mdc` for configuration details
+
+---
+
+## Related
+
+- **Sandbox**: `sandbox-guide.mdc` - Network and filesystem controls
+- **MCP**: `../mcp/complete-guide.mdc` - MCP setup and security considerations
+- **Generic Security**: `.cursor/rules/shared/generic/security/core-principles.mdc` - Code-level security
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

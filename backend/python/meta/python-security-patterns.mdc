@@ -1,0 +1,202 @@
+---
+description: "Python security patterns - secrets management, SQL injection prevention, input validation, safe subprocess. Use when: (1) Handling secrets, (2) Database queries, (3) User input, (4) Subprocess calls, (5) Production security. Covers secrets module, parameterized queries, eval/exec avoidance, Bandit."
+globs: ["**/*.py"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["security", "python", "secrets", "injection"]
+---
+
+# Python Security Patterns
+
+Production-critical security patterns for Python. Based on Real Python Security, Snyk, and OWASP guidance.
+
+---
+
+## Triggers
+
+**APPLY WHEN**: Handling secrets, database access, user input, subprocess calls, or security-sensitive code.
+**SKIP WHEN**: Pure data transformation with no I/O or external input.
+
+---
+
+## Core Directive
+
+**Never trust external input.** Use parameterized queries, the `secrets` module for tokens, and constant-time comparison for sensitive values. Avoid `eval`/`exec` with user input.
+
+---
+
+## Secrets Management
+
+### Never Store Secrets in Source
+
+```python
+# Good: Environment variables or secrets manager
+import os
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    db_url: str
+    api_key: str
+    model_config = {"env_file": ".env"}
+
+# Bad: Hardcoded secrets
+API_KEY = "sk-abc123"  # Never commit
+```
+
+### Use `secrets` Module for Tokens
+
+```python
+# Good: Cryptographically secure tokens
+import secrets
+
+token = secrets.token_urlsafe(32)
+session_id = secrets.token_hex(16)
+
+# Bad: random for security-sensitive values
+import random
+token = "".join(random.choices(string.ascii_letters, k=32))  # Predictable
+```
+
+### Constant-Time Comparison for Tokens
+
+```python
+# Good: Prevents timing attacks
+import hmac
+import secrets
+
+def verify_token(provided: str, expected: str) -> bool:
+    return hmac.compare_digest(provided, expected)
+
+# Bad: Early exit leaks timing information
+def verify_token(provided: str, expected: str) -> bool:
+    return provided == expected
+```
+
+---
+
+## SQL Injection Prevention
+
+### Always Use Parameterized Queries
+
+```python
+# Good: Parameter binding
+import sqlite3
+
+def get_user(cursor, user_id: int) -> dict | None:
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    return cursor.fetchone()
+
+# Good: Named parameters (psycopg2, etc.)
+cursor.execute("SELECT * FROM users WHERE email = %(email)s", {"email": email})
+
+# Bad: String concatenation - SQL injection
+def get_user(cursor, user_id: str):
+    cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")  # Dangerous!
+```
+
+---
+
+## Avoid eval and exec with User Input
+
+```python
+# Good: Safe alternatives
+import json
+data = json.loads(user_input)  # For JSON
+
+import ast
+tree = ast.literal_eval(user_input)  # For literals only
+
+# Bad: Code injection
+result = eval(user_input)  # Arbitrary code execution
+exec(user_provided_code)
+```
+
+---
+
+## Safe Subprocess Usage
+
+```python
+# Good: Argument list, no shell
+import subprocess
+
+subprocess.run(["git", "status"], check=True)
+subprocess.run(["ffmpeg", "-i", user_filename], check=True)
+
+# Bad: shell=True with user input
+subprocess.run(f"cat {user_filename}", shell=True)  # Command injection
+```
+
+---
+
+## Input Validation
+
+### Validate at Entry Points
+
+```python
+# Good: Validate and sanitize immediately
+def process_order(data: dict) -> Order:
+    if not isinstance(data.get("items"), list):
+        raise ValidationError("items must be a list")
+    if len(data["items"]) > 1000:
+        raise ValidationError("Too many items")
+    return Order.from_dict(data)
+
+# Bad: Trust and validate later
+def process_order(data: dict) -> Order:
+    return Order.from_dict(data)  # May process malicious structure
+```
+
+### Use Allowlists Over Denylists
+
+```python
+# Good: Allow known-good values
+ALLOWED_STATUSES = {"pending", "approved", "rejected"}
+
+def set_status(status: str) -> None:
+    if status not in ALLOWED_STATUSES:
+        raise ValueError(f"Invalid status: {status}")
+    self.status = status
+```
+
+---
+
+## Insecure Deserialization
+
+```python
+# Good: JSON for untrusted data
+import json
+data = json.loads(untrusted_string)
+
+# Bad: pickle with untrusted data
+import pickle
+obj = pickle.loads(untrusted_bytes)  # Arbitrary code execution
+```
+
+---
+
+## Dependency Scanning
+
+Run Bandit and dependency scanners in CI:
+
+```bash
+pip install bandit safety
+bandit -r src/
+safety check
+```
+
+---
+
+## Related Rules
+
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - ValidationError usage
+- [Data Handling](../data/data-handling.mdc) - Pydantic validation
+- [Generic Security Principles](../../../generic/security/core-principles.mdc)
+
+---
+
+## References
+
+- [Real Python: Python Security Best Practices](https://realpython.com/ref/best-practices/security/)
+- [Snyk Python Security Cheat Sheet](https://snyk.io/blog/python-security-best-practices-cheat-sheet)
+- [Semgrep: Python Code Injection](https://semgrep.dev/docs/cheat-sheets/python-code-injection)

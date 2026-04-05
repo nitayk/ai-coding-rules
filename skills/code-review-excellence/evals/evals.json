@@ -1,0 +1,23 @@
+{
+  "skill_name": "code-review-excellence",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have some uncommitted changes. Can you review them before I create a PR?",
+      "expected_output": "Structured code review with findings categorized by severity (Critical, Important, Suggestion). Includes file:line references and actionable feedback.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/review - I'm on a feature branch and want feedback on all my changes since main",
+      "expected_output": "Code review of all changes since diverging from main. Covers correctness, quality, security, testing, architecture. Actionable list with references.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review src/auth/login.ts - we're about to merge this and want a final check",
+      "expected_output": "Focused review of the specified file. Checklist coverage (correctness, security, edge cases, tests). Clear pass/fail assessment with recommendations.",
+      "files": []
+    }
+  ]
+}

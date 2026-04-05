@@ -1,0 +1,103 @@
+---
+description: "Terraform CLI for infrastructure as code - init, plan, apply, destroy, state. Use when: (1) Managing infrastructure, (2) Terraform workflows, (3) State management, (4) Module operations. Covers core commands and best practices."
+globs: []
+alwaysApply: false
+---
+
+# Terraform CLI Guide
+
+## Triggers
+**APPLY WHEN:** User needs to run Terraform, manage infrastructure, plan/apply changes, or troubleshoot Terraform state
+**SKIP WHEN:** Using Terraform Cloud UI or other IaC tools
+
+## Core Directive
+**Use terraform for infrastructure operations** — Init, validate, plan, apply. Always run `plan` before `apply`.
+
+## Installation
+
+```bash
+# macOS
+brew install terraform
+
+# Verify
+terraform version
+```
+
+**Source**: [Terraform Install](https://developer.hashicorp.com/terraform/install)
+
+---
+
+## Primary Workflow
+
+```bash
+terraform init      # First: prepare working directory
+terraform validate  # Check configuration validity
+terraform plan      # Preview changes (dry-run)
+terraform apply     # Create or update infrastructure
+terraform destroy   # Destroy infrastructure
+```
+
+**Source**: [Terraform CLI Commands](https://developer.hashicorp.com/terraform/cli/commands)
+
+---
+
+## Core Commands
+
+| Command | Purpose |
+|---------|---------|
+| `terraform init` | Initialize working directory, download providers/modules |
+| `terraform validate` | Validate configuration syntax |
+| `terraform plan` | Show planned changes (no modifications) |
+| `terraform apply` | Apply changes (use `-auto-approve` for non-interactive) |
+| `terraform destroy` | Destroy managed infrastructure |
+| `terraform fmt` | Reformat .tf files to standard style |
+| `terraform show` | Show state or saved plan |
+| `terraform output` | Show output values |
+
+---
+
+## State & Modules
+
+```bash
+terraform state list              # List resources in state
+terraform state show <resource>   # Show resource details
+terraform get                    # Install/upgrade remote modules
+terraform import <resource> <id> # Import existing resource
+```
+
+---
+
+## Workspaces & Directory
+
+```bash
+terraform workspace list         # List workspaces
+terraform workspace select prod  # Switch workspace
+terraform -chdir=envs/prod apply # Run from different directory
+```
+
+---
+
+## Best Practices
+
+1. **Always plan first** — Run `terraform plan` before `apply`
+2. **Version control** — Store .tf files in git
+3. **Modules** — Use modules for reusable components
+4. **Workspaces** — Use for multiple environments (dev/staging/prod)
+5. **State** — Use remote state (S3, Terraform Cloud) for teams
+
+**Source**: [Terraform Best Practices](https://developer.hashicorp.com/terraform/tutorials/configuration-language)
+
+---
+
+## Safety
+
+- **Destructive ops**: `terraform destroy` — confirm scope, use `-target` to limit
+- **State lock**: Use `-lock=false` only when lock is stuck (e.g. `force-unlock`)
+- **Dry-run**: `terraform plan` shows changes without applying
+
+---
+
+## Related
+
+- **AWS**: `aws-cli.mdc`, `technologies/aws-mcp-reference-guide.mdc`
+- **Official**: [Terraform CLI](https://developer.hashicorp.com/terraform/cli/commands)

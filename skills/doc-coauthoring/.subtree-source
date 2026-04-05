@@ -1,0 +1,9 @@
+# Subtree Source Information
+# This directory is maintained as a snapshot from an upstream repository.
+# DO NOT manually edit files in this directory.
+# Use the update script to pull in changes from upstream.
+
+SOURCE_REPO=https://github.com/anthropics/skills.git
+SOURCE_PATH=skills/doc-coauthoring
+LAST_SYNC_COMMIT=98669c11ca63e9c81c11501e1437e5c47b556621
+LAST_SYNC_DATE=2026-03-25 11:10:46 -0400

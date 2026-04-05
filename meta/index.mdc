@@ -1,0 +1,47 @@
+---
+description: "Meta rules index - rules authorship, architecture, style, skill creation. Use when: (1) Formatting rules, mdc rules, style guide, (2) Creating skills, (3) Rules improvement, (4) Graph structure, routing architecture. Points to meta rule files."
+globs: []
+alwaysApply: false
+---
+
+# Meta Rules Index
+
+**Purpose**: **Rules authorship & architecture** — how to write rules, graph structure, continuous improvement.
+
+**Not here**: Cursor feature usage (rules, semantic search, plugins) → `cursor-features/`.
+
+**Chaining**: Root Router → This Index (Router) → Meta Rule Files
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **style guide**, formatting rules, mdc rules, cursor rules style | `cursor-rules-style-guide.mdc` |
+| **create skill**, make skill, new skill | `cursor-rules-style-guide.mdc` + Use `/skill-creator` skill |
+| **continuous improvement**, rules improvement, update rules after correction | `continuous-improvement.mdc` |
+| **graph structure**, routing system, index structure, router chaining, keyword routing | `graph-structure.md` |
+| **impact analysis**, adding field to event/record, schema change, co-located producers | `code-graph-impact-analysis.mdc` |
+
+---
+
+## Meta Rule Files (Leaves)
+
+| File | Purpose |
+|------|---------|
+| **cursor-rules-style-guide.mdc** | Rules format, skill structure, style conventions |
+| **continuous-improvement.mdc** | Update rules after corrections, invest in rules |
+| **graph-structure.md** | Routing architecture — ROUTER → indexes → files, keyword chaining |
+| **code-graph-impact-analysis.mdc** | Co-located producers, topic consumers, event/record schema impact |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Rules style guide | `cursor-rules-style-guide.mdc` |
+| Create new skill | `cursor-rules-style-guide.mdc` + `/skill-creator` |
+| Update rules after correction | `continuous-improvement.mdc` |
+| **Graph structure, routing architecture** | `graph-structure.md` |

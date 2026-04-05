@@ -15,11 +15,11 @@ Use type annotations on all functions, variables, and class attributes to enable
 **Always annotate function parameters and return types:**
 
 ```python
-# ✅ Good: Fully annotated function
+# Good: Fully annotated function
 def calculate_total(items: list[Item]) -> float:
     return sum(item.price for item in items)
 
-# ❌ Bad: No type annotations
+# Bad: No type annotations
 def calculate_total(items):
     return sum(item.price for item in items)
 ```
@@ -36,21 +36,17 @@ def calculate_total(items):
 **Annotate variables when type isn't obvious from context:**
 
 ```python
-# ✅ Good: Explicit type annotation
-from typing import Optional
-
-user_id: Optional[int] = get_user_id()
+# Good: Explicit type annotation (use | None for Python 3.10+)
+user_id: int | None = get_user_id()
 if user_id is not None:
     process_user(user_id)
 
-# ✅ Good: Type annotation for complex types
-from typing import Dict, List
-
-config: Dict[str, List[str]] = {
+# Good: Built-in generics for complex types
+config: dict[str, list[str]] = {
     "allowed_hosts": ["example.com", "test.com"]
 }
 
-# ❌ Bad: No annotation, type unclear
+# Bad: No annotation, type unclear
 user_id = get_user_id()  # What type is this?
 ```
 
@@ -58,19 +54,27 @@ user_id = get_user_id()  # What type is this?
 
 ## Use Generic Types
 
-**Use generic types for collections:**
+**Use generic types for collections. Prefer built-in generics (Python 3.9+):**
 
 ```python
-# ✅ Good: Generic list type
-from typing import List, Dict, Optional
-
-def process_users(users: List[User]) -> List[ProcessedUser]:
+# Good: Built-in generics (Python 3.9+)
+def process_users(users: list[User]) -> list[ProcessedUser]:
     return [process_user(u) for u in users]
 
-def get_user_by_email(email: str) -> Optional[User]:
+def get_user_by_email(email: str) -> User | None:
     return db.find_user(email)
 
-# ❌ Bad: Using built-in types without generics
+# Good: type statement for aliases (Python 3.12+)
+type UserId = int
+type UserMap = dict[str, User]
+
+# Acceptable: typing module for complex cases
+from typing import TypeVar
+T = TypeVar("T")
+def first(items: list[T]) -> T:
+    return items[0]
+
+# Bad: Untyped parameters
 def process_users(users):  # What's in the list?
     return [process_user(u) for u in users]
 ```
@@ -82,18 +86,17 @@ def process_users(users):  # What's in the list?
 **Annotate class attributes with their types:**
 
 ```python
-# ✅ Good: Annotated class attributes
+# Good: Annotated class attributes (avoid mutable defaults)
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class User:
     name: str
     email: str
-    age: Optional[int] = None
-    preferences: dict[str, str] = None
+    age: int | None = None
+    preferences: dict[str, str] | None = None
 
-# ❌ Bad: No type annotations
+# Bad: No type annotations
 class User:
     def __init__(self, name, email, age=None):
         self.name = name
@@ -105,29 +108,27 @@ class User:
 
 ## Use Type Aliases for Complex Types
 
-**Create type aliases for frequently used complex types:**
+**Create type aliases for frequently used complex types. Prefer `type` statement (Python 3.12+):**
 
 ```python
-# ✅ Good: Type alias for clarity
-from typing import Dict, List, Tuple
+# Good: type statement (Python 3.12+)
+type UserId = int
+type UserDict = dict[str, str]
+type Coordinates = tuple[float, float]
 
-UserId = int
-UserDict = Dict[str, str]
-UserList = List[User]
-Coordinates = Tuple[float, float]
-
-def find_user(user_id: UserId) -> Optional[User]:
+def find_user(user_id: UserId) -> User | None:
     return db.find(user_id)
 
 def process_coordinates(coords: Coordinates) -> float:
     lat, lon = coords
     return calculate_distance(lat, lon)
 
-# ❌ Bad: Complex types inline
-def find_user(user_id: int) -> Optional[User]:
-    return db.find(user_id)
+# Good: Traditional alias (Python 3.9-3.11)
+UserId = int
+Coordinates = tuple[float, float]
 
-def process_coordinates(coords: Tuple[float, float]) -> float:
+# Bad: Complex types inline
+def process_coordinates(coords: tuple[float, float]) -> float:
     # Less clear what the tuple represents
     lat, lon = coords
     return calculate_distance(lat, lon)
@@ -140,7 +141,7 @@ def process_coordinates(coords: Tuple[float, float]) -> float:
 **Use mypy or pyright configuration:**
 
 ```python
-# ✅ Good: mypy configuration in pyproject.toml
+# Good: mypy configuration in pyproject.toml
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true
@@ -153,7 +154,7 @@ check_untyped_defs = true
 **Run type checker in CI:**
 
 ```yaml
-# ✅ Good: Type checking in CI
+# Good: Type checking in CI
 - name: Type check
   run: mypy src/
 ```
@@ -165,7 +166,7 @@ check_untyped_defs = true
 **Add types incrementally, starting with public APIs:**
 
 ```python
-# ✅ Good: Start with public API
+# Good: Start with public API
 def public_api_function(user_id: int) -> User:
     """Public API - fully typed."""
     return _internal_helper(user_id)
@@ -174,7 +175,7 @@ def public_api_function(user_id: int) -> User:
 def _internal_helper(user_id):  # Will add types later
     return db.find(user_id)
 
-# ❌ Bad: No types anywhere
+# Bad: No types anywhere
 def public_api_function(user_id):
     return db.find(user_id)
 ```
@@ -186,7 +187,7 @@ def public_api_function(user_id):
 **Use TypedDict for dictionary structures:**
 
 ```python
-# ✅ Good: TypedDict for structured data
+# Good: TypedDict for structured data
 from typing import TypedDict
 
 class UserDict(TypedDict):
@@ -197,7 +198,7 @@ class UserDict(TypedDict):
 def create_user(data: UserDict) -> User:
     return User(**data)
 
-# ❌ Bad: Plain dict without structure
+# Bad: Plain dict without structure
 def create_user(data: dict) -> User:
     return User(**data)  # No type checking of dict keys
 ```

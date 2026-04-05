@@ -1,0 +1,482 @@
+# Gotenberg Reference Guide
+
+**Technical Efficiency Guide** - How to generate PDFs and convert documents efficiently with Gotenberg.
+
+> **Purpose**: Deep technical knowledge for document conversion, PDF generation, and understanding Gotenberg API patterns. Referenced BY skills/agents when generating reports, invoices, and documents.
+
+**What's Inside**:
+- ✅ Document conversion patterns (HTML to PDF, Office to PDF, Markdown to PDF)
+- ✅ PDF manipulation (merge, convert, compress)
+- ✅ Performance optimization (concurrent requests, caching, resource limits)
+- ✅ Common use cases (reports, invoices, receipts, documents)
+- ✅ Anti-patterns (large payloads, synchronous generation, missing error handling)
+
+**Location**: `.cursor/rules/shared/technologies/gotenberg-reference-guide.mdc`
+
+---
+
+## 📋 Table of Contents
+
+1. [Gotenberg Architecture](#gotenberg-architecture)
+2. [Document Conversion](#document-conversion)
+3. [PDF Operations](#pdf-operations)
+4. [Performance Optimization](#performance-optimization)
+5. [Common Use Cases](#common-use-cases)
+6. [Anti-Patterns](#anti-patterns)
+
+---
+
+## Gotenberg Architecture
+
+### Core Components
+
+- **Gotenberg Server**: HTTP API for document conversion
+- **Chromium**: Headless browser for HTML/URL to PDF conversion
+- **LibreOffice**: Office document conversion (DOCX, XLSX, PPTX to PDF)
+- **PDFtk/PDFCPUs**: PDF manipulation (merge, split, convert)
+
+### Service Access
+
+**Important**: Gotenberg is a standalone HTTP API service, **NOT an MCP server**. It exists under the `mcp` namespace which can cause confusion.
+
+**Direct API URL**: `https://gotenberg.example.com`  
+**Access Method**: Direct HTTP POST requests to service endpoints
+
+Example endpoints:
+- `/forms/chromium/convert/html` - Convert HTML to PDF
+- `/forms/libreoffice/convert` - Convert Office documents to PDF
+- `/forms/pdfengines/merge` - Merge PDFs
+- Convert images to PDF
+- Convert Markdown to PDF
+
+---
+
+## Document Conversion
+
+### HTML to PDF
+
+**Most common use case** - Generate PDFs from HTML templates.
+
+**Pattern**:
+1. Prepare HTML content with CSS styling
+2. Send HTML to Gotenberg via POST
+3. Receive PDF response
+
+**Best practices**:
+- Use inline CSS or embedded styles (external stylesheets may not load)
+- Test with different page sizes (A4, Letter, custom)
+- Set margins appropriately
+- Include all assets inline (images as base64)
+
+**Example HTML structure**:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+    .header { font-size: 24px; font-weight: bold; }
+    .footer { position: absolute; bottom: 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="header">Invoice #12345</div>
+  <p>Content here...</p>
+  <div class="footer">Page 1</div>
+</body>
+</html>
+```
+
+### URL to PDF
+
+**Convert live web pages to PDF**.
+
+**Pattern**:
+1. Provide URL to Gotenberg
+2. Gotenberg renders page with Chromium
+3. Returns PDF
+
+**Best practices**:
+- Ensure URL is accessible from Gotenberg server
+- Set appropriate wait time for dynamic content
+- Consider authentication if URL requires it
+- Use print-friendly stylesheets (@media print)
+
+**Performance note**: Slower than HTML to PDF (needs to fetch resources).
+
+### Office Documents to PDF
+
+**Convert Office formats** (DOCX, XLSX, PPTX) to PDF.
+
+**Pattern**:
+1. Upload Office document
+2. LibreOffice converts to PDF
+3. Receive PDF response
+
+**Supported formats**:
+- Word: `.docx`, `.doc`, `.odt`
+- Excel: `.xlsx`, `.xls`, `.ods`
+- PowerPoint: `.pptx`, `.ppt`, `.odp`
+
+**Limitations**:
+- Complex macros may not convert correctly
+- Embedded objects may render differently
+- Conversion slower than HTML to PDF
+
+### Markdown to PDF
+
+**Convert Markdown to PDF** via HTML intermediate.
+
+**Pattern**:
+1. Convert Markdown to HTML (client-side or server-side)
+2. Send HTML to Gotenberg
+3. Receive PDF
+
+**Tip**: Use a Markdown library with CSS styling for professional output.
+
+---
+
+## PDF Operations
+
+### Merge PDFs
+
+**Combine multiple PDFs** into a single document.
+
+**Use cases**:
+- Combine invoice sections
+- Merge report chapters
+- Append attachments to main document
+
+**Pattern**:
+1. Provide array of PDF files
+2. Gotenberg merges in order
+3. Returns combined PDF
+
+### Convert Images to PDF
+
+**Convert images** (PNG, JPEG, TIFF) to PDF.
+
+**Use cases**:
+- Scanned documents
+- Photo galleries
+- Image-based reports
+
+**Pattern**:
+1. Upload images
+2. Gotenberg creates PDF with one image per page
+3. Returns PDF
+
+**Options**:
+- Set image quality
+- Set page size
+- Control image scaling/positioning
+
+### PDF Metadata
+
+**Set PDF metadata** (title, author, subject, keywords).
+
+**Use cases**:
+- Document management systems
+- Searchability
+- Compliance requirements
+
+**Metadata fields**:
+- Title
+- Author
+- Subject
+- Keywords
+- Creator
+- Producer
+
+---
+
+## Performance Optimization
+
+### Concurrent Requests
+
+**Gotenberg handles concurrent requests** efficiently.
+
+**Best practices**:
+- Use connection pooling
+- Limit concurrent requests (avoid overwhelming server)
+- Implement request queuing for high volume
+- Monitor response times
+
+**Recommended concurrency**: 10-20 concurrent requests per Gotenberg instance.
+
+### Caching Strategies
+
+**Cache generated PDFs** when possible.
+
+**When to cache**:
+- Static reports (don't change frequently)
+- Invoices (immutable after generation)
+- Documents with consistent content
+
+**When NOT to cache**:
+- Personalized content (user-specific data)
+- Real-time reports (frequently changing data)
+- Documents with timestamps
+
+**Cache key considerations**:
+- Include all input parameters
+- Version cache when templates change
+- Set appropriate TTL (time-to-live)
+
+### Resource Limits
+
+**Gotenberg has resource limits** to prevent abuse.
+
+**Common limits**:
+- Request size (typically 50-100 MB)
+- Conversion timeout (typically 30-60 seconds)
+- Concurrent requests per instance
+
+**Optimization tips**:
+- Split large documents into smaller chunks
+- Compress images before conversion
+- Use appropriate page sizes (A4 vs. custom)
+- Minimize HTML complexity
+
+### Async Processing
+
+**For long-running conversions**, use async patterns.
+
+**Pattern**:
+1. Submit conversion request
+2. Return job ID immediately
+3. Poll for completion
+4. Retrieve PDF when ready
+
+**Benefits**:
+- Non-blocking API calls
+- Better user experience
+- Handles timeouts gracefully
+
+---
+
+## Common Use Cases
+
+### Invoices
+
+**Generate invoices from HTML templates**.
+
+**Requirements**:
+- Company logo (inline as base64)
+- Line items table
+- Total calculations
+- Footer with payment terms
+- Professional styling
+
+**Template structure**:
+```html
+<!-- Header with logo and company info -->
+<!-- Invoice details (number, date, due date) -->
+<!-- Customer details -->
+<!-- Line items table -->
+<!-- Subtotal, tax, total -->
+<!-- Footer with payment terms -->
+```
+
+### Reports
+
+**Generate analytical reports**.
+
+**Requirements**:
+- Charts and graphs (embed as images or SVG)
+- Tables with data
+- Page numbers
+- Table of contents
+- Headers and footers
+
+**Considerations**:
+- Use page breaks (`page-break-after: always`)
+- Set print-friendly styles
+- Test with different page sizes
+
+### Receipts
+
+**Generate customer receipts**.
+
+**Requirements**:
+- Transaction details
+- Payment method
+- Timestamp
+- QR code (for mobile receipts)
+- Compact layout
+
+**Best practices**:
+- Use smaller page size (half-letter or custom)
+- Minimal styling for fast generation
+- Include transaction ID for reference
+
+### Contracts
+
+**Generate legal contracts from templates**.
+
+**Requirements**:
+- Multiple pages
+- Signature blocks
+- Terms and conditions
+- Page numbers
+- Legal disclaimers
+
+**Considerations**:
+- Use consistent formatting
+- Test page breaks
+- Include revision history
+- Add watermarks for drafts
+
+---
+
+## Anti-Patterns
+
+### ❌ Large HTML Payloads
+
+```
+BAD: Sending MB-sized HTML with embedded images
+GOOD: Optimize images, use compression, split documents
+```
+
+**Why**: Large payloads slow conversion and may exceed size limits.
+
+### ❌ Synchronous Generation
+
+```
+BAD: Blocking API call until PDF is ready
+GOOD: Async pattern with job queue
+```
+
+**Why**: Long conversions block application threads and degrade UX.
+
+### ❌ External Resource Dependencies
+
+```
+BAD: HTML with external CSS/images (may fail to load)
+GOOD: Inline all styles and base64-encode images
+```
+
+**Why**: Gotenberg may not have access to external resources (network isolation, auth).
+
+### ❌ No Error Handling
+
+```
+BAD: Assuming conversion always succeeds
+GOOD: Handle timeout, size limit, and format errors
+```
+
+**Why**: Conversions can fail for many reasons (invalid HTML, timeout, resource limits).
+
+### ❌ Unbounded Retries
+
+```
+BAD: Infinite retries on failure
+GOOD: Exponential backoff with max retries (3-5)
+```
+
+**Why**: Repeated failures indicate a persistent issue, not a transient error.
+
+### ❌ Missing Timeouts
+
+```
+BAD: No timeout on conversion requests
+GOOD: Set appropriate timeouts (30-60s)
+```
+
+**Why**: Hung requests can exhaust resources.
+
+### ❌ Ignoring PDF Size
+
+```
+BAD: Generating massive PDFs (hundreds of pages)
+GOOD: Paginate or split into multiple PDFs
+```
+
+**Why**: Large PDFs are slow to generate, transfer, and render.
+
+---
+
+## Performance Patterns
+
+### Request Optimization
+
+**Minimize conversion time**:
+1. Use simple HTML (avoid complex CSS, JavaScript)
+2. Compress images before embedding
+3. Set appropriate page size (A4 vs. custom)
+4. Use minimal fonts (system fonts are fastest)
+5. Avoid external resources
+
+### Batch Processing
+
+**For multiple PDFs**, process in batches.
+
+**Pattern**:
+1. Group conversion requests
+2. Submit concurrently (10-20 at a time)
+3. Collect results
+4. Retry failures
+
+**Benefits**:
+- Higher throughput
+- Better resource utilization
+- Easier error handling
+
+### Monitoring
+
+**Track Gotenberg performance**:
+- Request rate (requests per second)
+- Conversion time (p50, p95, p99)
+- Error rate (failed conversions)
+- Queue depth (pending requests)
+
+**Alerts**:
+- High error rate (> 5%)
+- Slow conversions (> 10s)
+- Queue depth growing (backlog)
+
+---
+
+## Resources
+
+### Official Documentation
+
+- [Gotenberg Documentation](https://gotenberg.dev/)
+- [API Reference](https://gotenberg.dev/docs/routes)
+- [Configuration](https://gotenberg.dev/docs/configuration)
+
+### HTML to PDF Tips
+
+- [Print CSS](https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/)
+- [Page Breaks](https://developer.mozilla.org/en-US/docs/Web/CSS/break-after)
+- [PDF Generation Best Practices](https://gotenberg.dev/docs/get-started/best-practices)
+
+---
+
+## Quick Reference
+
+### Common Operations
+
+| Operation | Use Case | Speed |
+|-----------|----------|-------|
+| HTML to PDF | Invoices, reports, receipts | Fast (< 1s) |
+| URL to PDF | Web pages, dashboards | Medium (2-5s) |
+| Office to PDF | DOCX, XLSX, PPTX conversion | Slow (5-15s) |
+| Merge PDFs | Combine documents | Fast (< 1s) |
+| Images to PDF | Scanned documents | Medium (1-3s) |
+
+### Conversion Checklist
+
+- ✅ Inline all CSS and images?
+- ✅ Set appropriate page size and margins?
+- ✅ Test with representative data?
+- ✅ Implement error handling?
+- ✅ Set request timeouts?
+- ✅ Consider caching strategy?
+
+---
+
+**Last Updated**: 2026-02-05
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

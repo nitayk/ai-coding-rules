@@ -15,7 +15,7 @@ Follow React best practices: proper hook usage, performance optimization, and mo
 **Follow Rules of Hooks - only call hooks at top level:**
 
 ```tsx
-// ✅ Good: Hooks at top level
+// Good: Hooks at top level
 function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ function UserProfile({ userId }: { userId: string }) {
   return <div>{user?.name}</div>;
 }
 
-// ❌ Bad: Conditional hook call
+// Bad: Conditional hook call
 function UserProfile({ userId }: { userId: string }) {
   if (!userId) {
     return null;
@@ -45,7 +45,7 @@ function UserProfile({ userId }: { userId: string }) {
 **Include all dependencies in useEffect:**
 
 ```tsx
-// ✅ Good: Complete dependency array
+// Good: Complete dependency array
 function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   
@@ -60,7 +60,7 @@ function UserProfile({ userId }: { userId: string }) {
   return <div>{user?.name}</div>;
 }
 
-// ✅ Good: Use useCallback for stable function references
+// Good: Use useCallback for stable function references
 function UserList({ onUserClick }: { onUserClick: (id: string) => void }) {
   const [users, setUsers] = useState<User[]>([]);
   
@@ -73,7 +73,7 @@ function UserList({ onUserClick }: { onUserClick: (id: string) => void }) {
   }, [handleClick]);
 }
 
-// ❌ Bad: Missing dependencies
+// Bad: Missing dependencies
 function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   
@@ -90,7 +90,7 @@ function UserProfile({ userId }: { userId: string }) {
 **Use memoization only when necessary:**
 
 ```tsx
-// ✅ Good: useMemo for expensive computation
+// Good: useMemo for expensive computation
 function ExpensiveComponent({ items }: { items: Item[] }) {
   const sortedItems = useMemo(() => {
     return items.sort((a, b) => a.price - b.price);  // Expensive sort
@@ -99,7 +99,7 @@ function ExpensiveComponent({ items }: { items: Item[] }) {
   return <div>{sortedItems.map(item => <ItemCard key={item.id} item={item} />)}</div>;
 }
 
-// ✅ Good: useCallback for stable function references
+// Good: useCallback for stable function references
 function ParentComponent() {
   const [count, setCount] = useState(0);
   
@@ -110,7 +110,7 @@ function ParentComponent() {
   return <ChildComponent onClick={handleClick} />;
 }
 
-// ❌ Bad: Premature optimization
+// Bad: Premature optimization
 function SimpleComponent({ name }: { name: string }) {
   const displayName = useMemo(() => name.toUpperCase(), [name]);  // Unnecessary!
   return <div>{displayName}</div>;
@@ -124,7 +124,7 @@ function SimpleComponent({ name }: { name: string }) {
 **Memoize components that receive object/function props:**
 
 ```tsx
-// ✅ Good: React.memo for component with object props
+// Good: React.memo for component with object props
 interface UserCardProps {
   user: User;
   onSelect: (id: string) => void;
@@ -139,7 +139,7 @@ const UserCard = React.memo(function UserCard({ user, onSelect }: UserCardProps)
   );
 });
 
-// ✅ Good: Custom comparison function
+// Good: Custom comparison function
 const UserCard = React.memo(
   function UserCard({ user }: { user: User }) {
     return <div>{user.name}</div>;
@@ -149,7 +149,7 @@ const UserCard = React.memo(
   }
 );
 
-// ❌ Bad: Memoizing everything
+// Bad: Memoizing everything
 const SimpleComponent = React.memo(function SimpleComponent({ text }: { text: string }) {
   return <div>{text}</div>;  // Primitive prop - memoization overhead not worth it
 });
@@ -162,7 +162,7 @@ const SimpleComponent = React.memo(function SimpleComponent({ text }: { text: st
 **Defer non-urgent updates to keep UI responsive:**
 
 ```tsx
-// ✅ Good: useTransition for non-urgent updates
+// Good: useTransition for non-urgent updates
 function SearchResults({ query }: { query: string }) {
   const [results, setResults] = useState<Result[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -183,7 +183,7 @@ function SearchResults({ query }: { query: string }) {
   );
 }
 
-// ❌ Bad: Blocking update
+// Bad: Blocking update
 function SearchResults({ query }: { query: string }) {
   const [results, setResults] = useState<Result[]>([]);
   
@@ -201,7 +201,7 @@ function SearchResults({ query }: { query: string }) {
 **Lazy load components to reduce initial bundle:**
 
 ```tsx
-// ✅ Good: Lazy loading with Suspense
+// Good: Lazy loading with Suspense
 import { lazy, Suspense } from 'react';
 
 const HeavyComponent = lazy(() => import('./HeavyComponent'));
@@ -214,7 +214,7 @@ function App() {
   );
 }
 
-// ✅ Good: Code splitting routes
+// Good: Code splitting routes
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Settings = lazy(() => import('./pages/Settings'));
 
@@ -231,7 +231,7 @@ function App() {
   );
 }
 
-// ❌ Bad: Importing everything upfront
+// Bad: Importing everything upfront
 import HeavyComponent from './HeavyComponent';  // Loaded even if not used
 
 function App() {
@@ -246,7 +246,7 @@ function App() {
 **Create custom hooks for shared logic:**
 
 ```tsx
-// ✅ Good: Custom hook for reusable logic
+// Good: Custom hook for reusable logic
 function useUser(userId: string | null) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -278,7 +278,7 @@ function UserProfile({ userId }: { userId: string }) {
   return <div>{user?.name}</div>;
 }
 
-// ❌ Bad: Duplicating logic
+// Bad: Duplicating logic
 function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -297,7 +297,7 @@ function UserProfile({ userId }: { userId: string }) {
 **Be aware of closure behavior in effects:**
 
 ```tsx
-// ✅ Good: Using functional updates
+// Good: Using functional updates
 function Counter() {
   const [count, setCount] = useState(0);
   
@@ -312,7 +312,7 @@ function Counter() {
   return <div>{count}</div>;
 }
 
-// ✅ Good: Include dependencies
+// Good: Include dependencies
 function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   
@@ -333,7 +333,7 @@ function UserProfile({ userId }: { userId: string }) {
   return <div>{user?.name}</div>;
 }
 
-// ❌ Bad: Stale closure
+// Bad: Stale closure
 function Counter() {
   const [count, setCount] = useState(0);
   
@@ -354,7 +354,7 @@ function Counter() {
 **Catch errors in component tree:**
 
 ```tsx
-// ✅ Good: Error boundary component
+// Good: Error boundary component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback: React.ReactNode },
   { hasError: boolean }
@@ -389,7 +389,7 @@ function App() {
   );
 }
 
-// ❌ Bad: No error handling
+// Bad: No error handling
 function App() {
   return <UserProfile userId="123" />;  // Crashes entire app on error
 }

@@ -1,0 +1,17 @@
+{
+  "skill_name": "generate-changelog",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate a changelog from our recent commits. We use conventional commits.",
+      "expected_output": "CHANGELOG.md created or updated. Follows Keep a Changelog format. Groups by Added, Fixed, Changed, etc. Includes version and date.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/changelog v1.0.0 v1.1.0 - we need release notes for the new version",
+      "expected_output": "Changelog for commits between v1.0.0 and v1.1.0. Conventional commit grouping. Ready for release notes.",
+      "files": []
+    }
+  ]
+}

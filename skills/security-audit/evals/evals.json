@@ -1,0 +1,17 @@
+{
+  "skill_name": "security-audit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're about to release. Run a security audit on the codebase.",
+      "expected_output": "Security report with findings by severity (High/Medium/Low). Covers SQL injection, XSS, secrets, auth. File:line references and remediation steps.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/security-audit src/auth/ - audit our authentication module before we ship",
+      "expected_output": "Focused security audit of auth module. OWASP-relevant findings. Structured report with severity and remediation.",
+      "files": []
+    }
+  ]
+}

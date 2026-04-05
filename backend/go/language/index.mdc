@@ -21,6 +21,7 @@ alwaysApply: false
 | **error handling**, errors, error wrapping, custom errors | `error-handling-patterns.mdc` |
 | **idiomatic errors**, guard clauses, explicit checks, error wrapping | `idiomatic-error-handling.mdc` |
 | **concurrency**, goroutines, channels, worker pools, errgroup | `concurrency-patterns.mdc` |
+| **mutex**, locking, sync.Mutex, RWMutex, deadlock | `mutex-and-locking.mdc` |
 | **context**, cancellation, deadlines, context propagation | `context-patterns.mdc` |
 | **interfaces**, small interfaces, interface design | `small-interfaces.mdc` |
 
@@ -33,6 +34,7 @@ alwaysApply: false
 | [Error Handling Patterns](error-handling-patterns.mdc) | Error creation, wrapping, custom errors | error handling, errors, error wrapping |
 | [Idiomatic Error Handling](idiomatic-error-handling.mdc) | Explicit checks, guard clauses, error wrapping | idiomatic errors, guard clauses |
 | [Concurrency Patterns](concurrency-patterns.mdc) | Goroutines, channels, worker pools, errgroup | concurrency, goroutines, channels |
+| [Mutex and Locking](mutex-and-locking.mdc) | sync.Mutex, RWMutex, deadlock prevention | mutex, locking, RWMutex |
 | [Context Patterns](context-patterns.mdc) | Cancellation, deadlines, context propagation | context, cancellation, deadlines |
 | [Small Interfaces](small-interfaces.mdc) | Design small, focused interfaces | interfaces, interface design |
 
@@ -44,6 +46,7 @@ alwaysApply: false
 |------|------|
 | Error handling | `error-handling-patterns.mdc`, `idiomatic-error-handling.mdc` |
 | Concurrency | `concurrency-patterns.mdc` |
+| Mutex/locking | `mutex-and-locking.mdc` |
 | Context | `context-patterns.mdc` |
 | Interfaces | `small-interfaces.mdc` |
 

@@ -19,6 +19,7 @@ alwaysApply: false
 | Keywords/Intent | Load File |
 |----------------|-----------|
 | **type hints**, type annotations, mypy, pyright, static type checking | `type-annotations-everywhere.mdc` |
+| **python core patterns**, mutable defaults, bare except, core patterns | `python-core-patterns.mdc` |
 | **error handling**, exceptions, try except, error patterns | `error-handling-patterns.mdc` |
 | **pythonic**, comprehensions, dataclasses, EAFP, idiomatic python | `pythonic-patterns.mdc` |
 | **async**, await, asyncio, async patterns, async await | `async-patterns.mdc` |
@@ -31,6 +32,7 @@ alwaysApply: false
 | File | Purpose | Keywords |
 |------|---------|----------|
 | [Type Annotations Everywhere](type-annotations-everywhere.mdc) | Use type annotations for static type checking | type hints, type annotations, mypy, pyright |
+| [Python Core Patterns](python-core-patterns.mdc) | Type hints, mutable defaults, bare except, core patterns | python core patterns, mutable defaults, bare except |
 | [Error Handling Patterns](error-handling-patterns.mdc) | Exceptions, try/except, context managers | error handling, exceptions, try except |
 | [Pythonic Patterns](pythonic-patterns.mdc) | Idiomatic Python: comprehensions, dataclasses, EAFP | pythonic, comprehensions, dataclasses |
 | [Async Patterns](async-patterns.mdc) | Async/await best practices, structured concurrency | async, await, asyncio, async patterns |
@@ -55,3 +57,5 @@ alwaysApply: false
 - **Testing**: See `../testing/index.mdc` for testing patterns
 - **Performance**: See `../performance/index.mdc` for performance patterns
 - **Meta**: See `../meta/pep8-style-guide.mdc` for PEP 8 style guide
+- **Security**: See `../meta/python-security-patterns.mdc` for secrets, injection prevention
+- **Production**: See `../meta/python-production-patterns.mdc` for deployment, tooling

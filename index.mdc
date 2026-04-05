@@ -168,12 +168,17 @@ alwaysApply: false
 |---|---|
 | `curl.mdc` | HTTP requests, REST APIs, authentication |
 | `jq.mdc` | JSON parsing, filtering, manipulation |
+| `yq.mdc` | YAML parsing, filtering, manipulation |
 | `git.mdc` | Version control commands, workflows |
 | `docker.mdc` | Container management, logs, exec |
 | `kcat.mdc` | Kafka CLI client for producing/consuming |
 | `gh-cli.mdc` | GitHub CLI for PRs, issues, repos |
 | `aws-cli.mdc` | AWS services (S3, EC2, CloudWatch, SSM) |
+| `gcloud.mdc` | Google Cloud CLI |
 | `kubectl.mdc` | Kubernetes CLI for pods, logs, exec |
+| `helm.mdc` | Helm chart management |
+| `terraform.mdc` | Infrastructure as Code |
+| `ripgrep.mdc` | Fast code search (rg) |
 
 ---
 
@@ -212,6 +217,15 @@ alwaysApply: false
 | `brainstorm.md` | Explore intent and design before implementation | `/brainstorm` |
 | `execute-plan.md` | Execute an implementation plan | `/execute-plan` |
 | `write-plan.md` | Create an implementation plan | `/write-plan` |
+| `code-review.md` | Trigger code review | `/code-review` |
+| `council.md` | Multi-perspective decision making | `/council` |
+| `create-pr.md` | Create a pull request | `/create-pr` |
+| `fix-issue.md` | Fix a GitHub issue | `/fix-issue` |
+| `generate-changelog.md` | Generate changelog | `/generate-changelog` |
+| `generate-docs.md` | Generate documentation | `/generate-docs` |
+| `onboard-developer.md` | Developer onboarding | `/onboard-developer` |
+| `security-audit.md` | Run security audit | `/security-audit` |
+| `test-until-pass.md` | Iterative test-fix loop | `/test-until-pass` |
 
 ### Skills (`shared/skills/`)
 **Procedural workflows for complex, multi-step development tasks.**
@@ -228,31 +242,50 @@ alwaysApply: false
 - `test-driven-development/` - TDD before implementation code
 - `git-workflow/` - Git workflow for complex tasks
 - `pr-workflow/` - Full PR lifecycle (create, monitor, merge)
+- `create-pr/` - Quick PR creation
+- `fix-issue/` - Fix a GitHub issue
 - `finishing-a-development-branch/` - Integration options after dev complete
 - `setup-local-dev/` - Persistent local dev server via pm2
 
 **Code Quality**:
 - `best-practices-enforcement/` - Enforce code quality standards
 - `code-cleanup/` - Detect AI slop, dead code, anti-patterns
+- `code-review-excellence/` - Effective code review practices
+- `code-optimization/` - Performance and efficiency optimization
+- `code-migration/` - Code migration patterns
 - `requesting-code-review/` - Verify work before merging
 - `receiving-code-review/` - Handle review feedback with rigor
 - `verification-before-completion/` - Verify before claiming done
+- `security-audit/` - Security vulnerability scanning
 
 **Debugging & Testing**:
 - `systematic-debugging/` - Structured debugging methodology
 - `debug-workflow/` - Debug investigation workflow
 - `webapp-testing/` - Browser testing with Playwright
+- `test-until-pass/` - Iterative test-fix loop
 
 **Multi-Agent & Parallel**:
 - `dispatching-parallel-agents/` - Run independent tasks concurrently
 - `subagent-driven-development/` - Execute plans with subagents
 - `multi-agent-branching/` - Prevent concurrent agent conflicts
 - `using-git-worktrees/` - Isolated feature work via worktrees
+- `mass-repo-orchestration/` - Multi-repo batch operations
+- `council/` - Multi-perspective decision making
+
+**Research & Knowledge**:
+- `deep-research/` - Multi-source research with citations
+- `search-first/` - Research before coding
+- `onboard-developer/` - Developer onboarding guide
+- `generate-docs/` - Auto-generate documentation
+- `generate-changelog/` - Generate changelogs
+- `doc-coauthoring/` - Collaborative document creation
+- `address-pr-feedback/` - Systematic PR feedback handling
 
 **Frontend & Documents**:
 - `frontend-design/` - Production-grade frontend interfaces
 - `web-artifacts-builder/` - Multi-component HTML artifacts
-- `pdf/` `docx/` `pptx/` `xlsx/` - Document format skills
+- `agent-browser/` - Browser automation
+- `pdf/` `docx/` `pptx/` `xlsx/` `gdoc/` - Document format skills
 
 **Meta & Tools**:
 - `skill-creator/` - Create new skills
@@ -260,13 +293,26 @@ alwaysApply: false
 - `mcp-builder/` - Build MCP servers
 - `session-memory/` - Persist context across sessions
 - `using-superpowers/` - Skill discovery and invocation
+- `agent-token-optimization/` - LLM token cost optimization
+- `continuous-learning-v2/` - Instinct-based learning system
+- `strategic-compact/` - Context compaction at logical intervals
+- `prompt-optimizer/` - Optimize LLM prompts
+- `repository-organization/` - Restructure messy repos
 
 ### Subagents (`shared/agents/`)
 **Specialized AI assistants for parallel task execution.**
 
 | Agent | Purpose |
 |-------|---------|
+| `architect.md` | System architecture and design decisions |
 | `code-reviewer.md` | Comprehensive code review |
+| `data-validator.md` | Data quality and validation |
+| `documentation-writer.md` | Documentation generation |
+| `git-workflow-specialist.md` | Git workflow and conflict resolution |
+| `monitoring-analyst.md` | Monitoring and observability |
+| `security-auditor.md` | Security vulnerability assessment |
+| `test-runner.md` | Test execution and reporting |
+| `verifier.md` | Implementation verification |
 
 ---
 

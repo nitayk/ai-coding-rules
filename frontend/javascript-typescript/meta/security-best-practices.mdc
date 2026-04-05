@@ -1,0 +1,157 @@
+---
+description: "Frontend security - XSS prevention, CSRF, input validation, Trusted Types, CSP. Use when: (1) Handling user input, (2) Rendering dynamic content, (3) API requests, (4) Security review."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx", "**/*.vue"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-04"
+tags: ["security", "xss", "csrf", "validation", "frontend"]
+---
+
+# Security Best Practices
+
+Prevent XSS. Validate input. Use CSP. Never trust user or external data.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Handling user input, rendering dynamic content, making API requests, security review.
+**SKIP WHEN:** Static content without user/external data.
+
+---
+
+## Core Directive
+
+**Assume breach** - Validate at boundaries. Sanitize before display. Use defense-in-depth (client + server).
+
+---
+
+## XSS Prevention
+
+**Avoid dangerous sinks; sanitize before display:**
+
+```typescript
+// Good: textContent for user data
+element.textContent = userInput;
+
+// Good: Sanitize with DOMPurify for HTML
+import DOMPurify from "dompurify";
+element.innerHTML = DOMPurify.sanitize(userHtml);
+
+// Bad: innerHTML with raw user input
+element.innerHTML = userInput;  // XSS vector
+
+// Bad: Inline event handlers
+<div onclick="handleClick()">  // Avoid
+```
+
+**Never use:**
+- `innerHTML` with unsanitized data
+- `eval` or `new Function` with user input
+- `document.write` with dynamic content
+- Inline `onclick`, `onload`, etc. with user data
+
+---
+
+## Input Validation
+
+**Validate format and length before processing:**
+
+```typescript
+// Good: Tight validation
+function validateEmail(email: string): boolean {
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email) && email.length <= 254;
+}
+
+function validateId(id: string): boolean {
+  return /^[a-zA-Z0-9-]{1,36}$/.test(id);
+}
+
+// Good: Validate at boundary
+function handleSubmit(data: unknown) {
+  if (!isValidUserInput(data)) {
+    throw new ValidationError("Invalid input");
+  }
+  process(data);
+}
+
+// Bad: Trusting client input
+function process(data: any) {
+  saveToDb(data);  // No validation
+}
+```
+
+---
+
+## CSRF Prevention
+
+**Use tokens and SameSite cookies:**
+
+```typescript
+// Good: Include CSRF token in state-changing requests
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+async function submitForm(data: FormData) {
+  await fetch("/api/submit", {
+    method: "POST",
+    headers: {
+      "X-CSRF-Token": csrfToken ?? "",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+    credentials: "same-origin",
+  });
+}
+
+// Server: Set SameSite cookie
+// Set-Cookie: session=...; SameSite=Strict; Secure
+```
+
+**Avoid:** GET for state-changing operations. Relying only on client-side validation.
+
+---
+
+## URL Validation
+
+**Validate and normalize URLs before use:**
+
+```typescript
+// Good: Prevent javascript: and data: URLs
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+// Bad: Using user URL directly in href
+<a href={userInput}>Link</a>  // javascript:alert(1) possible
+```
+
+---
+
+## Content Security Policy
+
+**Recommend CSP headers (server-side):**
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
+```
+
+Use nonces or hashes for inline scripts when needed. Avoid `'unsafe-inline'` for scripts when possible.
+
+---
+
+## Related Rules
+
+- [API Defensive Programming](../language/api-defensive-programming.mdc) - Safe property access
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - Validation errors
+
+---
+
+## References
+
+- [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
+- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [MDN: Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)

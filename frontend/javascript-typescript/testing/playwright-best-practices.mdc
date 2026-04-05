@@ -1,0 +1,120 @@
+---
+description: "Playwright E2E testing best practices - robust locators, web-first assertions, Page Object Model, auth state, API mocking. Use when: (1) Writing Playwright tests, (2) E2E test patterns, (3) @playwright/test usage."
+globs: ["**/*.spec.ts", "**/*.spec.js", "**/*.e2e.ts", "**/*.e2e.js", "**/playwright.config.*"]
+alwaysApply: false
+tags: ["playwright", "e2e", "testing", "frontend"]
+---
+
+# Playwright Best Practices
+
+**APPLY WHEN:** Writing or reviewing Playwright end-to-end tests.
+
+---
+
+## 1. Use `@playwright/test` Runner
+
+Use the official test runner for fixtures, isolation, and web-first assertions. Avoid the low-level `playwright` library for E2E tests.
+
+**DO**:
+```typescript
+import { test, expect } from '@playwright/test';
+test('should navigate to home', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/Home/);
+});
+```
+
+**STOP**:
+```typescript
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+// Manual setup/teardown - use @playwright/test instead
+```
+
+---
+
+## 2. Robust Locators
+
+Prefer user-facing attributes over brittle CSS selectors.
+
+**DO**:
+```typescript
+await page.getByRole('button', { name: 'Add to Cart' }).click();
+await page.getByLabel('Username').fill('testuser');
+await page.getByTestId('product-item-123').click();
+```
+
+**STOP**:
+```typescript
+await page.locator('div.container > ul > li:nth-child(2) > button').click();
+```
+
+---
+
+## 3. Web-First Assertions
+
+Use `expect()` assertions that auto-retry. Never use `page.waitForTimeout()`.
+
+**DO**:
+```typescript
+await expect(page).toHaveTitle(/My Page/);
+await expect(page.getByText('Welcome')).toBeVisible();
+await expect(page.getByRole('checkbox')).toBeChecked();
+```
+
+**STOP**:
+```typescript
+await page.waitForTimeout(2000); // Flaky
+const title = await page.title();
+assert.equal(title, 'My Page'); // Not web-first
+```
+
+---
+
+## 4. Page Object Model (POM)
+
+Encapsulate selectors and actions in dedicated classes for reuse and maintainability.
+
+**DO**:
+```typescript
+// pages/LoginPage.ts
+export class LoginPage {
+  constructor(readonly page: Page) {}
+  async login(username: string, password: string) {
+    await this.page.getByLabel('Username').fill(username);
+    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByRole('button', { name: 'Login' }).click();
+  }
+}
+```
+
+---
+
+## 5. Auth State and Route Blocking
+
+Reuse authenticated sessions and block unnecessary resources for faster tests.
+
+**DO**:
+- Use `storageState` in config for saved auth
+- Use `globalSetup` to create auth state once
+- Use `context.route()` to block images/CSS when not needed
+
+---
+
+## 6. Mock APIs for Determinism
+
+Isolate UI tests from backend flakiness.
+
+**DO**:
+```typescript
+await page.route('**/api/products', route => {
+  route.fulfill({ status: 200, body: JSON.stringify([{ id: 1, name: 'Mock' }]) });
+});
+```
+
+---
+
+## Related
+
+- **Skill**: `/webapp-testing` - Playwright-based web testing workflow
+- **Vitest**: See `vitest-best-practices.mdc` for unit/component tests

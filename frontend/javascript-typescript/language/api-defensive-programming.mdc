@@ -15,7 +15,7 @@ Handle API responses defensively to remain resilient to backend schema changes. 
 **Always use optional chaining and provide defaults:**
 
 ```javascript
-// ✅ Good: Safe access with defaults
+// Good: Safe access with defaults
 const user = {
   id: item?.id || 'unknown',
   name: item?.name || 'Unnamed',
@@ -27,7 +27,7 @@ const user = {
   }
 };
 
-// ✅ Good: TypeScript with optional chaining
+// Good: TypeScript with optional chaining
 interface User {
   id: string;
   name: string;
@@ -55,7 +55,7 @@ function safeGetUser(item: unknown): User {
   };
 }
 
-// ❌ Bad: Direct access that breaks on schema changes
+// Bad: Direct access that breaks on schema changes
 const user = {
   id: item.id,  // Breaks if item is null/undefined
   name: item.name,  // Breaks if name field renamed
@@ -70,13 +70,13 @@ const user = {
 **Handle arrays and collections defensively:**
 
 ```javascript
-// ✅ Good: Safe array processing
+// Good: Safe array processing
 const users = (response?.users || []).map(item => ({
   id: item?.id || 'unknown',
   name: item?.name || 'Unnamed'
 })).filter(item => item.id !== 'unknown');
 
-// ✅ Good: TypeScript with type guards
+// Good: TypeScript with type guards
 function processUsers(response: unknown): User[] {
   if (!response || typeof response !== 'object') {
     return [];
@@ -90,7 +90,7 @@ function processUsers(response: unknown): User[] {
     .filter(user => user.id !== 'unknown');
 }
 
-// ❌ Bad: Assumes array exists and has expected structure
+// Bad: Assumes array exists and has expected structure
 const users = response.users.map(item => ({
   id: item.id,  // Breaks if users is undefined
   name: item.name  // Breaks if item structure changes
@@ -104,7 +104,7 @@ const users = response.users.map(item => ({
 **Always validate API responses before processing:**
 
 ```javascript
-// ✅ Good: Validate response structure generically
+// Good: Validate response structure generically
 function validateApiResponse(response: unknown, expectedFields: string[]): { isValid: boolean; data?: unknown; error?: string } {
   if (!response || typeof response !== 'object') {
     return { isValid: false, error: 'Invalid response format' };
@@ -123,7 +123,7 @@ function validateApiResponse(response: unknown, expectedFields: string[]): { isV
   return { isValid: true, data: obj };
 }
 
-// ✅ Good: TypeScript with generic typing
+// Good: TypeScript with generic typing
 interface ApiResponse<T = unknown> {
   data?: T[];
   items?: T[];
@@ -147,7 +147,7 @@ function validateApiResponse<T>(response: unknown): { isValid: boolean; data?: A
   return { isValid: true, data: validated };
 }
 
-// ❌ Bad: No validation
+// Bad: No validation
 function processResponse(response: unknown) {
   const data = response as ApiResponse;
   return data.data.map(/* ... */);  // Breaks if data is undefined
@@ -161,7 +161,7 @@ function processResponse(response: unknown) {
 **Implement graceful error handling:**
 
 ```javascript
-// ✅ Good: Graceful error handling
+// Good: Graceful error handling
 function processApiData<T>(response: unknown, processor: (data: ApiResponse<T>) => T[]): T[] {
   try {
     const validated = validateApiResponse<T>(response);
@@ -183,7 +183,7 @@ function getEmptyResponse<T>(): ApiResponse<T> {
   };
 }
 
-// ❌ Bad: No error handling
+// Bad: No error handling
 function processApiData(response: unknown) {
   const data = response as ApiResponse;
   return {
@@ -201,7 +201,7 @@ function processApiData(response: unknown) {
 **Create helper functions for common transformations:**
 
 ```javascript
-// ✅ Good: Helper functions for safe data access with backward compatibility
+// Good: Helper functions for safe data access with backward compatibility
 function safeGetUser(item: unknown): User {
   const obj = item as Record<string, unknown>;
   return {
@@ -223,7 +223,7 @@ function safeGetUser(item: unknown): User {
   };
 }
 
-// ❌ Bad: Direct access - breaks on field rename/move
+// Bad: Direct access - breaks on field rename/move
 function getUser(item: unknown): User {
   const obj = item as Record<string, unknown>;
   return {
@@ -249,13 +249,13 @@ function getUser(item: unknown): User {
 
 ## API Change Scenarios to Handle
 
-- ✅ **Field Renamed**: `name` → `displayName`, `userId` → `id`
-- ✅ **Field Moved**: `address` → `location.address`, `config.timeout` → `timeout`
-- ✅ **Field Removed**: Handle missing fields gracefully
-- ✅ **New Field Added**: Ignore unknown fields (forward compatibility)
-- ✅ **Type Changed**: String to object, number to string, etc.
-- ✅ **Array to Object**: Collection structure changes
-- ✅ **Nested Structure Changes**: Flattened or deeper nesting
+- **Field Renamed**: `name` → `displayName`, `userId` → `id`
+- **Field Moved**: `address` → `location.address`, `config.timeout` → `timeout`
+- **Field Removed**: Handle missing fields gracefully
+- **New Field Added**: Ignore unknown fields (forward compatibility)
+- **Type Changed**: String to object, number to string, etc.
+- **Array to Object**: Collection structure changes
+- **Nested Structure Changes**: Flattened or deeper nesting
 
 ---
 

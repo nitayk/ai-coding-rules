@@ -366,6 +366,27 @@ func ProcessBatch(items []Item) {
 
 ---
 
+## Implement Backpressure for Unbounded Work
+
+**Assume unbounded goroutines will eventually fail under load.** Use `errgroup.SetLimit`, worker pools, or semaphores.
+
+```go
+// ✅ Good: Bounded concurrency with errgroup
+func ProcessMany(ctx context.Context, items []Item) error {
+    g, ctx := errgroup.WithContext(ctx)
+    g.SetLimit(100)  // Max 100 concurrent goroutines
+    for _, item := range items {
+        item := item
+        g.Go(func() error { return processItem(ctx, item) })
+    }
+    return g.Wait()
+}
+```
+
+**Production tip:** Treat context cancellation as control flow. Propagate context to all outbound calls. Use deadlines as budgets across downstream work.
+
+---
+
 ## Related Rules
 
 **Universal Principles:**
@@ -373,6 +394,7 @@ func ProcessBatch(items []Item) {
 
 **Go-Specific:**
 - [Context Patterns](context-patterns.mdc) - Using context with concurrency
+- [Mutex and Locking](mutex-and-locking.mdc) - sync.Mutex, RWMutex, when to use channels vs mutex
 - [Idiomatic Error Handling](idiomatic-error-handling.mdc) - Error handling in concurrent code
 
 ---

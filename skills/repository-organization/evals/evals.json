@@ -1,0 +1,61 @@
+{
+  "skill_name": "repository-organization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a flat scripts/ with 35 mixed Python and shell files (validation, MCP tests, one-off schema hacks, docker helpers). Organize into subfolders, add a README index, and ensure scripts still resolve the repo root after moves. Don't delete anything without asking. Branch: feature/scripts-layout.",
+      "expected_output": "Target folder map; phased plan; path-bootstrap strategy; rg plan for references; commit slicing; no unauthorized deletes.",
+      "files": [],
+      "expectations": [
+        "Response proposes a clear directory taxonomy (not a single dump folder)",
+        "Response mentions fixing references (rg/CI/docs) after moves",
+        "Response includes path resolution / repo-root strategy for Python or shell",
+        "Response explicitly avoids or gates destructive deletes",
+        "Response mentions README or index for discoverability"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "docs/plans is a mess: active work, finished designs, and three copies of the same ADR with different filenames. I also have untracked SQL exports I never want in git. Tell me how to organize and what to do with untracked files.",
+      "expected_output": "Lifecycle split; merge/dedupe strategy for ADRs; untracked: commit vs ignore vs delete; .gitignore suggestion for exports.",
+      "files": [],
+      "expectations": [
+        "Addresses duplicate / near-duplicate documentation (merge or canonical + pointer)",
+        "Separates active vs completed or archive conceptually",
+        "Gives explicit guidance on untracked SQL exports (typically gitignore + not commit)",
+        "Does not advise committing secrets or large arbitrary exports without qualification"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Refactor the PaymentValidator class in user-service: extract validation into its own module.",
+      "expected_output": "Normal code refactor—NOT a full repo organization project; skill may not apply or should defer.",
+      "files": [],
+      "expectations": [
+        "Does not propose reorganizing unrelated repo folders",
+        "Treats task as localized refactor unless user expands scope"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Our CI calls bash scripts/docker/build.sh and Makefile references scripts/legacy/push.sh. We're moving scripts under scripts/ops/. What must we update and how do we verify?",
+      "expected_output": "CI/Makefile/docker grep plan; verification steps; optional compatibility shim at old path.",
+      "files": [],
+      "expectations": [
+        "Mentions updating CI, Makefile, or Docker references",
+        "Mentions verification (grep, dry run, or test)",
+        "Acknowledges risk of breaking paths and suggests systematic search"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "There's a .git submodule inside our tools/ folder. I want to reorganize tools/ for clarity. What's different about handling submodules?",
+      "expected_output": "Submodule caution—no casual git mv of inner repo; explicit steps or defer to submodule docs.",
+      "files": [],
+      "expectations": [
+        "Raises submodule or nested repo as special case",
+        "Does not treat submodule contents like normal files to shuffle blindly"
+      ]
+    }
+  ]
+}

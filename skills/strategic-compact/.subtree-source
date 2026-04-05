@@ -1,0 +1,9 @@
+# Subtree Source Information
+# This directory is maintained as a snapshot from an upstream repository.
+# DO NOT manually edit files in this directory.
+# Use the update script to pull in changes from upstream.
+
+SOURCE_REPO=https://github.com/affaan-m/everything-claude-code.git
+SOURCE_PATH=skills/strategic-compact
+LAST_SYNC_COMMIT=656cf4c94a3f2a0f6c7ca597e87d35e520b0ca56
+LAST_SYNC_DATE=2026-03-30 04:58:48 -0400
