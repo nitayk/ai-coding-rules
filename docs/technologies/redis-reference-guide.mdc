@@ -1,5 +1,5 @@
 ---
-description: "Redis reference guide - redis-cli, commands, administration, production best practices. Use when: (1) Redis operations, (2) redis-cli usage, (3) Redis production setup, (4) Caching, session store, pub/sub. Covers UADS and ISX usage."
+description: "Redis reference guide - redis-cli, commands, administration, production best practices. Use when: (1) Redis operations, (2) redis-cli usage, (3) Redis production setup, (4) Caching, session store, pub/sub."
 globs: []
 alwaysApply: false
 ---
@@ -17,7 +17,7 @@ alwaysApply: false
 - ✅ Performance (pipelining, connection pooling)
 - ✅ Anti-patterns (KEYS in production, no maxmemory, unauthenticated)
 
-**Location**: `.cursor/rules/shared/technologies/redis-reference-guide.mdc`
+**Location**: `.cursor/rules/shared/docs/technologies/redis-reference-guide.mdc`
 
 ---
 
@@ -311,8 +311,7 @@ SCAN 0 MATCH user:* COUNT 100
 
 ## Related Documentation
 
-- **Trino**: `.cursor/rules/shared/technologies/trino-reference-guide.mdc` (data validation)
-- **GCP**: `.cursor/rules/shared/tools/gcloud.mdc` (UADS Redis on GCP)
+- **GCP**: `.cursor/rules/shared/tools/gcloud.mdc` (Redis on GCP)
 
 ---
 

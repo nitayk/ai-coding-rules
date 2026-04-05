@@ -4,7 +4,7 @@
 
 ## Auto-Trigger Conditions
 
-Load `@skills/scala-dependency-hell/SKILL.md` when:
+Watch for these dependency conflict signals:
 
 ### Keywords Detected
 - **"NoClassDefFoundError"** or **"ClassNotFoundException"** in error logs
@@ -30,14 +30,13 @@ Load `@skills/scala-dependency-hell/SKILL.md` when:
 
 When triggers detected:
 
-1. **Immediately load the skill**: `@skills/scala-dependency-hell/SKILL.md`
-
-2. **Run diagnostic script**:
+1. **Analyze the dependency tree**:
    ```bash
-   manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+   sbt dependencyTree
+   sbt evicted
    ```
 
-3. **Check for known patterns**:
+2. **Check for known patterns**:
    - Play JSON 2.x → 3.x group ID change (`com.typesafe.play` → `org.playframework`)
    - Akka → Pekko migration (`com.typesafe.akka` → `org.apache.pekko`)
    - Play JSON Extensions migration (`ai.x` → `com.gu`)
@@ -64,7 +63,8 @@ When triggers detected:
 
 2. **Run conflict detection**:
    ```bash
-   manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+   sbt evicted
+   sbt dependencyTree
    ```
 
 3. **Plan exclusions** before making changes
@@ -128,7 +128,7 @@ addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
 
 ```bash
 # Comprehensive conflict detection
-manage/mobile-cursor-rules/scripts/detect-dependency-conflicts.sh
+sbt evicted
 
 # Dependency hygiene (PROACTIVE - run regularly!)
 sbt "<module>/undeclaredCompileDependencies"  # Deps used but not declared

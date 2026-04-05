@@ -31,11 +31,6 @@ DANGEROUS_PATTERNS=(
 # Check command against dangerous patterns
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if echo "$command" | grep -qiE "$pattern"; then
-    # Exception for repos under manage/ directory - allow push to main with approval
-    if [[ "$cwd" == *"/manage/"* ]] && [[ "$command" =~ "git push" ]] && [[ "$command" =~ "main" ]]; then
-      echo "{\"permission\": \"ask\", \"user_message\": \"Push to main in manage/ repo - requires approval: $command\"}"
-      exit 0
-    fi
     echo "{\"permission\": \"deny\", \"user_message\": \"Dangerous command blocked: $command\", \"agent_message\": \"This command is blocked by security policy. Please review and use safer alternatives.\"}"
     exit 2
   fi

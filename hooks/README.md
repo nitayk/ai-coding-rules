@@ -169,7 +169,7 @@ To add repo-specific hooks, create `.cursor/hooks/hooks.json` in your repo:
 ```
 
 **Merging behavior:**
-- Shared hooks from `mobile-cursor-rules` are always included
+- Shared hooks from the rules package are always included
 - Repo-specific hooks are **added** to shared hooks (arrays are combined)
 - If same hook event exists in both, both arrays are merged
 
@@ -362,7 +362,7 @@ Community guides (e.g. Longform “Everything Claude Code”) describe **PreComp
 
 ## Contributing
 
-To add new hooks to `mobile-cursor-rules`:
+To add new hooks to this rules package:
 
 1. Add hook script to `hooks/`
 2. Update `hooks/hooks.json` to include new hook

@@ -122,21 +122,37 @@ alwaysApply: false
 
 ### Index & Navigation
 - **`frontend/javascript-typescript/index.mdc`** ← **Load this index** to browse all JS/TS rules
-| File | Purpose | Status |
-|---|---|---|
-| `javascript-typescript-style-guide.mdc` | ESLint, Prettier, naming conventions | Planned |
-| `performance-best-practices.mdc` | Bundle size, lazy loading, optimization | Planned |
-| `security-best-practices.mdc` | XSS, CSRF, input validation | Planned |
 
-### Architecture (`shared/frontend/javascript-typescript/architecture/`)
-| File | Purpose | Status |
-|---|---|---|
-| `module-organization.mdc` | ES modules, barrel files, path aliases | Planned |
-| `component-design-patterns.mdc` | Composition, single responsibility | Planned |
-| `state-management-patterns.mdc` | Vuex, local state, reactive patterns | Planned |
+### Language (`shared/frontend/javascript-typescript/language/`)
+| File | Purpose |
+|---|---|
+| `typescript-strict-type-safety.mdc` | TypeScript strict mode, type guards |
+| `api-defensive-programming.mdc` | API error handling, retry patterns |
+| `async-patterns.mdc` | Async/await, promises, error handling |
+| `error-handling-patterns.mdc` | Error types, boundaries, logging |
+| `modern-javascript-patterns.mdc` | ES2020+, destructuring, optional chaining |
+
+### Frameworks (`shared/frontend/javascript-typescript/frameworks/`)
+| File | Purpose |
+|---|---|
+| `react-patterns.mdc` | React hooks, components, state management |
+| `vue-best-practices.mdc` | Vue 3, Composition API, reactivity |
+
+### Testing (`shared/frontend/javascript-typescript/testing/`)
+| File | Purpose |
+|---|---|
+| `cypress-best-practices.mdc` | Cypress E2E testing patterns |
+| `playwright-best-practices.mdc` | Playwright testing patterns |
+
+### Meta (`shared/frontend/javascript-typescript/meta/`)
+| File | Purpose |
+|---|---|
+| `accessibility-best-practices.mdc` | WCAG, ARIA, screen readers |
+| `performance-best-practices.mdc` | Bundle size, lazy loading, optimization |
+| `security-best-practices.mdc` | XSS, CSRF, input validation |
 
 **Applies To**: 
-- Vue 3 + TypeScript projects
+- React, Vue 3, and TypeScript projects
 - Mixed JS/TS projects
 - Node.js backend services
 - Browser/client-side applications

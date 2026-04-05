@@ -40,7 +40,7 @@ if [ -d "$ROOT/.claude/hooks" ]; then
 elif [ -d "$ROOT/.cursor/hooks" ]; then
   LOG_DIR="$ROOT/.cursor/hooks/logs"
 else
-  LOG_DIR="${TMPDIR:-/tmp}/mobile-cursor-rules-hook-logs"
+  LOG_DIR="${TMPDIR:-/tmp}/ai-coding-rules-hook-logs"
 fi
 
 mkdir -p "$LOG_DIR"

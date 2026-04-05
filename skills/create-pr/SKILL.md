@@ -18,8 +18,8 @@ Determine the repository name and path using `git rev-parse --show-toplevel`. Th
 
 ## 3. Determine the base branch
 
-- For **unity-ads-sdk** repositories (`unity-ads-sdk-android`, `unity-ads-sdk-ios`): use `release/next`.
-- For all other repositories: use `main`.
+- Check if the repo has a default branch convention (e.g. `develop`, `release/next`).
+- Default to `main` if no convention is found.
 
 ## 4. Find the PR template
 
@@ -30,8 +30,6 @@ Search for a PR template in the following locations (in order of priority):
 3. `.github/pull_request_template.md`
 
 Read the first template found and use it as the structure for the PR body.
-
-For **unity-ads-sdk** repositories, prefer the repo-root template; only use `Unity/SDK/pull_request_template.md` if the change is confined to that subtree.
 
 **If no template is found**, use this default structure:
 ```
@@ -61,22 +59,15 @@ For **unity-ads-sdk** repositories, prefer the repo-root template; only use `Uni
 
 ## 6. Choose PR title
 
-### Unity Ads SDK repositories
-
-```
-<type>(<scope>):<platform>: <subject>
-```
+Use conventional commit format: `<type>(<scope>): <subject>`
 
 | Part         | Values / rules |
 |--------------|----------------|
 | `<type>`     | `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf` |
-| `<scope>`    | JIRA ticket number, e.g. `UASDK-5000` or `UASDK-NA` |
-| `<platform>` | `Android`, `iOS`, `Web` |
+| `<scope>`    | Optional: module, area, or ticket number |
 | `<subject>`  | Short imperative description of the change |
 
-### Other repositories
-
-Use a short imperative title, e.g. `feat: add X` or `fix: Y`.
+Example: `feat: add X` or `fix(auth): handle expired tokens`.
 
 ## 7. Ask about draft status
 

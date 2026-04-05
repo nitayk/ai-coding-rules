@@ -499,4 +499,4 @@ alias kdd='kubectl describe deployment'
 
 ## Related Rules
 
-- See `.cursor/rules/shared/skills/argocd-deployment/SKILL.md` for ArgoCD MCP usage
+- See Kubernetes and deployment documentation for your cluster setup

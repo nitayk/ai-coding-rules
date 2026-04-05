@@ -464,4 +464,4 @@ aws iam simulate-principal-policy \
 
 ## Related Rules
 
-- See `.cursor/rules/shared/skills/argocd-deployment/SKILL.md` for ArgoCD MCP usage
+- See AWS and deployment documentation for your infrastructure setup

@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Orchestrate **one playbook** across **many client repositories**: version-controlled plans, resumable progress, human gates before publish, and fallbacks when you lack write access.
 
-*Credits: Inspired by the excellent talk and learnings from Théo Penavaire, Miro Brodlova, Justinas, and Harald at Unity. ([Watch the Zoom recording](https://unity3d.zoom.us/rec/play/6cvv-txtZzflo4uPWHWBVxAk6AjtYhkNwhA0m00R05XiyMjnTOk_Q0Zx3Q7K3sRYks0LaN4wHQQopdS1.AstNS71M0zSL2onE))*
+*Inspired by field-tested patterns from large-scale multi-repo migrations.*
 
 ## When to use
 
