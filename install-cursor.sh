@@ -241,8 +241,10 @@ if [ -d "$SCRIPT_DIR/hooks" ]; then
   for hook_file in "$SCRIPT_DIR/hooks"/*; do
     if [ -f "$hook_file" ]; then
       hook_name=$(basename "$hook_file")
-      if [ "$hook_name" = "hooks.json" ]; then
+      if [ "$hook_name" = "hooks-cursor.json" ]; then
         smart_link_or_copy "$hook_file" "$REPO_ROOT/.cursor/hooks.json" "hooks.json" || true
+      elif [ "$hook_name" = "hooks.json" ]; then
+        : # Skip Claude Code hooks.json (different format)
       else
         smart_link_or_copy "$hook_file" "$REPO_ROOT/.cursor/hooks/$hook_name" "hook: $hook_name" || true
       fi
