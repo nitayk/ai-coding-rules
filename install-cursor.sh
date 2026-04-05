@@ -49,8 +49,8 @@ while [[ $# -gt 0 ]]; do
       echo "Syncs ai-coding-rules into .cursor/ for Cursor IDE discovery."
       echo ""
       echo "Options:"
-      echo "  --symlinks     Use symlinks (default - faster, auto-updates)"
-      echo "  --copy         Use file copying instead of symlinks"
+      echo "  --symlinks     Symlink .cursor/skills -> rules/shared/skills; symlink agents/commands/hooks (default)"
+      echo "  --copy         Copy each skill dir into .cursor/skills (legacy; use if Cursor ignores symlinked skills)"
       echo "  --dry-run      Show what would be done without making changes"
       echo "  --verbose      Show detailed output"
       echo "  --force        Force overwrite repo-specific files"
@@ -147,24 +147,56 @@ if [ "$DRY_RUN" = false ]; then
 fi
 
 # ---------------------------------------------------
-# Sync Skills (MUST be copied, not symlinked - Cursor limitation)
+# Skills: default = one symlink .cursor/skills -> rules/shared/skills (tracks submodule)
+#         --copy  = copy each skill dir (legacy)
 # ---------------------------------------------------
 echo ""
 log_info "Syncing Skills..."
-mkdir -p "$REPO_ROOT/.cursor/skills"
+CURSOR_SKILLS="$REPO_ROOT/.cursor/skills"
+SKILLS_REL_TARGET="rules/shared/skills"
 
-original_symlinks="$USE_SYMLINKS"
-USE_SYMLINKS=false
-
-for skill_dir in "$SCRIPT_DIR/skills"/*/; do
-  if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
-    skill_name=$(basename "$skill_dir")
-    smart_link_or_copy "$skill_dir" "$REPO_ROOT/.cursor/skills/$skill_name" "skill: $skill_name" || true
+if [ "$USE_SYMLINKS" = true ]; then
+  if [ "$DRY_RUN" = true ]; then
+    log_info "Would symlink $CURSOR_SKILLS -> $SKILLS_REL_TARGET"
+  else
+    mkdir -p "$REPO_ROOT/.cursor"
+    if [ -e "$CURSOR_SKILLS" ]; then
+      if [ -L "$CURSOR_SKILLS" ]; then
+        cur=$(readlink "$CURSOR_SKILLS")
+        if [ "$cur" = "$SKILLS_REL_TARGET" ]; then
+          log_info ".cursor/skills already -> $SKILLS_REL_TARGET"
+        elif [ "$FORCE" = true ]; then
+          rm -f "$CURSOR_SKILLS"
+          ln -sfn "$SKILLS_REL_TARGET" "$CURSOR_SKILLS"
+          log_success "Relinked .cursor/skills -> $SKILLS_REL_TARGET"
+        else
+          log_warn ".cursor/skills is a symlink to $cur (not $SKILLS_REL_TARGET); use --force to replace"
+        fi
+      elif [ "$FORCE" = true ]; then
+        rm -rf "$CURSOR_SKILLS"
+        ln -sfn "$SKILLS_REL_TARGET" "$CURSOR_SKILLS"
+        log_success "Replaced .cursor/skills with symlink -> $SKILLS_REL_TARGET"
+      else
+        log_warn ".cursor/skills exists as a directory; use --force to replace with symlink -> $SKILLS_REL_TARGET"
+      fi
+    else
+      ln -sfn "$SKILLS_REL_TARGET" "$CURSOR_SKILLS"
+      log_success "Linked .cursor/skills -> $SKILLS_REL_TARGET"
+    fi
   fi
-done
-
-USE_SYMLINKS="$original_symlinks"
-log_info "Skills synced (always copied for Cursor discovery)"
+else
+  mkdir -p "$CURSOR_SKILLS"
+  saved_use_symlinks="$USE_SYMLINKS"
+  USE_SYMLINKS=false
+  for skill_dir in "$SCRIPT_DIR/skills"/*/; do
+    if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
+      skill_name=$(basename "$skill_dir")
+      smart_link_or_copy "$skill_dir" "$CURSOR_SKILLS/$skill_name" "skill: $skill_name" || true
+    fi
+  done
+  USE_SYMLINKS="$saved_use_symlinks"
+  log_info "Skills copied into .cursor/skills/ (--copy)"
+fi
 
 # ---------------------------------------------------
 # Sync Agents
