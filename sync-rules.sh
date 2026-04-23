@@ -1227,6 +1227,12 @@ EOF
           filter_hooks_json_for_target "$output_hooks_json" "$CURRENT_TARGET"
 
           if [ "$CURRENT_TARGET" = "claude" ]; then
+            # Replace ${CLAUDE_PLUGIN_ROOT}/hooks/ with actual deployed hooks dir so
+            # plugin-style hook references work in standalone consumer settings.json
+            if grep -q 'CLAUDE_PLUGIN_ROOT' "$output_hooks_json" 2>/dev/null; then
+              sed -i '' "s|\${CLAUDE_PLUGIN_ROOT}/hooks/|$HOOKS_DIR/|g" "$output_hooks_json"
+              log_verbose "Resolved \${CLAUDE_PLUGIN_ROOT}/hooks/ → $HOOKS_DIR/ in hooks.json"
+            fi
             claude_settings="$REPO_ROOT/.claude/settings.json"
             if [ -f "$claude_settings" ]; then
               tmp_settings=$(mktemp)
