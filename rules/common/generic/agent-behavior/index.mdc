@@ -1,0 +1,23 @@
+---
+description: "Index for agent behavior rules - anti-hallucination, token control, context management, helper tools, and grounding patterns."
+globs: []
+alwaysApply: false
+---
+
+# Agent Behavior Rules
+
+**Purpose**: Control how AI agents behave — prevent hallucinations, enforce verification, manage assumptions.
+
+## Rules in This Category
+
+| File | Purpose | Always Apply |
+|------|---------|-------------|
+| `critical-rules.mdc` | Verify before claiming, 100% means 100%, no temp files | Yes |
+| `anti-hallucination.mdc` | Prevent inventing APIs, guessing requirements, hallucinating code | Yes |
+| `token-control.mdc` | Redirect long output to file; prefer git grep for large codebases | No |
+| `context-management.mdc` | Context window limits, phase splits, intermediate artifacts, ~50% rule | No |
+| `helper-tools-first.mdc` | Prefer small scoped tools over large end-to-end automation | No |
+
+## When These Apply
+
+These rules apply **universally** to all agent interactions regardless of language or framework. They govern agent behavior itself, not code patterns.

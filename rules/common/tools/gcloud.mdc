@@ -1,0 +1,299 @@
+---
+description: "Google Cloud CLI (gcloud) for managing GCP resources - Compute, Cloud Storage, Logging, Cloud Run, and GKE. Use when: (1) Managing GCP services, (2) Compute instances, (3) Cloud Storage (gsutil), (4) Cloud Logging, (5) Cloud Run/GKE. Covers gcloud commands, authentication, and GCP service management."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["gcp", "gcloud", "cli", "cloud", "compute", "storage", "logging"]
+---
+
+# Google Cloud CLI (gcloud) Usage Guide
+
+## Triggers
+**APPLY WHEN:** User needs to investigate GCP resources, query Cloud Logging, manage Cloud Storage, inspect Compute instances, or debug GCP services
+**SKIP WHEN:** Using GCP Console or GCP client libraries programmatically
+
+## Core Directive
+**Use gcloud for GCP operations** - Query logs, inspect resources, manage services, and debug GCP infrastructure from the command line.
+
+## Installation
+
+```bash
+# macOS
+brew install --cask google-cloud-sdk
+
+# Linux (official script)
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+
+# Verify installation
+gcloud --version
+
+# Initialize
+gcloud init
+```
+
+## Configuration
+
+**Set default project:**
+```bash
+gcloud config set project PROJECT_ID
+gcloud config set compute/zone ZONE
+gcloud config set compute/region REGION
+```
+
+**List configuration:**
+```bash
+gcloud config list
+gcloud config list --format="table(core.project,compute.zone)"
+```
+
+**Authenticate:**
+```bash
+gcloud auth login
+gcloud auth application-default login  # For SDK/API access
+gcloud auth list
+```
+
+## Common Operations
+
+### Compute Engine (VMs)
+
+**List instances:**
+```bash
+gcloud compute instances list
+gcloud compute instances list --filter="status=RUNNING"
+gcloud compute instances list --format="table(name,zone,status,networkInterfaces[0].accessConfigs[0].natIP)"
+```
+
+**Get instance details:**
+```bash
+gcloud compute instances describe INSTANCE_NAME --zone ZONE
+```
+
+**SSH into instance:**
+```bash
+gcloud compute ssh INSTANCE_NAME --zone ZONE
+```
+
+**Start/stop instances:**
+```bash
+gcloud compute instances start INSTANCE_NAME --zone ZONE
+gcloud compute instances stop INSTANCE_NAME --zone ZONE
+```
+
+### Cloud Storage (gsutil)
+
+**List buckets:**
+```bash
+gsutil ls
+gsutil ls gs://bucket-name/
+```
+
+**List objects:**
+```bash
+gsutil ls gs://bucket-name/path/to/prefix/
+gsutil ls -l gs://bucket-name/  # With details
+```
+
+**Copy files:**
+```bash
+gsutil cp local-file.txt gs://bucket-name/
+gsutil cp gs://bucket-name/file.txt ./
+gsutil cp -r gs://bucket-name/path/ ./local-dir/
+```
+
+**Sync directories:**
+```bash
+gsutil -m rsync -r ./local-dir gs://bucket-name/path/
+gsutil -m rsync -r gs://bucket-name/path/ ./local-dir
+```
+
+**Get object metadata:**
+```bash
+gsutil stat gs://bucket-name/path/to/file.txt
+```
+
+### Cloud Logging
+
+**List log names:**
+```bash
+gcloud logging logs list
+```
+
+**Read log entries:**
+```bash
+gcloud logging read "resource.type=cloud_run_revision" --limit 50 --format json
+gcloud logging read "severity>=ERROR" --limit 100 --format="table(timestamp,severity,textPayload)"
+```
+
+**Tail logs (stream):**
+```bash
+gcloud logging tail "resource.type=cloud_run_revision" --format="value(timestamp,textPayload)"
+```
+
+**Filter by time:**
+```bash
+gcloud logging read "timestamp>=\"$(date -u -v-1H +%Y-%m-%dT%H:%M:%SZ)\"" --limit 100
+# Linux: date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ
+```
+
+### Cloud Run
+
+**List services:**
+```bash
+gcloud run services list
+gcloud run services list --region REGION
+```
+
+**Get service details:**
+```bash
+gcloud run services describe SERVICE_NAME --region REGION
+```
+
+**View logs:**
+```bash
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=SERVICE_NAME" --limit 50
+```
+
+### GKE (Kubernetes)
+
+**List clusters:**
+```bash
+gcloud container clusters list
+gcloud container clusters list --format="table(name,location,status)"
+```
+
+**Get credentials for kubectl:**
+```bash
+gcloud container clusters get-credentials CLUSTER_NAME --zone ZONE
+gcloud container clusters get-credentials CLUSTER_NAME --region REGION
+```
+
+**Describe cluster:**
+```bash
+gcloud container clusters describe CLUSTER_NAME --zone ZONE
+```
+
+### IAM & Projects
+
+**List projects:**
+```bash
+gcloud projects list
+gcloud projects list --format="table(projectId,name)"
+```
+
+**Get current project:**
+```bash
+gcloud config get-value project
+```
+
+**List service accounts:**
+```bash
+gcloud iam service-accounts list
+```
+
+## Common Patterns
+
+### Investigate Cloud Run Errors
+
+```bash
+# Step 1: List recent errors
+gcloud logging read "resource.type=cloud_run_revision AND severity>=ERROR" --limit 20 --format="table(timestamp,textPayload)"
+
+# Step 2: Tail logs for specific service
+gcloud logging tail "resource.type=cloud_run_revision AND resource.labels.service_name=my-service"
+```
+
+### Find Recent Storage Objects
+
+```bash
+gsutil ls -l gs://bucket-name/ | sort -k2 -r | head -20
+```
+
+### Check Compute Instance Status
+
+```bash
+gcloud compute instances list --filter="status=RUNNING" --format="table(name,zone,machineType,status)"
+```
+
+## Advanced Options
+
+### Output Formatting
+
+```bash
+# JSON
+gcloud compute instances list --format=json
+
+# Table
+gcloud compute instances list --format="table(name,zone,status)"
+
+# Custom fields
+gcloud compute instances list --format="value(name,networkInterfaces[0].accessConfigs[0].natIP)"
+```
+
+### JQ Filtering
+
+```bash
+gcloud compute instances list --format=json | jq '.[] | {name, zone, status}'
+gcloud logging read "severity>=ERROR" --limit 50 --format=json | jq '.entries[].textPayload'
+```
+
+## Examples
+
+### ✅ Positive Pattern: Specify Project Explicitly
+
+```bash
+# ❌ BAD: May use wrong project
+gcloud compute instances list
+
+# ✅ GOOD: Specify project
+gcloud compute instances list --project PROJECT_ID
+# Or set default
+gcloud config set project PROJECT_ID
+```
+
+### ✅ Positive Pattern: Use Filters Server-Side
+
+```bash
+# ❌ BAD: Fetch all then filter
+gcloud compute instances list | grep RUNNING
+
+# ✅ GOOD: Filter on server
+gcloud compute instances list --filter="status=RUNNING"
+```
+
+## Troubleshooting
+
+### Authentication Errors
+
+```bash
+gcloud auth list
+gcloud auth application-default login
+gcloud config get-value project
+```
+
+### Permission Denied
+
+```bash
+# Check current account
+gcloud auth list
+
+# Verify project access
+gcloud projects describe PROJECT_ID
+```
+
+### Region/Zone Issues
+
+```bash
+gcloud config get-value compute/zone
+gcloud config get-value compute/region
+gcloud config set compute/zone ZONE
+```
+
+## Related Rules
+
+- See `.cursor/rules/shared/tools/aws-cli.mdc` for AWS equivalent
+- See `.cursor/rules/shared/tools/kubectl.mdc` for Kubernetes operations (GKE)
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

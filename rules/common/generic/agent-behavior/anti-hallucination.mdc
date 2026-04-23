@@ -1,0 +1,70 @@
+---
+description: "Prevents AI agent hallucinations by enforcing assumption surfacing, clarification before guessing, and grounding responses in actual codebase files. Apply when agents generate code, make architectural decisions, or modify existing files."
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Anti-Hallucination Protocol
+
+**Purpose**: Prevent the most common AI coding mistakes — inventing APIs, guessing at interfaces, and assuming requirements that don't exist.
+
+---
+
+## Core Rules
+
+### 1. Surface Assumptions Before Writing Code
+
+Before generating any non-trivial code, explicitly state:
+- What interfaces/types you're assuming exist
+- What libraries/packages you're assuming are available
+- What patterns you're following from the existing codebase
+- What requirements you're inferring (vs. what was explicitly stated)
+
+**Negative Pattern**: Silently inventing a function signature that doesn't exist.
+
+**Positive Pattern**: "I'm assuming `getUserById(id: string)` exists in `src/services/user.ts` based on the import I see in line 42. Let me verify..."
+
+### 2. Ask Before Guessing
+
+When critical details are missing, **ask** — don't guess:
+- Database schema you haven't seen
+- API contracts not in context
+- Authentication/authorization patterns
+- Environment configuration
+- Deployment targets
+
+**Negative Pattern**: Generating a full database migration based on assumed column types.
+
+**Positive Pattern**: "I need to see the current schema before writing this migration. Can you share `src/db/schema.ts` or the migration files?"
+
+### 3. Ground in Actual Files
+
+- Always verify imports resolve to real files before using them
+- Check that function signatures match what's actually in the codebase
+- Never invent a utility function — search for existing ones first
+- When referencing config, read the actual config file
+
+### 4. Explicit Constraints
+
+- Do NOT modify files outside the scope of the current task unless explicitly asked
+- Do NOT add dependencies without stating why and confirming
+- Do NOT change function signatures that other code depends on without checking callers
+- Do NOT assume test frameworks, assertion libraries, or runner configs
+
+### 5. When Unsure, Say So
+
+Prefer honest uncertainty over confident hallucination:
+- "I'm not sure if this API supports pagination — let me check the docs"
+- "This pattern might not match your existing error handling — should I look at how errors are handled elsewhere?"
+- "I haven't seen the auth middleware — I'll write a placeholder and flag it for review"
+
+---
+
+## Verification Checklist
+
+Before completing any task, confirm:
+- [ ] All imports resolve to files that exist
+- [ ] Function signatures match their actual definitions
+- [ ] No invented APIs, types, or interfaces
+- [ ] Dependencies listed are actually installed (check package.json/requirements.txt/build.sbt)
+- [ ] Config values come from actual config files, not assumptions

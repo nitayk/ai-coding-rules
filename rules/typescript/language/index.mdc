@@ -1,0 +1,56 @@
+---
+description: "JavaScript/TypeScript language patterns index - type safety, API defensive programming, and language best practices. Use when: (1) TypeScript type safety, (2) API defensive programming, (3) JavaScript/TypeScript patterns. Points to language pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# JavaScript/TypeScript Language Patterns Index
+
+**Purpose**: Router for JS/TS language patterns - detects keywords and routes to specific pattern files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **typescript strict**, ts strict, strict type safety, type guards, avoid any | `typescript-strict-type-safety.mdc` |
+| **api defensive**, safe property access, schema change resilience | `api-defensive-programming.mdc` |
+| **async**, promises, await, retry, timeout, concurrent | `async-patterns.mdc` |
+| **error handling**, try catch, error boundaries, graceful degradation | `error-handling-patterns.mdc` |
+| **modern javascript**, es6, es modules, destructuring, const let | `modern-javascript-patterns.mdc` |
+
+---
+
+## Language Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [TypeScript Strict Type Safety](typescript-strict-type-safety.mdc) | Strict mode, avoid any, use unknown, type guards | typescript strict, ts strict, strict type safety |
+| [API Defensive Programming](api-defensive-programming.mdc) | Safe property access, schema change resilience | api defensive, safe property access |
+| [Async Patterns](async-patterns.mdc) | Promises, async/await, retries, timeouts, AbortController | async, promises, retry, timeout |
+| [Error Handling Patterns](error-handling-patterns.mdc) | Try/catch, error boundaries, custom errors | error handling, try catch, error boundaries |
+| [Modern JavaScript Patterns](modern-javascript-patterns.mdc) | ES6+, const/let, destructuring, modules | modern javascript, es6, es modules |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| TypeScript strict | `typescript-strict-type-safety.mdc` |
+| API safety | `api-defensive-programming.mdc` |
+| Async patterns | `async-patterns.mdc` |
+| Error handling | `error-handling-patterns.mdc` |
+| Modern JS | `modern-javascript-patterns.mdc` |
+
+---
+
+## Related Resources
+
+- **Frameworks**: See `../frameworks/index.mdc` for React/Vue patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns

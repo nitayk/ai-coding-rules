@@ -1,0 +1,143 @@
+---
+description: "Advanced Python language features - Type hints, decorators, and context managers. Use when: (1) Using type hints, (2) Creating decorators, (3) Writing context managers, (4) Advanced Python features, (5) Writing idiomatic Python. Covers type hints, decorator patterns, context managers, and advanced features."
+globs: []
+alwaysApply: false
+---
+
+# Advanced Python Language Features
+
+Best practices for type hints, decorators, and context managers.
+
+## Type Hints & Type Checking
+
+Use type hints to improve code readability and enable static analysis with tools like `mypy`.
+
+### Basic Typing
+```python
+# ✅ GOOD: Explicit type hints
+from typing import List, Dict, Optional
+
+def process_items(items: List[str], config: Dict[str, int]) -> Optional[int]:
+    if not items:
+        return None
+    return config.get(items[0], 0)
+```
+
+### Modern Syntax (Python 3.10+)
+Use `|` for Union and built-in types instead of `typing` imports where possible (requires Python 3.10+).
+
+```python
+# ✅ GOOD: Modern syntax
+def calculate(value: int | float, options: list[str]) -> dict[str, int] | None:
+    pass
+```
+
+### Generics
+Use `TypeVar` for generic functions.
+
+```python
+from typing import TypeVar, Sequence
+
+T = TypeVar("T")
+
+def first_item(items: Sequence[T]) -> T:
+    return items[0]
+```
+
+## Decorators
+
+Decorators allow you to modify or enhance functions/methods without changing their code.
+
+### Using `functools.wraps`
+ALWAYS use `@functools.wraps` to preserve the original function's metadata (name, docstring).
+
+```python
+# ✅ GOOD: Preserving metadata
+import functools
+import time
+
+def time_execution(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.4f}s")
+        return result
+    return wrapper
+
+@time_execution
+def heavy_computation():
+    """Performs a heavy computation."""
+    time.sleep(1)
+```
+
+### Decorators with Arguments
+To accept arguments, you need a three-level function structure.
+
+```python
+def repeat(times):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(times=3)
+def greet(name):
+    print(f"Hello {name}")
+```
+
+## Context Managers
+
+Context managers ensure resources are properly managed (setup/teardown).
+
+### Using `contextlib.contextmanager`
+For simple context managers, use the decorator instead of a class.
+
+```python
+# ✅ GOOD: Simple context manager
+from contextlib import contextmanager
+
+@contextmanager
+def temp_file(filename):
+    f = open(filename, 'w')
+    try:
+        yield f
+    finally:
+        f.close()
+        # cleanup code here
+```
+
+### Class-based Context Managers
+For complex state management, use a class with `__enter__` and `__exit__`.
+
+```python
+class DatabaseConnection:
+    def __init__(self, db_name):
+        self.db_name = db_name
+        self.connection = None
+
+    def __enter__(self):
+        self.connection = connect_to_db(self.db_name)
+        return self.connection
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.close()
+        # Return True to suppress exceptions if needed
+        return False
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (type safety, make illegal states unrepresentable)
+
+**Python-Specific:**
+- [Type Annotations Everywhere](type-annotations-everywhere.mdc) - Comprehensive type annotation guide
+- [Pythonic Patterns](pythonic-patterns.mdc) - General Python best practices

@@ -1,0 +1,50 @@
+---
+description: "Frontend frameworks index - React, Vue, and Vuex patterns. Use when: (1) React development, (2) Vue.js development, (3) Vuex state management, (4) Framework-specific patterns. Points to framework-specific pattern files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+---
+
+# Frontend Frameworks Index
+
+**Purpose**: Router for frontend frameworks - detects keywords and routes to specific framework files.
+
+**Chaining**: Router → Category Index → Language Index → This Index (Router) → Files
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (rule files) based on keywords.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **react**, react patterns, react hooks, react components, react best practices | `react-patterns.mdc` |
+| **vue**, vue.js, vue patterns, vue composition api, vue best practices | `vue-best-practices.mdc` |
+| **vuex**, vuex state, vuex store, vuex patterns, state management vue | `vuex-state-management.mdc` |
+
+---
+
+## Framework Pattern Files (Leaves)
+
+| File | Purpose | Keywords |
+|------|---------|----------|
+| [React Patterns](react-patterns.mdc) | React hooks, components, React 19 features | react, react patterns, react hooks, react components |
+| [Vue Best Practices](vue-best-practices.mdc) | Vue.js Composition API, reactivity, lifecycle | vue, vue.js, vue patterns, composition api |
+| [Vuex State Management](vuex-state-management.mdc) | Vuex actions, mutations, getters, modules | vuex, vuex state, vuex store, state management |
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| React patterns | `react-patterns.mdc` |
+| Vue patterns | `vue-best-practices.mdc` |
+| Vuex patterns | `vuex-state-management.mdc` |
+
+---
+
+## Related Resources
+
+- **Language**: See `../language/index.mdc` for TypeScript/JavaScript patterns
+- **Testing**: See `../testing/index.mdc` for testing patterns

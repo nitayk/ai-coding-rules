@@ -1,0 +1,396 @@
+---
+description: "BigQuery reference guide - bq CLI, SQL optimization, partitioning, clustering, cost control. Use when: (1) BigQuery queries, (2) bq commands, (3) Data warehouse analytics. Covers GoogleSQL best practices."
+globs: []
+alwaysApply: false
+---
+
+# BigQuery Reference Guide
+
+**Technical Efficiency Guide** - How to write fast, cost-effective BigQuery queries and use the bq CLI.
+
+> **Purpose**: Deep technical knowledge for query optimization, storage design, and bq CLI usage.
+
+**What's Inside**:
+- ✅ bq CLI (query, load, ls, mk, cp)
+- ✅ Query optimization (projection, partitioning, clustering)
+- ✅ Storage best practices (partitioning, clustering, expiration)
+- ✅ Function optimization (APPROX_*, LIKE vs REGEXP)
+- ✅ Anti-patterns (SELECT *, cross joins, single-row DML)
+
+**Location**: `.cursor/rules/shared/technologies/bigquery-reference-guide.mdc`
+
+---
+
+## 📋 Table of Contents
+
+1. [Cost Guardrails](#cost-guardrails)
+2. [bq CLI](#bq-cli)
+3. [Query Optimization](#query-optimization)
+4. [Storage Best Practices](#storage-best-practices)
+5. [Function Optimization](#function-optimization)
+6. [Anti-Patterns](#anti-patterns)
+
+---
+
+## Cost Guardrails
+
+**DO**: Run `bq query --dry_run` before executing ad-hoc queries. Dry-run returns bytes scanned without running the query. Estimate cost before running.
+
+```bash
+# ALWAYS: estimate first
+bq query --dry_run 'SELECT ...'
+
+# THEN: run only if bytes scanned are acceptable
+bq query 'SELECT ...'
+```
+
+**STOP**: Running large queries without dry-run. BigQuery bills by bytes scanned; unexpected full-table scans can be costly.
+
+**Use `--maximum_bytes_billed`** for fail-fast: `bq query --maximum_bytes_billed=10000000 'SELECT ...'` aborts if the query would exceed the limit.
+
+---
+
+## bq CLI
+
+### Setup
+
+```bash
+# Install via gcloud CLI
+gcloud components install bq
+
+# Or full gcloud install
+# https://cloud.google.com/sdk/docs/install
+
+# Authenticate
+gcloud auth application-default login
+
+# Set project
+gcloud config set project my-project
+```
+
+**Source**: [bq Command-Line Tool](https://cloud.google.com/bigquery/docs/bq-command-line-tool)
+
+### Command Format
+
+```
+bq COMMAND [FLAGS] [ARGUMENTS]
+```
+
+**Resource format**: `PROJECT:DATASET.TABLE` (bq) vs `PROJECT.DATASET.TABLE` (GoogleSQL)
+
+### Core Commands
+
+| Command | Purpose |
+|---------|---------|
+| `bq query 'SELECT ...'` | Run query |
+| `bq ls` | List datasets |
+| `bq ls dataset` | List tables |
+| `bq show project:dataset.table` | Table metadata |
+| `bq mk dataset` | Create dataset |
+| `bq mk -t dataset.table schema` | Create table |
+| `bq cp src dest` | Copy table |
+| `bq load dataset.table file schema` | Load data |
+| `bq extract table gs://bucket/file` | Export |
+
+### Query Command
+
+```bash
+# GoogleSQL (default in newer bq)
+bq query --use_legacy_sql=false \
+  'SELECT COUNT(*) FROM `project.dataset.table`'
+
+# Short form
+bq query --nouse_legacy_sql 'SELECT 1'
+
+# Destination table
+bq query --destination_table=dataset.result_table 'SELECT ...'
+
+# Limit bytes billed (fail fast on expensive queries)
+bq query --maximum_bytes_billed=10000000 'SELECT ...'
+
+# Dry run (no execution, shows bytes scanned)
+bq query --dry_run 'SELECT ...'
+```
+
+### Configuration (.bigqueryrc)
+
+```ini
+--format=prettyjson
+--location=US
+
+[query]
+--use_legacy_sql=false
+--max_rows=100
+--maximum_bytes_billed=10000000
+```
+
+### Help & Debugging
+
+```bash
+bq version
+bq help
+bq help query
+bq --apilog=stdout query '...'   # Log API calls
+bq --format=prettyjson show ...  # JSON output with error details
+```
+
+**Source**: [bq CLI Reference](https://cloud.google.com/bigquery/docs/reference/bq-cli-reference)
+
+---
+
+## Query Optimization
+
+### Reduce Data Processed (CRITICAL)
+
+**Avoid SELECT *** — Query only needed columns.
+
+```sql
+-- ❌ BAD: Reads all columns
+SELECT * FROM `project.dataset.table`
+
+-- ✅ GOOD: Explicit columns
+SELECT col1, col2, col3 FROM `project.dataset.table`
+
+-- ✅ GOOD: Exclude columns
+SELECT * EXCEPT (col1, col2) FROM `project.dataset.table`
+```
+
+**Prune partitioned queries** — Filter on partition column.
+
+```sql
+-- Time-unit partitioned
+WHERE _PARTITIONTIME BETWEEN TIMESTAMP("2016-01-01") AND TIMESTAMP("2016-01-31")
+
+-- Or partitioning column
+WHERE date_col = "2016-01-15"
+```
+
+**Use WHERE early** — Prefer BOOL, INT64, FLOAT64, DATE in WHERE (faster than STRING).
+
+**Source**: [Optimize Query Computation](https://cloud.google.com/bigquery/docs/best-practices-performance-compute)
+
+### Partitioning vs Date-Sharded Tables
+
+| Approach | Recommendation |
+|----------|-----------------|
+| **Partitioned tables** | ✅ Use — better performance, single schema |
+| **Date-sharded tables** | ❌ Avoid — schema/metadata per table, permission overhead |
+
+**Avoid oversharding** — Too many shards hurt performance; use time-partitioned tables instead.
+
+### Reduce Data Before JOIN
+
+**Pre-aggregate** before joining large tables.
+
+```sql
+-- ❌ BAD: JOIN then aggregate (processes huge intermediate)
+WITH users_posts AS (
+  SELECT * FROM comments c JOIN users u ON c.user_id = u.id
+)
+SELECT user_id, COUNT(text) FROM users_posts GROUP BY user_id
+
+-- ✅ GOOD: Aggregate first, then JOIN
+WITH comments AS (
+  SELECT user_id, COUNT(text) AS cnt
+  FROM comments WHERE user_id IS NOT NULL
+  GROUP BY user_id ORDER BY cnt DESC LIMIT 20
+)
+SELECT user_id, display_name, cnt
+FROM comments JOIN users u ON user_id = u.id
+```
+
+### Optimize JOIN Order
+
+Place **largest table first**, smallest last — enables broadcast join (small table sent to each slot).
+
+### Avoid Repeated CTEs
+
+Use **temporary tables** or **variables** when CTE is referenced multiple times — optimizer may re-evaluate.
+
+### ORDER BY Best Practices
+
+- Use `ORDER BY` in outermost query or window clauses only
+- Add `LIMIT` when ordering large result sets
+- For window functions, **limit data before** computing (e.g., subquery with LIMIT 10, then DENSE_RANK)
+
+### Materialize Large Results
+
+Queries returning > ~10 GB hit "Response too large" — write to destination table or use LIMIT/filters.
+
+---
+
+## Storage Best Practices
+
+### Clustering
+
+**When**: Queries filter on high-cardinality columns; tables > 64 MB.
+
+**Benefits**: Reduces bytes scanned; adaptively sized storage blocks.
+
+```sql
+CREATE TABLE dataset.table
+PARTITION BY date
+CLUSTER BY user_id, event_type
+AS SELECT ...
+```
+
+**Source**: [Clustered Tables](https://cloud.google.com/bigquery/docs/clustered-tables)
+
+### Partitioning
+
+**When**: Time-series or range data; need partition-level delete/expiration.
+
+**Types**: Time-unit (DAY, HOUR, etc.), integer-range, ingestion-time.
+
+**Avoid** when: Partitions < ~10 GB (excessive metadata); DML modifies most partitions.
+
+```bash
+# Create partitioned table via bq
+bq mk --time_partitioning_type=DAY \
+  --time_partitioning_expiration=259200 \
+  project:dataset.table
+```
+
+**Source**: [Partitioned Tables](https://cloud.google.com/bigquery/docs/partitioned-tables)
+
+### Table/Partition Expiration
+
+Set expiration on datasets, tables, or partitions to control storage cost.
+
+---
+
+## Function Optimization
+
+### String Comparison
+
+```sql
+-- ❌ SLOWER: REGEXP_CONTAINS
+WHERE REGEXP_CONTAINS(dim1, '.*test.*')
+
+-- ✅ FASTER: LIKE (when regex not needed)
+WHERE dim1 LIKE '%test%'
+```
+
+### Approximate Aggregations
+
+```sql
+-- ❌ SLOWER: COUNT(DISTINCT)
+SELECT dim1, COUNT(DISTINCT dim2) FROM table GROUP BY 1
+
+-- ✅ FASTER: APPROX_COUNT_DISTINCT
+SELECT dim1, APPROX_COUNT_DISTINCT(dim2) FROM table GROUP BY 1
+```
+
+### Quantiles
+
+```sql
+-- ❌ NTILE can cause "Resources exceeded" (global ORDER BY)
+NTILE(n) OVER (ORDER BY sales DESC)
+
+-- ✅ APPROX_QUANTILES (distributed, no global sort)
+APPROX_QUANTILES(sales, n)
+```
+
+### UDFs
+
+- **SQL UDFs** — Prefer; optimizer can inline
+- **JavaScript UDFs** — Avoid when possible; spawns subprocess
+- **Persistent UDFs** — Prefer over temp UDFs in queries
+
+**Source**: [Best Practices for Functions](https://cloud.google.com/bigquery/docs/best-practices-performance-functions)
+
+---
+
+## Anti-Patterns
+
+### ❌ SELECT *
+
+```
+❌ BAD: Reads all columns, wastes I/O
+✅ GOOD: List columns or use SELECT * EXCEPT
+```
+
+### ❌ LIMIT Reduces Cost
+
+**LIMIT does NOT reduce bytes scanned** — only reduces shuffle/output. Use partition filters and projection.
+
+### ❌ Self-Joins
+
+```sql
+-- ❌ BAD: Squares output rows
+SELECT a.x, b.y FROM t a JOIN t b ON a.id = b.ref_id
+
+-- ✅ GOOD: Window function or PIVOT
+```
+
+### ❌ Cross Joins
+
+Avoid joins that produce more rows than input. Pre-aggregate when CROSS JOIN is required.
+
+### ❌ Single-Row DML
+
+```sql
+-- ❌ BAD: BigQuery is OLAP, not OLTP
+UPDATE table SET col = 1 WHERE id = 123
+
+-- ✅ GOOD: Batch updates, or use Cloud SQL for OLTP
+UPDATE t SET col = u.col FROM updates u WHERE t.key = u.key
+```
+
+### ❌ Wildcard Tables (Overly Broad)
+
+```sql
+-- ❌ BAD: gsod* matches many tables
+FROM `dataset.gsod*`
+
+-- ✅ GOOD: Granular prefix
+FROM `dataset.gsod194*`
+```
+
+---
+
+## Quick Reference Checklist
+
+### Before Writing Queries:
+- [ ] Query plan reviewed (console or INFORMATION_SCHEMA.JOBS)?
+- [ ] SELECT lists only needed columns?
+- [ ] Partition filter in WHERE?
+- [ ] APPROX_* where exact count not required?
+- [ ] LIKE instead of REGEXP_CONTAINS when possible?
+
+### Before Creating Tables:
+- [ ] Partitioning appropriate (time-unit, range)?
+- [ ] Clustering on filter columns?
+- [ ] Expiration set for temp data?
+
+### bq CLI:
+- [ ] `--dry_run` run first for ad-hoc queries? (cost guardrail)
+- [ ] `--use_legacy_sql=false` for GoogleSQL?
+- [ ] `--maximum_bytes_billed` for fail-fast on expensive queries?
+
+---
+
+## Related Documentation
+
+- **Trino**: `.cursor/rules/shared/technologies/trino-reference-guide.mdc` (similar SQL optimization patterns)
+- **GCP**: `.cursor/rules/shared/tools/gcloud.mdc` (authentication, project)
+- **Trino Validation**: `/trino-validation` skill (data quality)
+
+---
+
+## References
+
+- [Optimize Query Computation](https://cloud.google.com/bigquery/docs/best-practices-performance-compute)
+- [Optimize Storage](https://cloud.google.com/bigquery/docs/best-practices-storage)
+- [Best Practices for Functions](https://cloud.google.com/bigquery/docs/best-practices-performance-functions)
+- [bq CLI Reference](https://cloud.google.com/bigquery/docs/reference/bq-cli-reference)
+- [Partitioned Tables](https://cloud.google.com/bigquery/docs/partitioned-tables)
+- [Clustered Tables](https://cloud.google.com/bigquery/docs/clustered-tables)
+- [Query Performance Insights](https://cloud.google.com/bigquery/docs/query-insights)
+
+---
+
+**Last Updated**: 2026-03-04  
+**Sources**: Google Cloud BigQuery official documentation
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

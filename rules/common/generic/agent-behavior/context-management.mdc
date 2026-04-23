@@ -1,0 +1,62 @@
+---
+description: "Manage context window and compaction drift - split work into phases, write intermediate artifacts, stay under ~50% of max context. Use when: (1) Long-running tasks, (2) Multi-session work, (3) Quality degradation as context grows, (4) Resuming work in new session."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-11"
+tags: ["context", "session", "phases", "memory", "compaction"]
+---
+
+# Context Management
+
+**Purpose**: Prevent compaction drift and quality degradation in long sessions. Split work into phases; write intermediate artifacts so new sessions can resume cleanly.
+
+## Triggers
+
+**APPLY WHEN:** Long-running tasks, multi-session work, or when context grows large.
+**SKIP WHEN:** Short single-session tasks.
+
+## Core Directive
+
+**Split work into phases.** Write intermediate artifacts (design notes, checklists, memory files) between phases. A new session or agent can resume from artifacts instead of carrying full context.
+
+## Rules
+
+### 1. Stay Under ~50% of Max Context
+
+Quality can drop as context grows. Rule of thumb: keep active context under roughly half of model max. When approaching limits, checkpoint and start fresh.
+
+### 2. Write Intermediate Artifacts
+
+Between phases, persist:
+- **Design notes**: Key decisions, approach, constraints
+- **Checklists**: Remaining tasks, verification steps
+- **Memory files**: `.cursor/memory/active_context.md` (see `/session-memory` skill)
+
+**DO**: Save to `docs/plans/`, `.cursor/memory/`, or task-specific files.
+**STOP**: Assuming the next session will have full context from this one.
+
+### 3. Phase Boundaries
+
+Create clear phase boundaries for:
+- Planning vs implementation (use `/writing-plans` then `/executing-plans`)
+- Investigation vs coding
+- Batch completion in plan execution
+
+Each phase ends with a written artifact the next phase can load.
+
+### 4. Resume Instructions
+
+When handing off to a new session, include:
+- Path to plan or memory file
+- Current phase and next steps
+- Any blockers or open questions
+
+## Related
+
+- `token-control.mdc` - Redirect long output to files
+- `/session-memory` skill - Persistent context across sessions
+- `/writing-plans` - Creates phase-ready plans
+- `/executing-plans` - Batch execution with checkpoints
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

@@ -1,0 +1,23 @@
+{
+  "skill_name": "gh-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "can you find where RowLevelComplianceProcessor is used across our org? I think it's in a few different repos but I'm not sure which ones",
+      "expected_output": "Agent uses gh search code with --owner flag to find all references to RowLevelComplianceProcessor across the organization, presents the repos and file paths where it appears",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "who has been contributing to the data-pipeline-config repo recently? I want to see the last few commits by shivamaggarwal-unity",
+      "expected_output": "Agent uses gh search commits with --author and --repo flags to find recent commits by the specified user in the specified repo",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "are there any open PRs in data-flair that touch the compliance processor? I need to check if someone else is already working on an optimization",
+      "expected_output": "Agent uses gh search prs with state:open and relevant keywords scoped to the specific repo to find matching PRs",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+---
+description: "When adding fields to event/record schemas or tracing impact: check co-located producers, topic consumers, downstream. Use find_sibling_callees, find_producers_of_topic, find_consumers_of_topic."
+globs: []
+alwaysApply: false
+triggers: ["adding field to event", "adding field to record", "install record", "schema change", "impact analysis", "topic schema", "Kafka topic"]
+---
+
+# Code Graph Impact Analysis
+
+## Trigger
+
+When adding a new field to an **event** or **record** schema (e.g. InstallRecord, AppOpen, Kafka message), or when tracing **downstream impact** of schema changes.
+
+## Co-located Producers (Critical)
+
+**Same handler often builds multiple events from the same input.** If you add a field to one, you must update the others.
+
+| Wrong | Right |
+|-------|-------|
+| Update only NewInstallRecord | Run `find_sibling_callees` of NewInstallRecord → surfaces NewAppOpen; update both |
+| Assume one producer per input | Same configRequest flows to InstallRecord AND AppOpen |
+
+**Code Graph MCP**: `find_sibling_callees` — returns all callees of callers of X. Use when X is a record/event builder.
+
+## Downstream Impact
+
+**Topic producers/consumers**: Who writes to or reads from the Kafka topic?
+
+- `find_producers_of_topic` — methods that produce to the topic
+- `find_consumers_of_topic` — methods that consume (downstream pipelines, BigQuery, etc.)
+
+**External systems**: BigQuery schema, data pipelines, dashboards — not in code graph; surface via documentation or runbooks.
+
+## Workflow
+
+1. `find_callers` of the record builder
+2. `find_sibling_callees` of the builder → update sibling builders
+3. `find_producers_of_topic` / `find_consumers_of_topic` for the topic
+4. Grep for proto/schema definitions, SDK adapters
+
+## Source
+
+Learned from: InstallRecord vs AppOpen — both built from same configRequest in handlerConfig; AppOpen was missed without `find_sibling_callees`.

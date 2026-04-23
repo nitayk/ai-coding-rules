@@ -1,0 +1,29 @@
+---
+description: "Best practices for testing JavaScript/TypeScript applications with Vitest. Use when: (1) Writing JS/TS tests, (2) Using Vitest framework, (3) Test organization, (4) Mocking/stubbing, (5) Frontend testing. Covers Vitest patterns, test structure, mocking strategies, and testing best practices."
+globs: ["**/*.test.ts", "**/*.spec.ts", "**/*.test.js", "**/*.spec.js"]
+alwaysApply: false
+---
+# Vitest Best Practices
+
+## 1. Structure
+- **Describe Blocks**: Use `describe` to group related tests (e.g., per component or function).
+- **Test Names**: Use readable sentences for test names (`it('should return null when input is empty', ...)`).
+
+## 2. Mocking
+- **vi.fn()**: Use `vi.fn()` for simple function mocks.
+- **vi.spyOn()**: Use `vi.spyOn()` to observe existing object methods without replacing them entirely (unless `.mockImplementation` is used).
+- **Resetting**: Use `afterEach(() => { vi.clearAllMocks() })` to prevent state leakage between tests.
+
+## 3. Assertions
+- Use strict assertions (`expect(a).toBe(b)` for primitives, `expect(obj).toEqual(expected)` for objects).
+- Avoid `toBeTruthy()`/`toBeFalsy()` when specific values are expected (e.g., use `toBe(true)`).
+
+## 4. Async Testing
+- Always await promises.
+- Use `async/await` syntax over `.then()`.
+- For timers, use `vi.useFakeTimers()` and `vi.advanceTimersByTime()`.
+
+## 5. Vue Components (if applicable)
+- Use `@vue/test-utils`.
+- Mount components using `mount` (full) or `shallowMount` (stubbing children).
+- Test user interactions (clicks, inputs) using `await trigger()`.

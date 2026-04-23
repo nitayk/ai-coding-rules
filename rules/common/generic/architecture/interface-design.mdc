@@ -1,0 +1,120 @@
+---
+description: "Design small, focused interfaces - prefer composition over large interfaces. Use when: (1) Designing interfaces/abstractions, (2) Applying Interface Segregation, (3) Creating testable code, (4) Composing behaviors, (5) Writing maintainable APIs. Covers small interfaces, composition, and accept-interface-return-concrete pattern."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["architecture", "interfaces", "isp", "composition", "design"]
+---
+
+# Interface Design Principles
+
+**APPLY WHEN:** Designing abstractions, interfaces, protocols, or traits in any language.
+
+**Core Principle**: **Small interfaces are easier to implement, test, and compose.** Prefer single-responsibility interfaces; compose when callers need multiple behaviors.
+
+---
+
+## 1. Prefer Small Interfaces
+
+**Interface Segregation Principle (ISP)**: Clients shouldn't depend on interfaces they don't use.
+
+**DO**:
+- Create interfaces with 1–3 methods when possible
+- Each interface represents one capability (Read, Write, Close, Validate)
+- Compose larger interfaces from smaller ones when needed
+
+**STOP**:
+- Fat interfaces with many unrelated methods
+- "Kitchen sink" interfaces that mix concerns
+- Requiring implementors to provide stubs for unused methods
+
+**Example** (conceptual):
+```
+✅ Good: Small, composable
+  Reader: read()
+  Writer: write()
+  Closer: close()
+  ReadWriter: Reader + Writer
+  ReadWriteCloser: Reader + Writer + Closer
+
+❌ Bad: Monolithic
+  FileOperations: read(), write(), close(), seek(), stat(), truncate(), ...
+```
+
+---
+
+## 2. Compose When Needed
+
+**Combine small interfaces into larger ones only when a caller needs multiple behaviors:**
+
+- **Define** minimal interfaces (single capability)
+- **Compose** at use site when caller needs both A and B
+- **Avoid** pre-composing "just in case" combinations
+
+**Pattern**: Consumer defines the interface it needs; implementor may satisfy multiple small interfaces.
+
+---
+
+## 3. Accept Interfaces, Return Concrete Types
+
+**DO**:
+- **Parameters**: Accept interfaces/abstractions (enables mocking, flexibility)
+- **Return values**: Return concrete types (caller gets full type information)
+
+**STOP**:
+- Accepting concrete types when interface would suffice (tight coupling)
+- Returning interfaces when concrete type is known (loses type info, forces casting)
+
+**Why**: Callers can pass any implementation; they get back a known, usable type.
+
+---
+
+## 4. Define Interfaces at Point of Use
+
+**Define the interface in the package that *uses* it, not where it's implemented:**
+
+**Benefits**:
+- Consumer declares exactly what it needs
+- No import cycles
+- Implementation stays decoupled
+- Easy to add new implementations without touching consumer
+
+**STOP**: Defining interfaces next to their sole implementation (often unnecessary abstraction).
+
+---
+
+## 5. Start Small, Grow When Needed
+
+**YAGNI for interfaces**: Don't add methods "for future use."
+
+**DO**:
+- Start with the smallest interface that works
+- Add methods when a real use case requires them
+- Prefer composition over extending existing interfaces
+
+**STOP**:
+- Large interfaces from the start
+- Methods that "might be useful someday"
+- Interface pollution (interfaces for everything)
+
+---
+
+## Language Notes
+
+| Language | Interface Concept | Notes |
+|----------|-------------------|-------|
+| **Go** | `interface` (implicit) | Small interfaces, define at use site, `io.Reader`/`io.Writer` pattern |
+| **Java** | `interface` | Prefer composition; avoid deep hierarchies |
+| **Scala** | `trait` | Use for interfaces; sealed traits for closed hierarchies |
+| **TypeScript** | `interface` / `type` | Structural typing; prefer composition |
+| **Python** | ABC, `Protocol` | `typing.Protocol` for structural subtyping |
+| **Swift/Kotlin** | `protocol` / `interface` | Prefer protocols over inheritance |
+
+---
+
+## Related Rules
+
+- [Architecture Core Principles](core-principles.mdc) - SRP, dependency injection
+- [Code Quality Core Principles](../code-quality/core-principles.mdc) - SOLID, ISP
+- [Testing Core Principles](../testing/core-principles.mdc) - Test against interfaces

@@ -1,0 +1,392 @@
+# Grafana Reference Guide
+
+**Technical Efficiency Guide** - How to investigate dashboards, metrics, and logs effectively.
+
+> **Purpose**: Deep technical knowledge for efficient LogQL/PromQL queries, dashboard investigation patterns, and understanding what metrics indicate problems. Referenced BY skills/agents when investigating incidents.
+
+**What's Inside**:
+- ✅ Investigation patterns (what to check, what indicates problems)
+- ✅ LogQL performance (precise selectors, line filters, stream sharding)
+- ✅ PromQL best practices (rate functions, aggregation, recording rules)
+- ✅ Dashboard efficiency (template variables, panel limits, time ranges)
+- ✅ Anti-patterns (wildcard selectors, no filters, too many panels, short time windows)
+
+**Location**: `.cursor/rules/shared/technologies/grafana-reference-guide.mdc`
+
+---
+
+## 📋 Table of Contents
+
+1. [Grafana Architecture](#grafana-architecture)
+2. [Dashboard Best Practices](#dashboard-best-practices)
+3. [LogQL Performance](#logql-performance)
+4. [PromQL Best Practices](#promql-best-practices)
+5. [Query Optimization](#query-optimization)
+6. [Alerting](#alerting)
+7. [Anti-Patterns](#anti-patterns)
+
+---
+
+## Grafana Architecture
+
+### Core Components
+
+- **Grafana Server**: Main application server
+- **Data Sources**: Connections to Prometheus, Loki, etc.
+- **Dashboards**: Visual representations of metrics/logs
+- **Panels**: Individual visualizations within dashboards
+- **Alerting**: Rule evaluation and notification engine
+
+### Loki Deployment Modes
+
+1. **Standalone** (not recommended for production)
+2. **Simple Scalable Deployment (SSD)** - Recommended for most use cases
+3. **Microservices Mode** - For large-scale deployments
+
+**CRITICAL**: Run Loki in SSD or microservices mode for optimal performance.
+
+**Source**: [Loki Performance Guide](https://grafana.com/blog/2023/12/28/the-concise-guide-to-loki-how-to-get-the-most-out-of-your-query-performance)
+
+---
+
+## Dashboard Best Practices
+
+### General Guidelines
+
+1. **Use template variables** for filtering (reduce duplicate dashboards)
+2. **Organize panels logically** (group related metrics)
+3. **Set appropriate time ranges** (default to last 6h or 24h)
+4. **Use consistent units** (milliseconds, bytes, etc.)
+5. **Add descriptions** to panels for clarity
+6. **Limit panels per dashboard** (10-15 for performance)
+
+**Source**: [Grafana Dashboard Best Practices](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/best-practices/)
+
+### Performance Optimization
+
+1. **Reduce query frequency**: Set refresh intervals appropriately
+2. **Use query caching**: Enable when available
+3. **Limit time ranges**: Shorter ranges = faster queries
+4. **Use downsampling**: For long-term historical data
+5. **Avoid wildcard queries**: Be specific with metrics/logs
+
+---
+
+## LogQL Performance
+
+### Most Important Optimization (CRITICAL)
+
+**Use precise label selectors** rather than wildcards.
+
+```logql
+# ❌ BAD: Wildcard (scans many streams)
+{namespace=~".*"}
+
+# ✅ GOOD: Specific selector (scans fewer streams)
+{namespace="production", app="api"}
+```
+
+**Why**: This is the **#1 most important** performance improvement technique. Reduces log volume searched dramatically.
+
+**Source**: [5 Tips for Loki Performance](https://grafana.com/blog/2023/01/10/watch-5-tips-for-improving-grafana-loki-query-performance)
+
+### Line Filters (Second Most Important)
+
+**Use line filter expressions** to further accelerate queries.
+
+```logql
+# ✅ GOOD: Line filter reduces data processing
+{namespace="production", app="api"} |= "error"
+
+# ✅ BETTER: Multiple filters
+{namespace="production", app="api"} 
+  |= "error" 
+  != "timeout"
+```
+
+**Why**: Line filters reduce data processing after stream selection.
+
+**Source**: [5 Tips for Loki Performance](https://grafana.com/blog/2023/01/10/watch-5-tips-for-improving-grafana-loki-query-performance)
+
+### LogQL Query Optimization
+
+```logql
+# ❌ BAD: Too broad, processes millions of logs
+{job="varlogs"} |= "error"
+
+# ✅ GOOD: Specific labels + line filter
+{job="varlogs", namespace="production", app="api"} 
+  |= "error" 
+  | json 
+  | status_code >= 500
+
+# ✅ BEST: Additional filters and limited time range
+{job="varlogs", namespace="production", app="api"} 
+  |= "error" 
+  | json 
+  | status_code >= 500
+  | duration > 1s
+# Use last 1h time range instead of 24h
+```
+
+### Automatic Stream Sharding (CRITICAL)
+
+**Enable automatic stream sharding** for better query parallelization.
+
+**Note**: Currently not enabled by default (as of 2026).
+
+**Configuration**:
+```yaml
+# loki-config.yaml
+ingester:
+  max_chunk_age: 2h
+  chunk_idle_period: 1h
+  chunk_target_size: 1536000
+  chunk_encoding: snappy
+  # Enable stream sharding
+  max_streams_per_user: 0  # Unlimited
+  stream_sharding:
+    enabled: true
+```
+
+**Source**: [Loki Performance Guide](https://grafana.com/blog/2023/12/28/the-concise-guide-to-loki-how-to-get-the-most-out-of-your-query-performance)
+
+### Baseline Best Practices
+
+1. **Keep Loki upgraded** to latest release (performance improvements)
+2. **Run in SSD or microservices mode** (not standalone)
+3. **Manage labels carefully** (avoid high cardinality)
+4. **Use retention policies** (delete old logs)
+5. **Enable query caching** (faster repeated queries)
+
+**Source**: [Loki Performance Guide](https://grafana.com/blog/2023/12/28/the-concise-guide-to-loki-how-to-get-the-most-out-of-your-query-performance)
+
+---
+
+## PromQL Best Practices
+
+### Query Optimization
+
+1. **Use recording rules** for frequently computed metrics
+2. **Avoid unbounded queries** (use time ranges)
+3. **Use rate() for counters** (not increase() in most cases)
+4. **Aggregate early** (reduce data before complex operations)
+5. **Use label_replace() sparingly** (expensive operation)
+
+### Common PromQL Patterns
+
+```promql
+# ✅ GOOD: Rate with appropriate time window
+rate(http_requests_total[5m])
+
+# ✅ GOOD: Aggregation with specific labels
+sum by (namespace, pod) (rate(http_requests_total[5m]))
+
+# ✅ GOOD: Filtering before aggregation
+sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+
+# ❌ BAD: Too short time window (noisy)
+rate(http_requests_total[30s])
+
+# ❌ BAD: Too long time window (hides spikes)
+rate(http_requests_total[1h])
+```
+
+### Recording Rules
+
+**Use recording rules** for complex or frequently used queries.
+
+```yaml
+# prometheus-rules.yaml
+groups:
+  - name: api_performance
+    interval: 30s
+    rules:
+      # Pre-compute expensive query
+      - record: api:request_rate:5m
+        expr: sum by (service) (rate(http_requests_total[5m]))
+      
+      # Use in dashboards
+      # Query: api:request_rate:5m
+```
+
+**Benefits**:
+- Faster dashboard load times
+- Reduced Prometheus load
+- Consistent metric definitions
+
+---
+
+## Query Optimization
+
+### Time Range Selection
+
+**CRITICAL**: Shorter time ranges = faster queries.
+
+```
+❌ BAD: Last 30 days (queries millions of data points)
+✅ GOOD: Last 6 hours (queries thousands of data points)
+✅ BETTER: Last 1 hour (queries hundreds of data points)
+```
+
+**Best Practice**: Default to 6h, allow users to adjust as needed.
+
+### Downsampling
+
+**Use downsampling** for long-term retention.
+
+```promql
+# ✅ GOOD: Raw data for recent queries
+rate(http_requests_total[5m])  # Last 24h
+
+# ✅ GOOD: Downsampled data for historical queries
+avg_over_time(api:request_rate:5m[1d])  # Last 30 days
+```
+
+### Query Caching
+
+**Enable query caching** when available:
+- Grafana Enterprise: Built-in query caching
+- Grafana OSS: Use caching proxy (e.g., Trickster)
+
+---
+
+## Alerting
+
+### Alert Rule Best Practices
+
+1. **Use appropriate evaluation intervals** (balance latency vs. load)
+2. **Add alert annotations** (explain what to do)
+3. **Use label routing** (send to right teams)
+4. **Avoid alert fatigue** (tune thresholds)
+5. **Test alerts in staging** before production
+
+### Example Alert Rule
+
+```yaml
+# grafana-alerts.yaml
+apiVersion: 1
+groups:
+  - name: api_alerts
+    interval: 1m
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum by (service) (rate(http_requests_total{status=~"5.."}[5m])) 
+          / sum by (service) (rate(http_requests_total[5m])) 
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://wiki/runbooks/high-error-rate"
+```
+
+---
+
+## Anti-Patterns
+
+### ❌ Anti-Pattern 1: Wildcard Label Selectors
+
+```logql
+# ❌ BAD: Scans all streams
+{namespace=~".*", app=~".*"}
+
+# ✅ GOOD: Specific selectors
+{namespace="production", app="api"}
+```
+
+### ❌ Anti-Pattern 2: No Line Filters
+
+```logql
+# ❌ BAD: Processes all logs
+{namespace="production"} | json
+
+# ✅ GOOD: Filter first
+{namespace="production"} |= "error" | json
+```
+
+### ❌ Anti-Pattern 3: Too Many Panels
+
+```
+❌ BAD: 50 panels on one dashboard (slow load)
+✅ GOOD: 10-15 panels per dashboard
+✅ BETTER: Multiple focused dashboards
+```
+
+### ❌ Anti-Pattern 4: Short Time Windows
+
+```promql
+# ❌ BAD: Too noisy (30s window)
+rate(http_requests_total[30s])
+
+# ✅ GOOD: Smoothed (5m window)
+rate(http_requests_total[5m])
+```
+
+### ❌ Anti-Pattern 5: No Alert Annotations
+
+```yaml
+# ❌ BAD: No context
+- alert: HighCPU
+  expr: cpu > 80
+
+# ✅ GOOD: With context
+- alert: HighCPU
+  expr: cpu > 80
+  annotations:
+    summary: "CPU usage high on {{ $labels.instance }}"
+    runbook_url: "https://wiki/runbooks/high-cpu"
+```
+
+---
+
+## Quick Reference Checklist
+
+### Before Creating a Dashboard:
+- [ ] Use template variables for filtering?
+- [ ] Limited to 10-15 panels?
+- [ ] Appropriate default time range (6h)?
+- [ ] Consistent units across panels?
+- [ ] Panel descriptions added?
+
+### Before Writing LogQL Queries:
+- [ ] Using specific label selectors (not wildcards)?
+- [ ] Line filters applied early?
+- [ ] Appropriate time range selected?
+- [ ] JSON parsing after line filters?
+
+### Before Writing PromQL Queries:
+- [ ] Using rate() for counters?
+- [ ] Appropriate time window (5m)?
+- [ ] Aggregating by necessary labels only?
+- [ ] Consider using recording rules?
+
+---
+
+## Related Documentation
+
+- **Skills**: `.cursor/rules/shared/skills/grafana-monitoring/SKILL.md` (complete workflow using Grafana MCP)
+- **Skill**: `.cursor/rules/shared/skills/grafana-monitoring/SKILL.md` (monitoring workflows)
+
+---
+
+## References
+
+- [Grafana Dashboard Best Practices](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/best-practices/)
+- [Loki Performance Guide](https://grafana.com/blog/2023/12/28/the-concise-guide-to-loki-how-to-get-the-most-out-of-your-query-performance)
+- [5 Tips for Loki Query Performance](https://grafana.com/blog/2023/01/10/watch-5-tips-for-improving-grafana-loki-query-performance)
+
+---
+
+**Last Updated**: 2026-01-25  
+**Maintained By**: Observability Team  
+**Sources**: 
+- Grafana official documentation
+- Loki performance guides
+- Production experience (2026)
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

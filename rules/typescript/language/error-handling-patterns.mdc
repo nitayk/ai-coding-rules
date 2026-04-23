@@ -1,0 +1,199 @@
+---
+description: "JavaScript/TypeScript error handling - try/catch, error boundaries, custom errors, graceful degradation. Use when: (1) Handling errors in JS/TS, (2) Writing error boundaries, (3) Graceful degradation, (4) User-facing error messages."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-04"
+tags: ["error-handling", "try-catch", "javascript", "typescript", "error-boundaries"]
+---
+
+# Error Handling Patterns
+
+Handle errors explicitly. Use custom error classes. Provide graceful degradation. Never swallow errors silently.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Writing error handling code, implementing error boundaries, designing failure modes.
+**SKIP WHEN:** Code has no failure paths or delegates entirely to framework.
+
+---
+
+## Core Directive
+
+**Handle errors at boundaries** - Validate at entry points. Propagate to appropriate handlers. Never use empty catch blocks.
+
+---
+
+## Try/Catch Best Practices
+
+**Always handle or rethrow; never swallow:**
+
+```typescript
+// Good: Explicit handling
+async function loadData() {
+  try {
+    const data = await fetchData();
+    return process(data);
+  } catch (error) {
+    logError(error);
+    showUserMessage("Unable to load data. Please try again.");
+    return getEmptyFallback();
+  }
+}
+
+// Good: Rethrow with context
+try {
+  await saveUser(user);
+} catch (error) {
+  throw new Error(`Failed to save user ${user.id}`, { cause: error });
+}
+
+// Bad: Silent swallow
+try {
+  await riskyOperation();
+} catch (e) {
+  // Ignored - no logging, no fallback
+}
+```
+
+---
+
+## Custom Error Classes
+
+**Extend Error for typed error handling:**
+
+```typescript
+// Good: Custom errors with cause chain
+class ValidationError extends Error {
+  constructor(
+    message: string,
+    public readonly field?: string,
+    options?: ErrorOptions
+  ) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+    options?: ErrorOptions
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+// Handler can narrow
+catch (error) {
+  if (error instanceof ValidationError) {
+    highlightField(error.field);
+  } else if (error instanceof ApiError && error.statusCode === 404) {
+    showNotFound();
+  } else {
+    throw error;
+  }
+}
+```
+
+---
+
+## Graceful Degradation
+
+**Provide fallbacks instead of complete failure:**
+
+```typescript
+// Good: Fallback experience
+async function loadDashboard() {
+  try {
+    const data = await fetchDashboard();
+    setData(data);
+  } catch {
+    setData(getCachedDashboard() ?? getEmptyDashboard());
+    showBanner("Showing cached data. Some features may be limited.");
+  }
+}
+
+// Good: Feature-level degradation
+const [analytics, setAnalytics] = useState<Analytics | null>(null);
+useEffect(() => {
+  fetchAnalytics().then(setAnalytics).catch(() => {
+    setAnalytics(null);  // Hide analytics section, rest of app works
+  });
+}, []);
+```
+
+---
+
+## Error Boundaries (React)
+
+**Catch render errors at component boundaries:**
+
+```tsx
+// Good: Error boundary with fallback UI
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    logError(error, info);
+  }
+
+  render() {
+    return this.state.hasError ? this.props.fallback : this.props.children;
+  }
+}
+
+// Usage: Wrap feature sections
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <FeatureSection />
+</ErrorBoundary>
+```
+
+---
+
+## Check response.ok for Fetch
+
+**Always validate HTTP response status:**
+
+```typescript
+// Good: Explicit status check
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// Bad: Assuming success
+async function badFetchUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();  // May parse error body as JSON on 4xx/5xx
+}
+```
+
+---
+
+## Related Rules
+
+- [Async Patterns](async-patterns.mdc) - Promise handling, retries
+- [API Defensive Programming](api-defensive-programming.mdc) - Schema validation
+- [Generic Error Handling](../../../generic/error-handling/universal-patterns.mdc) - Fail fast, propagation
+
+---
+
+## References
+
+- [MDN: Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+- [React Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)

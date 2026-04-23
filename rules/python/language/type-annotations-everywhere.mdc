@@ -1,0 +1,223 @@
+---
+description: "Use type annotations everywhere - enable static type checking with mypy/pyright for better correctness. Use when: (1) Writing Python code, (2) Adding type hints, (3) Enabling static type checking, (4) Improving code correctness, (5) Using mypy/pyright. Covers type annotations, static type checking, and type safety in Python."
+globs: []
+alwaysApply: false
+---
+
+# Type Annotations Everywhere
+
+Use type annotations on all functions, variables, and class attributes to enable static type checking and improve code correctness.
+
+---
+
+## Annotate Function Signatures
+
+**Always annotate function parameters and return types:**
+
+```python
+# Good: Fully annotated function
+def calculate_total(items: list[Item]) -> float:
+    return sum(item.price for item in items)
+
+# Bad: No type annotations
+def calculate_total(items):
+    return sum(item.price for item in items)
+```
+
+**Benefits:**
+- Static type checkers (mypy, pyright) catch type errors
+- Better IDE autocomplete and navigation
+- Self-documenting code
+
+---
+
+## Annotate Variables
+
+**Annotate variables when type isn't obvious from context:**
+
+```python
+# Good: Explicit type annotation (use | None for Python 3.10+)
+user_id: int | None = get_user_id()
+if user_id is not None:
+    process_user(user_id)
+
+# Good: Built-in generics for complex types
+config: dict[str, list[str]] = {
+    "allowed_hosts": ["example.com", "test.com"]
+}
+
+# Bad: No annotation, type unclear
+user_id = get_user_id()  # What type is this?
+```
+
+---
+
+## Use Generic Types
+
+**Use generic types for collections. Prefer built-in generics (Python 3.9+):**
+
+```python
+# Good: Built-in generics (Python 3.9+)
+def process_users(users: list[User]) -> list[ProcessedUser]:
+    return [process_user(u) for u in users]
+
+def get_user_by_email(email: str) -> User | None:
+    return db.find_user(email)
+
+# Good: type statement for aliases (Python 3.12+)
+type UserId = int
+type UserMap = dict[str, User]
+
+# Acceptable: typing module for complex cases
+from typing import TypeVar
+T = TypeVar("T")
+def first(items: list[T]) -> T:
+    return items[0]
+
+# Bad: Untyped parameters
+def process_users(users):  # What's in the list?
+    return [process_user(u) for u in users]
+```
+
+---
+
+## Annotate Class Attributes
+
+**Annotate class attributes with their types:**
+
+```python
+# Good: Annotated class attributes (avoid mutable defaults)
+from dataclasses import dataclass
+
+@dataclass
+class User:
+    name: str
+    email: str
+    age: int | None = None
+    preferences: dict[str, str] | None = None
+
+# Bad: No type annotations
+class User:
+    def __init__(self, name, email, age=None):
+        self.name = name
+        self.email = email
+        self.age = age  # What type is age?
+```
+
+---
+
+## Use Type Aliases for Complex Types
+
+**Create type aliases for frequently used complex types. Prefer `type` statement (Python 3.12+):**
+
+```python
+# Good: type statement (Python 3.12+)
+type UserId = int
+type UserDict = dict[str, str]
+type Coordinates = tuple[float, float]
+
+def find_user(user_id: UserId) -> User | None:
+    return db.find(user_id)
+
+def process_coordinates(coords: Coordinates) -> float:
+    lat, lon = coords
+    return calculate_distance(lat, lon)
+
+# Good: Traditional alias (Python 3.9-3.11)
+UserId = int
+Coordinates = tuple[float, float]
+
+# Bad: Complex types inline
+def process_coordinates(coords: tuple[float, float]) -> float:
+    # Less clear what the tuple represents
+    lat, lon = coords
+    return calculate_distance(lat, lon)
+```
+
+---
+
+## Configure Type Checkers
+
+**Use mypy or pyright configuration:**
+
+```python
+# Good: mypy configuration in pyproject.toml
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+```
+
+**Run type checker in CI:**
+
+```yaml
+# Good: Type checking in CI
+- name: Type check
+  run: mypy src/
+```
+
+---
+
+## Gradual Typing Migration
+
+**Add types incrementally, starting with public APIs:**
+
+```python
+# Good: Start with public API
+def public_api_function(user_id: int) -> User:
+    """Public API - fully typed."""
+    return _internal_helper(user_id)
+
+# Internal function can be untyped initially
+def _internal_helper(user_id):  # Will add types later
+    return db.find(user_id)
+
+# Bad: No types anywhere
+def public_api_function(user_id):
+    return db.find(user_id)
+```
+
+---
+
+## Use TypedDict for Structured Data
+
+**Use TypedDict for dictionary structures:**
+
+```python
+# Good: TypedDict for structured data
+from typing import TypedDict
+
+class UserDict(TypedDict):
+    name: str
+    email: str
+    age: int
+
+def create_user(data: UserDict) -> User:
+    return User(**data)
+
+# Bad: Plain dict without structure
+def create_user(data: dict) -> User:
+    return User(**data)  # No type checking of dict keys
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (make illegal states unrepresentable, type safety)
+
+**Python-Specific:**
+- [Error Handling Patterns](error-handling-patterns.mdc) - Error types and exceptions
+- [Advanced Features](advanced-features.mdc) - More Python type features
+
+---
+
+## References
+
+- [Hudson River Trading: Building Robust Codebases with Type Annotations](https://www.hudsonrivertrading.com/hrtbeat/building-robust-codebases-with-pythons-type-annotations/)
+- [Meta: Typed Python Survey 2024](https://engineering.fb.com/2024/12/09/developer-tools/typed-python-2024-survey-meta/)
+- [Python Typing Documentation](https://docs.python.org/3/library/typing.html)

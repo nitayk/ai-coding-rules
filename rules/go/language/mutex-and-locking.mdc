@@ -1,0 +1,263 @@
+---
+description: "Go mutex and locking - sync.Mutex, sync.RWMutex, deadlock prevention, when to use channels vs mutex. Use when: (1) Protecting shared state, (2) Using sync.Mutex or RWMutex, (3) Avoiding deadlocks, (4) Choosing between channels and mutex. Covers defer unlock, lock ordering, critical section minimization."
+globs: []
+alwaysApply: false
+---
+
+# Mutex and Locking Patterns
+
+Use `sync.Mutex` and `sync.RWMutex` correctly. Prevent deadlocks. Choose the right synchronization primitive.
+
+---
+
+## When to Use Mutex vs Channels
+
+**Use channels for:** Passing ownership of data, distributing work units, communicating async results.
+
+**Use mutexes for:** Caches, shared state, protecting in-memory data structures.
+
+```go
+// ✅ Good: Mutex for shared cache
+type Cache struct {
+    mu    sync.RWMutex
+    items map[string]Item
+}
+
+func (c *Cache) Get(key string) (Item, bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    item, ok := c.items[key]
+    return item, ok
+}
+
+// ✅ Good: Channels for work distribution
+jobs := make(chan Job, 100)
+go worker(jobs)
+```
+
+**Rule of thumb:** If `sync.Mutex` locking rules get too complex, consider whether channels might be simpler. Go is pragmatic—use what fits best.
+
+---
+
+## Always Use defer with Unlock
+
+**Critical:** Use `defer` to ensure the lock releases even on panic or early return.
+
+```go
+// ✅ Good: defer Unlock
+func (c *Counter) Increment() {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.value++
+}
+
+// ✅ Good: defer with early return
+func (c *Counter) IncrementIfPositive(delta int) error {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    if delta <= 0 {
+        return ErrInvalidDelta  // Lock still released via defer
+    }
+    c.value += delta
+    return nil
+}
+
+// ❌ Bad: Early return leaves mutex locked (deadlock)
+func (c *Counter) IncrementIfPositive(delta int) error {
+    c.mu.Lock()
+    if delta <= 0 {
+        return ErrInvalidDelta  // DEADLOCK: mutex never unlocked!
+    }
+    c.value += delta
+    c.mu.Unlock()
+    return nil
+}
+```
+
+---
+
+## Never Copy Mutexes
+
+**Copying a mutex creates a separate lock with no synchronization.** Always pass structs containing mutexes by pointer.
+
+```go
+// ✅ Good: Pass by pointer
+func process(d *Data) {
+    d.mu.Lock()
+    defer d.mu.Unlock()
+    d.value++
+}
+
+// ❌ Bad: Copy passes a different mutex
+func process(d Data) {  // d is a copy
+    d.mu.Lock()  // Locks the copy, not the original—no synchronization!
+    defer d.mu.Unlock()
+}
+```
+
+**Tip:** Run `go vet`—it detects mutex copying.
+
+---
+
+## Use RWMutex for Read-Heavy Workloads
+
+**sync.RWMutex** allows multiple concurrent readers or a single writer. Use when reads vastly outnumber writes.
+
+```go
+// ✅ Good: RWMutex for read-heavy cache
+type ConfigCache struct {
+    mu   sync.RWMutex
+    cfg  map[string]Config
+}
+
+func (c *ConfigCache) Get(key string) (Config, bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    cfg, ok := c.cfg[key]
+    return cfg, ok
+}
+
+func (c *ConfigCache) Set(key string, cfg Config) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.cfg[key] = cfg
+}
+
+// ⚠️ RWMutex cannot upgrade: RLock → Lock is deadlock
+// Must release RLock before acquiring Lock
+```
+
+---
+
+## Minimize Critical Section Duration
+
+**Hold locks only as long as necessary.** Avoid I/O, network calls, or expensive computation while holding a lock.
+
+```go
+// ✅ Good: Minimize critical section
+func (s *Service) GetAndProcess(key string) (Result, error) {
+    s.mu.RLock()
+    data, ok := s.cache[key]
+    s.mu.RUnlock()  // Release before expensive work
+
+    if !ok {
+        return Result{}, ErrNotFound
+    }
+    return expensiveProcessing(data), nil  // Outside lock
+}
+
+// ❌ Bad: I/O inside critical section
+func (s *Service) GetAndProcess(key string) (Result, error) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    data := s.cache[key]
+    result := callExternalAPI(data)  // Blocking I/O while holding lock!
+    return result, nil
+}
+```
+
+---
+
+## Establish Consistent Lock Ordering
+
+**Acquiring locks in different orders across goroutines causes deadlock.** Establish a canonical order (e.g., by resource ID, by fixed convention) and always acquire in that order.
+
+```go
+// ✅ Good: Consistent lock order (e.g., by ID)
+func (s *Service) Transfer(fromID, toID int, amount int) error {
+    if fromID > toID {
+        fromID, toID = toID, fromID  // Canonical order
+    }
+    from := s.getAccount(fromID)
+    to := s.getAccount(toID)
+    from.mu.Lock()
+    defer from.mu.Unlock()
+    to.mu.Lock()
+    defer to.mu.Unlock()
+    // ...
+}
+
+// ❌ Bad: Different order in different code paths
+func transfer(a, b *Account, amount int) {
+    a.mu.Lock()
+    b.mu.Lock()
+    // ...
+}
+func swap(a, b *Account) {
+    b.mu.Lock()  // Different order—deadlock risk!
+    a.mu.Lock()
+    // ...
+}
+```
+
+---
+
+## Encapsulate Shared State
+
+**Protect all access to shared data within struct methods that handle locking.** Don't expose raw mutex or unlocked access.
+
+```go
+// ✅ Good: Encapsulated access
+type SafeCounter struct {
+    mu    sync.Mutex
+    value int
+}
+
+func (c *SafeCounter) Inc() {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.value++
+}
+
+func (c *SafeCounter) Value() int {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    return c.value
+}
+
+// ❌ Bad: Exposing unlocked field
+type BadCounter struct {
+    mu    sync.Mutex
+    Value int  // Exported—callers can bypass lock
+}
+```
+
+---
+
+## Consider sync/atomic for Simple Counters
+
+**For simple counters or flags, `sync/atomic` may be more appropriate than a mutex.**
+
+```go
+// ✅ Good: atomic for simple counter
+type Counter struct {
+    value atomic.Int64
+}
+
+func (c *Counter) Inc() {
+    c.value.Add(1)
+}
+
+func (c *Counter) Value() int64 {
+    return c.value.Load()
+}
+```
+
+---
+
+## Related Rules
+
+**Go-Specific:**
+- [Concurrency Patterns](concurrency-patterns.mdc) - Goroutines, channels, errgroup (complementary to mutexes)
+- [Context Patterns](context-patterns.mdc) - Cancellation with long-held locks
+
+**Universal:**
+- [Generic Performance Principles](../../../generic/performance/core-principles.mdc) - Minimize contention
+
+---
+
+## References
+
+- [Go Wiki: MutexOrChannel](https://go.dev/wiki/MutexOrChannel)
+- [Package sync](https://pkg.go.dev/sync)
+- [A Guide to Go's sync Package](https://reintech.io/blog/guide-gos-sync-package-mutexes-waitgroups-atomic-operations)

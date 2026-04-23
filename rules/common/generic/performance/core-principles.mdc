@@ -1,0 +1,197 @@
+---
+description: "Universal performance principles - measure first, optimize bottlenecks, avoid premature optimization. Use when: (1) Optimizing code, (2) Profiling performance, (3) Performance tuning, (4) Identifying bottlenecks, (5) Making performance decisions. Covers measurement-first approach, bottleneck optimization, and avoiding premature optimization."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+tags: ["performance", "universal", "optimization", "profiling"]
+---
+
+# Universal Performance Principles
+
+**APPLY WHEN:** Writing performance-critical code or optimizing existing code.
+
+---
+
+## Core Principles
+
+### 1. Measure First, Optimize Second
+
+**DO**:
+- Profile before optimizing
+- Identify actual bottlenecks (not assumed ones)
+- Set performance targets/metrics
+- Measure after changes
+
+**STOP**:
+- Optimizing without profiling
+- Premature optimization
+- Optimizing code that's not a bottleneck
+- Guessing what's slow
+
+**Rule**: "Premature optimization is the root of all evil" - but measure to know what's premature
+
+---
+
+### 2. Optimize the Right Things
+
+**Common Bottlenecks** (in order of impact):
+1. **I/O operations** (database queries, network calls, file I/O)
+2. **Algorithms** (O(n²) vs O(n log n))
+3. **Memory allocation** (frequent allocations, GC pressure)
+4. **CPU operations** (loops, calculations)
+
+**DO**: Optimize bottlenecks in order of impact
+**STOP**: Optimizing micro-operations while ignoring I/O
+
+---
+
+### 3. Algorithm Complexity Matters
+
+**DO**:
+- Choose appropriate data structures (HashMap vs List for lookups)
+- Use efficient algorithms (sorting, searching)
+- Consider time complexity (Big O) for large datasets
+
+**STOP**:
+- Using O(n²) when O(n log n) exists
+- Linear search when hash lookup possible
+- Ignoring complexity for "small" datasets (they grow)
+
+**Example**:
+```python
+# ✅ Good: O(1) lookup
+user_map = {u.id: u for u in users}
+user = user_map.get(user_id)
+
+# ❌ Bad: O(n) lookup
+user = next((u for u in users if u.id == user_id), None)
+```
+
+---
+
+### 4. Batch Operations
+
+**DO**:
+- Batch database queries (IN clauses, bulk inserts)
+- Batch API calls when possible
+- Process collections in batches
+
+**STOP**:
+- N+1 query problems
+- Making individual calls in loops
+- Processing items one-by-one when batching is possible
+
+**Example**:
+```scala
+// ✅ Good: Batch query
+val userIds = orders.map(_.userId).distinct
+val users = userRepo.findByIds(userIds)  // One query
+
+// ❌ Bad: N+1 queries
+val users = orders.map(o => userRepo.findById(o.userId))  // N queries
+```
+
+---
+
+### 5. Lazy Evaluation & Caching
+
+**DO**:
+- Use lazy evaluation for expensive operations
+- Cache frequently accessed, rarely changing data
+- Invalidate cache appropriately
+
+**STOP**:
+- Eagerly computing everything
+- Caching without invalidation strategy
+- Caching data that changes frequently
+
+**Cache When**:
+- Computation is expensive
+- Data changes infrequently
+- Access pattern is read-heavy
+
+---
+
+### 6. Resource Management
+
+**DO**:
+- Close resources (files, connections, streams)
+- Use connection pooling
+- Limit concurrent operations
+- Set timeouts on I/O operations
+
+**STOP**:
+- Leaking resources (not closing)
+- Creating new connections per request
+- Unbounded concurrency
+- Infinite timeouts
+
+---
+
+## Performance Anti-Patterns
+
+**❌ Premature Optimization**
+```java
+// BAD: Optimizing before measuring
+for (int i = 0; i < list.size(); i++) {  // "size() called in loop!"
+    // Actually, modern JVMs optimize this
+}
+```
+
+**❌ Micro-Optimizations**
+```python
+# BAD: Saving nanoseconds while I/O takes milliseconds
+result = x + y  # vs result = operator.add(x, y)
+```
+
+**❌ Ignoring I/O**
+```scala
+// BAD: Optimizing loop while DB query is the bottleneck
+val optimized = data.map(_.transform).filter(_.isValid)  // Micro-optimization
+// But data came from slow DB query - that's the real problem
+```
+
+---
+
+## Performance Checklist
+
+Before optimizing:
+- [ ] Have you profiled the code?
+- [ ] Have you identified the actual bottleneck?
+- [ ] Is this code in a hot path?
+- [ ] What's the performance target?
+- [ ] Will optimization hurt readability significantly?
+
+After optimizing:
+- [ ] Did you measure the improvement?
+- [ ] Did you verify correctness still works?
+- [ ] Is the code still maintainable?
+- [ ] Are there edge cases that regressed?
+
+---
+
+## Language-Specific Notes
+
+- **Scala**: Watch for boxing/unboxing, use `@inline` sparingly, prefer `Vector` for random access
+- **Python**: Use `cProfile`, consider Cython/C extensions for hot paths, avoid global lookups in loops
+- **Go**: Use `pprof` for profiling, watch for GC pressure, prefer value types
+- **Java**: Use JProfiler/VisualVM, watch for GC pauses, prefer primitives over boxed types in hot paths
+- **JavaScript/TypeScript**: Use Chrome DevTools, avoid closures in hot loops, prefer typed arrays
+- **Swift**: Use Instruments, prefer value types, use `@inlinable` for hot paths
+- **Kotlin**: Use Android Profiler, watch for allocations, prefer `inline` functions
+
+**Reference**: Language-specific performance rules in `backend/` and `mobile/` directories.
+
+---
+
+## When NOT to Optimize
+
+**Don't optimize**:
+- Code that's not a bottleneck (measure first)
+- Code that's rarely executed
+- At the cost of readability/maintainability (unless critical)
+- Without understanding why it's slow
+- Code that's "fast enough" for requirements
+
+**Remember**: "Make it work, make it right, make it fast" - in that order.

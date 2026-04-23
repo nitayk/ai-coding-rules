@@ -1,0 +1,118 @@
+---
+description: "Python architecture patterns - Project structure, dependency injection, and API design. Use when: (1) Designing Python projects, (2) Organizing code structure, (3) Implementing dependency injection, (4) Designing APIs, (5) Building maintainable Python apps. Covers project structure, DI patterns, and API design principles."
+globs: []
+alwaysApply: false
+---
+
+# Python Architecture & Design Patterns
+
+Best practices for structuring Python projects and designing maintainable systems.
+
+## Module Organization
+
+### src Layout
+Prefer the `src/` layout to prevent import errors and ensure tests run against the installed package.
+
+```text
+project_root/
+├── src/
+│   └── mypackage/
+│       ├── __init__.py
+│       ├── module.py
+│       └── subpackage/
+├── tests/
+├── pyproject.toml
+└── README.md
+```
+
+### Imports inside `__init__.py`
+Keep `__init__.py` clean. Only expose what is intended for the public API.
+
+```python
+# src/mypackage/__init__.py
+from .module import PublicClass
+
+__all__ = ["PublicClass"]
+```
+
+## Dependency Injection
+
+Avoid hardcoding dependencies. Pass them explicitly (Constructor Injection).
+
+### Bad Practice: Global/Hardcoded
+```python
+# ❌ BAD: Hardcoded dependency
+class UserService:
+    def __init__(self):
+        self.db = Database()  # Hard dependency
+
+    def get_user(self, id):
+        return self.db.query(id)
+```
+
+### Good Practice: Injection
+```python
+# ✅ GOOD: Injected dependency
+class UserService:
+    def __init__(self, db_connection):
+        self.db = db_connection
+
+    def get_user(self, id):
+        return self.db.query(id)
+
+# Usage
+db = Database()
+service = UserService(db)
+```
+
+## API Design
+
+### Clean Interfaces
+Design functions with clear inputs and outputs. Avoid modifying arguments in place.
+
+```python
+# ❌ BAD: Modifying input
+def add_item(items, item):
+    items.append(item)  # Side effect
+
+# ✅ GOOD: Return new state
+def add_item(items, item):
+    return items + [item]
+```
+
+### Keyword-Only Arguments
+Use keyword-only arguments for clarity, especially for boolean flags or configuration options.
+
+```python
+# ✅ GOOD: Force keyword usage
+def connect(host, *, port=8080, timeout=30):
+    pass
+
+# Usage
+connect("localhost", port=9000)  # timeout must be named if used
+```
+
+## Factory Pattern
+
+Use factories for complex object creation logic.
+
+```python
+class PaymentFactory:
+    @staticmethod
+    def get_payment_processor(method: str):
+        if method == "credit_card":
+            return CreditCardProcessor()
+        elif method == "paypal":
+            return PayPalProcessor()
+        raise ValueError(f"Unknown method: {method}")
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Architecture Principles](../../../../generic/architecture/core-principles.mdc) - Universal architecture principles (interface-centric design, SRP, dependency injection, separation of concerns)
+
+**Python-Specific:**
+- This file provides Python-specific architecture patterns (module organization, dependency injection, factory patterns)

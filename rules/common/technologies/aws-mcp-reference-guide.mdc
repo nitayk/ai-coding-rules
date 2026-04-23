@@ -1,0 +1,520 @@
+# AWS MCP Reference Guide
+
+**Technical Efficiency Guide** - How to interact with AWS services efficiently through MCP.
+
+> **Purpose**: Deep technical knowledge for AWS operations, resource management, and infrastructure investigation. Referenced BY skills/agents when working with AWS resources.
+
+**What's Inside**:
+- ✅ AWS service patterns (EC2, S3, RDS, Lambda, CloudWatch)
+- ✅ Investigation patterns (what to check, what indicates problems)
+- ✅ Resource management (tagging, cost optimization, lifecycle)
+- ✅ Security best practices (IAM, encryption, least privilege)
+- ✅ Anti-patterns (over-privileged roles, untagged resources, missing encryption)
+
+**Location**: `.cursor/rules/shared/technologies/aws-mcp-reference-guide.mdc`
+
+---
+
+## 📋 Table of Contents
+
+1. [AWS MCP Architecture](#aws-mcp-architecture)
+2. [Common AWS Operations](#common-aws-operations)
+3. [Investigation Patterns](#investigation-patterns)
+4. [Resource Management](#resource-management)
+5. [Security Best Practices](#security-best-practices)
+6. [Cost Optimization](#cost-optimization)
+7. [Anti-Patterns](#anti-patterns)
+
+---
+
+## AWS MCP Architecture
+
+### MCP Server
+
+**Server**: `aws`  
+**URL**: `https://mcp-aws.example.com/mcp`
+
+### Tool Pattern
+
+MCP tools follow the pattern: `user-aws-{service}-{operation}`
+
+Example tools:
+- `user-aws-ec2-describe_instances`
+- `user-aws-s3-list_buckets`
+- `user-aws-cloudwatch-get_metric_statistics`
+- `user-aws-lambda-list_functions`
+
+### Supported Services
+
+Common AWS services available through MCP:
+- **EC2**: Instance management, security groups, volumes
+- **S3**: Bucket operations, object management
+- **RDS**: Database instances, snapshots
+- **Lambda**: Function management, invocations
+- **CloudWatch**: Metrics, logs, alarms
+- **IAM**: Users, roles, policies
+- **ECS/EKS**: Container orchestration
+- **Auto Scaling**: Scaling groups, policies
+- **VPC**: Network configuration
+
+---
+
+## Common AWS Operations
+
+### EC2 Instance Management
+
+**List running instances**:
+```
+Purpose: Get all EC2 instances with status
+Pattern: Filter by state, tags, instance type
+```
+
+**Common queries**:
+- Instances by environment tag
+- Stopped instances (potential cost savings)
+- Instances with high CPU utilization
+- Instances missing required tags
+
+**Investigation pattern**:
+1. List instances in region
+2. Filter by relevant tags (environment, team, service)
+3. Check instance state, type, launch time
+4. Review security groups and IAM roles
+
+### S3 Bucket Operations
+
+**List buckets and objects**:
+```
+Purpose: Inventory S3 storage and access patterns
+Pattern: Check bucket policies, encryption, versioning
+```
+
+**Common queries**:
+- Buckets without encryption
+- Public buckets (security risk)
+- Bucket sizes for cost analysis
+- Lifecycle policies
+
+### CloudWatch Metrics
+
+**Query metrics**:
+```
+Purpose: Monitor resource performance and health
+Pattern: Time-series queries for CPU, memory, network, disk
+```
+
+**Key metrics**:
+- `CPUUtilization` - EC2 CPU usage
+- `NetworkIn/NetworkOut` - Network traffic
+- `StatusCheckFailed` - Instance health
+- `DatabaseConnections` - RDS connections
+
+### Lambda Functions
+
+**List and investigate functions**:
+```
+Purpose: Audit serverless functions and performance
+Pattern: Check runtime, memory, timeout, invocations
+```
+
+**Common queries**:
+- Functions with errors/throttles
+- Cold start issues
+- Memory/timeout configuration
+- Unused functions (cost savings)
+
+---
+
+## Investigation Patterns
+
+### Performance Issues
+
+**Step-by-step investigation**:
+
+1. **Identify affected resources**
+   - List instances/services with high error rates
+   - Check CloudWatch metrics for anomalies
+   - Review recent deployments/changes
+
+2. **Check resource utilization**
+   - CPU, memory, disk, network metrics
+   - Compare current vs. baseline
+   - Identify bottlenecks
+
+3. **Review logs**
+   - CloudWatch Logs for error patterns
+   - Application logs from instances
+   - System logs for infrastructure issues
+
+4. **Examine configuration**
+   - Instance types (right-sized?)
+   - Security groups (blocking traffic?)
+   - IAM permissions (access issues?)
+
+### Cost Investigation
+
+**Pattern for investigating AWS costs**:
+
+1. **Identify top resources**
+   - EC2 instances by cost
+   - S3 storage by bucket
+   - Data transfer costs
+
+2. **Check for waste**
+   - Stopped instances (still incurring EBS costs)
+   - Unattached EBS volumes
+   - Old snapshots
+   - Unused Elastic IPs
+
+3. **Optimization opportunities**
+   - Underutilized instances (downsize)
+   - Reserved instance coverage
+   - Spot instance usage
+   - S3 lifecycle policies
+
+### Security Audit
+
+**Pattern for security investigation**:
+
+1. **IAM review**
+   - Over-privileged roles/users
+   - Unused access keys
+   - MFA enforcement
+   - Service roles with excessive permissions
+
+2. **Resource exposure**
+   - Public S3 buckets
+   - Security groups with 0.0.0.0/0 access
+   - Unencrypted resources
+   - Public RDS instances
+
+3. **Compliance**
+   - Missing tags (for cost allocation)
+   - Encryption at rest
+   - Encryption in transit
+   - Backup/snapshot policies
+
+---
+
+## Resource Management
+
+### Tagging Strategy
+
+**Required tags** (organization-specific):
+```
+- Environment: dev, staging, production
+- Team: team-name
+- Service: service-name
+- Owner: email@domain.com
+- CostCenter: cost-center-id
+```
+
+**Benefits**:
+- Cost allocation and tracking
+- Resource organization
+- Access control policies
+- Automation and compliance
+
+**Anti-pattern**: Untagged resources make cost attribution impossible.
+
+### Lifecycle Management
+
+**EC2 instances**:
+- Stop non-production instances outside business hours
+- Terminate orphaned instances
+- Right-size based on utilization
+- Use spot instances for fault-tolerant workloads
+
+**S3 buckets**:
+- Lifecycle policies for old objects
+- Transition to Glacier for archives
+- Delete incomplete multipart uploads
+- Enable versioning for critical data
+
+**EBS volumes**:
+- Delete unattached volumes
+- Snapshot and delete unused volumes
+- Use GP3 instead of GP2 (better performance/cost)
+
+### Resource Cleanup
+
+**Identify resources for cleanup**:
+- Stopped instances older than 30 days
+- Unattached EBS volumes
+- Old snapshots (beyond retention policy)
+- Unused Elastic IPs
+- Incomplete multipart uploads in S3
+
+---
+
+## Security Best Practices
+
+### IAM Principles
+
+**Least Privilege**:
+- Grant minimum permissions needed
+- Use managed policies where possible
+- Regularly audit and remove unused permissions
+- Separate read-only vs. write access
+
+**Service Roles**:
+- Use instance profiles for EC2
+- Avoid long-lived access keys
+- Rotate credentials regularly
+- Use temporary credentials (STS)
+
+### Encryption
+
+**At Rest**:
+- Enable EBS encryption by default
+- Use S3 bucket encryption (SSE-S3 or SSE-KMS)
+- Encrypt RDS databases
+- Encrypt sensitive data in DynamoDB
+
+**In Transit**:
+- Use HTTPS/TLS for all APIs
+- Enable SSL for RDS connections
+- Use VPC endpoints to avoid internet traffic
+- Enable encryption for EBS snapshots
+
+### Network Security
+
+**Security Groups**:
+- Restrict ingress to specific IP ranges
+- Avoid 0.0.0.0/0 for SSH/RDP
+- Use security group chaining (reference other SGs)
+- Document rules with descriptions
+
+**VPC Configuration**:
+- Use private subnets for databases/backends
+- NAT gateways for outbound internet access
+- VPC flow logs for traffic analysis
+- Network ACLs for additional security layer
+
+---
+
+## Cost Optimization
+
+### Right-Sizing
+
+**Identify candidates**:
+- Instances with <20% CPU utilization
+- Memory underutilization (requires CloudWatch agent)
+- Network throughput vs. instance type limits
+
+**Actions**:
+- Downsize instance types
+- Use burstable instances (T3/T4g) for variable workloads
+- Consider Graviton instances (ARM) for cost savings
+
+### Reserved Instances / Savings Plans
+
+**Strategy**:
+- Purchase Reserved Instances for steady-state workloads
+- Use Savings Plans for flexible commitments
+- Analyze RI coverage and utilization
+- Consider Convertible RIs for flexibility
+
+**ROI**: 30-70% savings vs. on-demand pricing.
+
+### Storage Optimization
+
+**S3**:
+- Use Intelligent-Tiering for unpredictable access patterns
+- Lifecycle policies to Glacier for archives
+- Delete old versions with lifecycle rules
+- Enable S3 Transfer Acceleration only when needed
+
+**EBS**:
+- Use GP3 instead of GP2 (better IOPS/cost)
+- Snapshot and delete unused volumes
+- Enable EBS optimization for high throughput
+
+### Spot Instances
+
+**Use cases**:
+- Batch processing
+- CI/CD pipelines
+- Stateless services with auto-scaling
+- Machine learning training
+
+**Savings**: 70-90% vs. on-demand pricing.
+
+---
+
+## Anti-Patterns
+
+### ❌ Untagged Resources
+
+```
+BAD: Resources without tags
+GOOD: All resources tagged with Environment, Team, Service, Owner, CostCenter
+```
+
+**Why**: Impossible to allocate costs or enforce policies without tags.
+
+### ❌ Over-Privileged IAM Roles
+
+```
+BAD: AdministratorAccess for application roles
+GOOD: Minimum permissions needed (e.g., S3 read-only)
+```
+
+**Why**: Security risk - compromised application has full AWS access.
+
+### ❌ Public S3 Buckets
+
+```
+BAD: Bucket with public read/write access
+GOOD: Private buckets with explicit access policies
+```
+
+**Why**: Data leaks and security breaches.
+
+### ❌ Unencrypted Data
+
+```
+BAD: Unencrypted EBS volumes, S3 buckets, RDS databases
+GOOD: Encryption enabled by default
+```
+
+**Why**: Compliance violations and security risks.
+
+### ❌ Running Stopped Instances
+
+```
+BAD: Stopped instances left for months (incurring EBS costs)
+GOOD: Terminate unused instances or take snapshots
+```
+
+**Why**: Unnecessary costs for stopped instances (EBS volumes still charged).
+
+### ❌ Missing CloudWatch Alarms
+
+```
+BAD: No alarms for critical metrics
+GOOD: Alarms for CPU, disk, status checks, billing
+```
+
+**Why**: Issues go unnoticed until major outage.
+
+### ❌ Hardcoded Credentials
+
+```
+BAD: AWS access keys in code
+GOOD: Use IAM roles and instance profiles
+```
+
+**Why**: Security risk - credentials in version control, logs, etc.
+
+---
+
+## Common Workflows
+
+### Deploy New Service
+
+1. **Provision resources**
+   - Launch EC2 instances with appropriate tags
+   - Create security groups with minimal access
+   - Attach IAM role with least privilege
+   - Enable CloudWatch monitoring
+
+2. **Configure security**
+   - Enable encryption for EBS volumes
+   - Restrict security group ingress
+   - Use private subnets for backends
+   - Enable VPC flow logs
+
+3. **Set up monitoring**
+   - Create CloudWatch alarms (CPU, disk, status)
+   - Configure log forwarding to CloudWatch Logs
+   - Set up billing alerts
+   - Create dashboard for key metrics
+
+### Investigate High Costs
+
+1. **Identify top resources**
+   - Group by service (EC2, S3, RDS, etc.)
+   - Group by tag (Environment, Team, Service)
+   - Check for untagged resources
+
+2. **Find waste**
+   - Stopped instances
+   - Unattached volumes
+   - Old snapshots
+   - Unused Elastic IPs
+
+3. **Optimize**
+   - Right-size instances
+   - Purchase RIs/Savings Plans
+   - Enable S3 lifecycle policies
+   - Delete unused resources
+
+### Troubleshoot Instance Issues
+
+1. **Check instance health**
+   - Instance state (running, stopped, terminated)
+   - Status checks (system, instance)
+   - CloudWatch metrics (CPU, memory, disk, network)
+
+2. **Review logs**
+   - System logs (console output)
+   - CloudWatch Logs (application logs)
+   - VPC flow logs (network traffic)
+
+3. **Examine configuration**
+   - Security groups (blocking traffic?)
+   - IAM role (permission issues?)
+   - User data script (boot issues?)
+   - EBS volumes (disk full?)
+
+---
+
+## Resources
+
+### Official Documentation
+
+- [AWS Documentation](https://docs.aws.amazon.com/)
+- [AWS Best Practices](https://aws.amazon.com/architecture/well-architected/)
+- [AWS CLI Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/index.html)
+
+### Cost Optimization
+
+- [AWS Cost Optimization](https://aws.amazon.com/pricing/cost-optimization/)
+- [Trusted Advisor](https://aws.amazon.com/premiumsupport/technology/trusted-advisor/)
+- [Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/)
+
+### Security
+
+- [IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
+- [Security Best Practices](https://aws.amazon.com/architecture/security-identity-compliance/)
+- [Well-Architected Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html)
+
+---
+
+## Quick Reference
+
+### Common Services
+
+| Service | Common Operations | Use Cases |
+|---------|------------------|-----------|
+| EC2 | List instances, start/stop, describe | Compute workloads |
+| S3 | List buckets, get/put objects, lifecycle | Object storage |
+| RDS | Describe instances, snapshots | Databases |
+| Lambda | List functions, invoke, logs | Serverless compute |
+| CloudWatch | Get metrics, logs, alarms | Monitoring |
+
+### Investigation Checklist
+
+- ✅ Check CloudWatch metrics for anomalies?
+- ✅ Review recent changes (deployments, config)?
+- ✅ Examine logs for errors?
+- ✅ Verify security groups and network config?
+- ✅ Check IAM permissions?
+- ✅ Review resource utilization?
+
+---
+
+**Last Updated**: 2026-02-05
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

@@ -1,0 +1,106 @@
+---
+description: "Technologies reference guides index - routes to technology-specific guides (Memgraph, Kafka, Trino, Grafana, ArgoCD, Schema Registry). Use when: (1) Working with specific technologies, (2) Need technology reference guides, (3) Technology-specific patterns. Points to technology reference guide files. Follows Router → Index → Files chaining pattern."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-03-04"
+tags: ["technologies", "index", "reference"]
+---
+
+# Technologies Reference Guides Index
+
+**Purpose**: Router for technology guides - detects keywords and routes to specific technology files.
+
+**Building block**: MCP/API reference guides (Memgraph, Kafka, Trino, Grafana, etc.). Reference `tools/` for CLI operations (kcat, kubectl). See `generic/index.mdc` Building Blocks table.
+
+**Chaining**: Root Router → This Index (Router) → Technology Guide Files
+
+**Graph Structure**: Index that routes to technology guide leaves. Technologies reference tools (curl, jq, kubectl, kcat) for operations.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **memgraph**, code graph (iAds/ISX), callers, dependencies, find usages, trace flow | `memgraph-reference-guide.mdc` + `/code-graph-architect` — ⚠️ **group: iads** |
+| **neo4j**, unity ads code graph, cypher (unity) | `neo4j-reference-guide.mdc` — **pointer only** (not maintained in this package) — ⚠️ **group: iads** |
+| **atlas**, service topology, kafka producers consumers, aerospike, runtime connectivity | `atlas-reference-guide.mdc` — ⚠️ **group: iads** |
+| **kafka**, topics, partitions, consumers, producers, kafka config | `kafka-reference-guide.mdc` |
+| **trino**, query data, sql, data lake, table schema | `trino-reference-guide.mdc` |
+| **grafana**, metrics, dashboard, monitoring, prometheus | `grafana-reference-guide.mdc` |
+| **argocd**, deployment, application, kubernetes, pod logs | `argocd-reference-guide.mdc` |
+| **victoriametrics**, promql, time-series, metrics query, prometheus query | `victoriametrics-reference-guide.mdc` |
+| **druid**, olap, analytical query, cost analytics, aggregation | `druid-reference-guide.mdc` |
+| **aws**, ec2, s3, lambda, cloudwatch | `aws-mcp-reference-guide.mdc` |
+| **gcp**, gcloud | `../tools/gcloud.mdc` |
+| **gotenberg**, pdf generation, document conversion, html to pdf | `gotenberg-reference-guide.mdc` |
+| **schema registry**, avro schema, schema investigation, schema version | `schema-registry.mdc` |
+| **victoria traces**, victoriatraces, distributed tracing, traces, jaeger | `victoria-traces-reference-guide.mdc` |
+| **redis**, redis-cli, caching, session store, pub/sub | `redis-reference-guide.mdc` |
+| **bigquery**, bq cli, bigquery sql, data warehouse, gcp analytics | `bigquery-reference-guide.mdc` |
+
+---
+
+## Technology Guides (Leaves)
+
+| Technology | File | Keywords |
+|-----------|------|----------|
+| **Memgraph** ⚠️ `iads` | `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc` | memgraph, code graph, callers, dependencies, find usages, where is X used, where is X called, what calls, what uses, who uses, trace, trace flow, call chain, dead code, unused code, inheritance, extends, usage, references, code structure, impact analysis |
+| **Atlas** ⚠️ `iads` | `.cursor/rules/shared/technologies/atlas-reference-guide.mdc` | atlas, service topology, kafka producers consumers, aerospike usage, runtime connectivity, cross-repo connectivity |
+| **Kafka** | `.cursor/rules/shared/technologies/kafka-reference-guide.mdc` | kafka, topics, partitions, consumers, producers, kafka config |
+| **Trino** | `.cursor/rules/shared/technologies/trino-reference-guide.mdc` | trino, query data, sql, data lake, table schema |
+| **Grafana** | `.cursor/rules/shared/technologies/grafana-reference-guide.mdc` | grafana, metrics, dashboard, monitoring, prometheus |
+| **ArgoCD** | `.cursor/rules/shared/technologies/argocd-reference-guide.mdc` | argocd, deployment, application, kubernetes, pod logs |
+| **VictoriaMetrics** | `.cursor/rules/shared/technologies/victoriametrics-reference-guide.mdc` | victoriametrics, promql, time-series, metrics query, prometheus query, demand metrics, supply metrics, infrastructure metrics |
+| **Druid** | `.cursor/rules/shared/technologies/druid-reference-guide.mdc` | druid, olap, analytical query, cost analytics, aggregation, time-series aggregation |
+| **AWS MCP** | `.cursor/rules/shared/technologies/aws-mcp-reference-guide.mdc` | aws, ec2, s3, lambda, cloudwatch, aws resources, rds, iam, vpc |
+| **GCP CLI** | `.cursor/rules/shared/tools/gcloud.mdc` | gcp, gcloud, gcloud commands |
+| **Gotenberg** | `.cursor/rules/shared/technologies/gotenberg-reference-guide.mdc` | gotenberg, pdf generation, document conversion, html to pdf, office to pdf |
+| **Schema Registry** | `.cursor/rules/shared/technologies/schema-registry.mdc` | schema registry, avro schema, schema investigation, schema version, schema compatibility |
+| **Victoria Traces** | `.cursor/rules/shared/technologies/victoria-traces-reference-guide.mdc` | victoria traces, distributed tracing, traces, jaeger api |
+| **Neo4j (pointer)** | `.cursor/rules/shared/technologies/neo4j-reference-guide.mdc` | neo4j, unity ads code graph — external docs only |
+| **Redis** | `.cursor/rules/shared/technologies/redis-reference-guide.mdc` | redis, redis-cli, caching, session store, pub/sub |
+| **BigQuery** | `.cursor/rules/shared/technologies/bigquery-reference-guide.mdc` | bigquery, bq cli, data warehouse, gcp analytics |
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Technology Guide Files**
+
+1. Root Router detects technology keyword → loads this index
+2. This index routes to specific technology guide file
+3. Technology guide file contains reference content
+
+---
+
+## Quick Reference
+
+| Need | Load |
+|------|------|
+| Code graph queries | `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc` |
+| Runtime topology (Kafka, Aerospike, service deps) | `.cursor/rules/shared/technologies/atlas-reference-guide.mdc` |
+| Kafka operations | `.cursor/rules/shared/technologies/kafka-reference-guide.mdc` |
+| Trino queries | `.cursor/rules/shared/technologies/trino-reference-guide.mdc` |
+| Grafana dashboards | `.cursor/rules/shared/technologies/grafana-reference-guide.mdc` |
+| ArgoCD deployments | `.cursor/rules/shared/technologies/argocd-reference-guide.mdc` |
+| VictoriaMetrics queries | `.cursor/rules/shared/technologies/victoriametrics-reference-guide.mdc` |
+| Druid analytics | `.cursor/rules/shared/technologies/druid-reference-guide.mdc` |
+| AWS resources | `.cursor/rules/shared/technologies/aws-mcp-reference-guide.mdc` |
+| GCP CLI | `.cursor/rules/shared/tools/gcloud.mdc` |
+| PDF generation | `.cursor/rules/shared/technologies/gotenberg-reference-guide.mdc` |
+| Schema Registry | `.cursor/rules/shared/technologies/schema-registry.mdc` |
+| Victoria Traces | `.cursor/rules/shared/technologies/victoria-traces-reference-guide.mdc` |
+| Unity code graph (pointer) | `.cursor/rules/shared/technologies/neo4j-reference-guide.mdc` |
+| Redis | `.cursor/rules/shared/technologies/redis-reference-guide.mdc` |
+| BigQuery | `.cursor/rules/shared/technologies/bigquery-reference-guide.mdc` |
+
+---
+
+## Related Resources
+
+- **Tools**: See `.cursor/rules/shared/tools/index.mdc` for CLI building blocks (curl, jq, kcat, kubectl, gcloud, aws-cli). Technologies reference these for operations.
+- **Investigation patterns**: Use `/code-structure-analysis`, `/service-breakdown` skills (combine technologies + tools)
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

@@ -1,0 +1,141 @@
+---
+description: "Cypress E2E testing best practices - data-cy selectors, test isolation, cy.intercept, avoiding arbitrary waits. Use when: (1) Writing Cypress tests, (2) E2E test patterns, (3) cypress.config usage."
+globs: ["**/*.cy.ts", "**/*.cy.js", "**/cypress.config.*", "**/cypress/e2e/**"]
+alwaysApply: false
+tags: ["cypress", "e2e", "testing", "frontend"]
+---
+
+# Cypress Best Practices
+
+**APPLY WHEN:** Writing or reviewing Cypress end-to-end tests.
+
+---
+
+## 1. Element Selection with `data-cy`
+
+Use `data-cy` attributes for stable, test-specific selection. Avoid brittle CSS or DOM-dependent selectors.
+
+**DO**:
+```typescript
+// cypress/support/commands.ts
+Cypress.Commands.add('getBySel', (selector: string, ...args) => {
+  return cy.get(`[data-cy="${selector}"]`, ...args);
+});
+
+cy.getBySel('submit-button').click();
+cy.getBySel('user-profile-name').should('contain', 'John Doe');
+```
+
+**STOP**:
+```typescript
+cy.get('.btn-primary').click();      // Coupled to styling
+cy.get('#submitButton').click();    // Coupled to ID
+cy.get('div:nth-child(2) > p');     // Brittle DOM structure
+```
+
+---
+
+## 2. Test Isolation
+
+Each `it` block must be independent. Use `beforeEach` for setup.
+
+**DO**:
+```typescript
+describe('User Management', () => {
+  beforeEach(() => {
+    cy.apiLogin('testuser@example.com', 'password123');
+    cy.visit('/dashboard');
+  });
+  it('should display user dashboard', () => { /* ... */ });
+  it('should allow user to update profile', () => { /* ... */ });
+});
+```
+
+**STOP**:
+```typescript
+it('should register a user', () => { /* creates user */ });
+it('should log in the registered user', () => { /* depends on previous */ });
+```
+
+---
+
+## 3. Mocking with `cy.intercept`
+
+Control network requests for fast, deterministic tests.
+
+**DO**:
+```typescript
+cy.intercept('GET', '/api/products', { fixture: 'products.json' }).as('getProducts');
+cy.visit('/products');
+cy.wait('@getProducts');
+cy.getBySel('product-card').should('have.length', 3);
+```
+
+**STOP**:
+```typescript
+cy.visit('/products');
+cy.get('.product-card').should('have.length.gt', 0); // Fails if API down
+```
+
+---
+
+## 4. Avoid Arbitrary Waits
+
+Cypress retries assertions automatically. Use `cy.wait()` only for specific network requests.
+
+**DO**:
+```typescript
+cy.getBySel('submit-button').click();
+cy.getBySel('success-message').should('be.visible'); // Cypress retries
+```
+
+**STOP**:
+```typescript
+cy.get('button').click();
+cy.wait(2000); // Unnecessary, flaky
+cy.get('.success-message').should('be.visible');
+```
+
+---
+
+## 5. Programmatic Login
+
+Log in via API or custom command in `beforeEach` instead of UI for speed.
+
+**DO**:
+```typescript
+Cypress.Commands.add('apiLogin', (email, password) => {
+  cy.session([email, password], () => {
+    cy.request('POST', '/api/login', { email, password })
+      .its('body.token')
+      .then((token) => localStorage.setItem('jwt', token));
+  }, { cacheAcrossSpecs: true });
+});
+```
+
+---
+
+## 6. Descriptive Test Names
+
+Write clear names that explain intent and expected outcome.
+
+**DO**:
+```typescript
+it('should allow a valid user to log in and redirect to dashboard', () => { /* ... */ });
+context('when credentials are invalid', () => {
+  it('should display an error message for incorrect password', () => { /* ... */ });
+});
+```
+
+**STOP**:
+```typescript
+it('test 1', () => { /* ... */ });
+it('login works', () => { /* ... */ });
+```
+
+---
+
+## Related
+
+- **Playwright**: See `playwright-best-practices.mdc` for Playwright patterns
+- **Skill**: `/webapp-testing` - Playwright-based testing workflow

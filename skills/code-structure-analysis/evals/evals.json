@@ -1,0 +1,16 @@
+{
+  "skill_name": "code-structure-analysis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Trace how a request flows through the delivery service from entry point to response. Use Memgraph and grep - combine both.",
+      "expected_output": "Agent combines file reading, Memgraph queries, and grep per the skill's combined methodology.",
+      "files": [],
+      "expectations": [
+        "Agent uses more than one approach (graph + grep, or file + grep if no graph)",
+        "Agent traces request flow or documents the approach",
+        "Agent addresses delivery service in iads"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+---
+description: "Idiomatic Go error handling - explicit checks, error wrapping, and clear error types. Use when: (1) Handling Go errors, (2) Writing error checks, (3) Wrapping errors, (4) Creating error types, (5) Following Go error conventions. Covers explicit error handling, error wrapping, and idiomatic Go error patterns."
+globs: []
+alwaysApply: false
+---
+
+# Idiomatic Go Error Handling
+
+Handle errors explicitly and clearly. Errors are values in Go - treat them as first-class citizens.
+
+---
+
+## Always Check Errors Immediately
+
+**Check errors right after the call, don't defer:**
+
+```go
+// ✅ Good: Check error immediately
+result, err := doSomething()
+if err != nil {
+    return nil, err
+}
+// Use result safely here
+
+// ❌ Bad: Deferring error check
+result, err := doSomething()
+// ... other code ...
+if err != nil {  // Too late - might have used result!
+    return nil, err
+}
+```
+
+---
+
+## Return Early with Guard Clauses
+
+**Use guard clauses to reduce nesting:**
+
+```go
+// ✅ Good: Early returns reduce nesting
+func ProcessOrder(orderID int) (*Order, error) {
+    if orderID <= 0 {
+        return nil, fmt.Errorf("invalid order ID: %d", orderID)
+    }
+    
+    order, err := fetchOrder(orderID)
+    if err != nil {
+        return nil, fmt.Errorf("fetch order %d: %w", orderID, err)
+    }
+    
+    if order.Status == "cancelled" {
+        return nil, fmt.Errorf("order %d is cancelled", orderID)
+    }
+    
+    // Happy path - minimal nesting
+    return processOrder(order), nil
+}
+
+// ❌ Bad: Deep nesting
+func ProcessOrder(orderID int) (*Order, error) {
+    if orderID > 0 {
+        order, err := fetchOrder(orderID)
+        if err == nil {
+            if order.Status != "cancelled" {
+                return processOrder(order), nil
+            }
+        }
+    }
+    return nil, errors.New("failed")
+}
+```
+
+---
+
+## Wrap Errors with Context
+
+**Add context when wrapping errors:**
+
+```go
+// ✅ Good: Wrap errors with context
+func ReadConfig(path string) (*Config, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, fmt.Errorf("read config file %s: %w", path, err)
+    }
+    
+    var config Config
+    if err := json.Unmarshal(data, &config); err != nil {
+        return nil, fmt.Errorf("parse config file %s: %w", path, err)
+    }
+    
+    return &config, nil
+}
+
+// ❌ Bad: Losing error context
+func ReadConfig(path string) (*Config, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, err  // Lost context about what failed
+    }
+    
+    var config Config
+    if err := json.Unmarshal(data, &config); err != nil {
+        return nil, err  // Lost context
+    }
+    
+    return &config, nil
+}
+```
+
+---
+
+## Use Sentinel Errors for Expected Cases
+
+**Define sentinel errors for expected error cases:**
+
+```go
+// ✅ Good: Sentinel errors
+var (
+    ErrNotFound     = errors.New("not found")
+    ErrInvalidInput = errors.New("invalid input")
+    ErrUnauthorized = errors.New("unauthorized")
+)
+
+func FindUser(id int) (*User, error) {
+    if id <= 0 {
+        return nil, ErrInvalidInput
+    }
+    
+    user := db.Find(id)
+    if user == nil {
+        return nil, ErrNotFound
+    }
+    
+    return user, nil
+}
+
+// Caller can check with errors.Is
+user, err := FindUser(id)
+if errors.Is(err, ErrNotFound) {
+    return http.StatusNotFound, nil
+}
+```
+
+---
+
+## Custom Error Types for Rich Context
+
+**Use custom error types when you need additional context:**
+
+```go
+// ✅ Good: Custom error type with fields
+type ValidationError struct {
+    Field   string
+    Message string
+}
+
+func (e *ValidationError) Error() string {
+    return fmt.Sprintf("validation error on field %s: %s", e.Field, e.Message)
+}
+
+func ValidateUser(user *User) error {
+    if user.Email == "" {
+        return &ValidationError{
+            Field:   "email",
+            Message: "email is required",
+        }
+    }
+    if user.Age < 0 {
+        return &ValidationError{
+            Field:   "age",
+            Message: "age must be non-negative",
+        }
+    }
+    return nil
+}
+
+// Caller can check with errors.As
+if err := ValidateUser(user); err != nil {
+    var validationErr *ValidationError
+    if errors.As(err, &validationErr) {
+        return fmt.Sprintf("Field %s: %s", validationErr.Field, validationErr.Message)
+    }
+}
+```
+
+---
+
+## Don't Ignore Errors
+
+**Never ignore errors with blank identifier:**
+
+```go
+// ❌ Bad: Ignoring errors
+result, _ := doSomething()  // Error ignored!
+processResult(result)  // Might be invalid
+
+// ✅ Good: Handle or propagate error
+result, err := doSomething()
+if err != nil {
+    return fmt.Errorf("do something: %w", err)
+}
+processResult(result)
+```
+
+---
+
+## Error Handling in Loops
+
+**Handle errors properly in loops:**
+
+```go
+// ✅ Good: Handle errors in loop
+func ProcessItems(items []Item) error {
+    for i, item := range items {
+        if err := processItem(item); err != nil {
+            return fmt.Errorf("process item %d: %w", i, err)
+        }
+    }
+    return nil
+}
+
+// ✅ Good: Collect all errors
+func ValidateAll(items []Item) []error {
+    var errors []error
+    for i, item := range items {
+        if err := item.Validate(); err != nil {
+            errors = append(errors, fmt.Errorf("item %d: %w", i, err))
+        }
+    }
+    return errors
+}
+
+// ❌ Bad: Ignoring errors in loop
+func ProcessItems(items []Item) {
+    for _, item := range items {
+        processItem(item)  // Error ignored!
+    }
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Error Handling Principles](../../../../generic/error-handling/universal-patterns.mdc) - Universal error handling patterns (fail fast, explicit errors, proper propagation)
+
+**Go-Specific:**
+- [Error Handling Patterns](error-handling-patterns.mdc) - Basic error handling patterns
+
+---
+
+## References
+
+- [Dave Cheney: Small Ideas](https://dave.cheney.net/category/small-ideas)
+- [Effective Go: Errors](https://go.dev/doc/effective_go#errors)
+- [Go Blog: Error Handling and Go](https://go.dev/blog/error-handling-and-go)

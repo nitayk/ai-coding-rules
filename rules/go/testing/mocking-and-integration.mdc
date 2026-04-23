@@ -1,0 +1,247 @@
+---
+description: "Go mocking, integration tests, fuzz testing. Use when: (1) Mocking dependencies, (2) Writing integration tests, (3) Fuzz testing with go test -fuzz, (4) Dependency injection for tests. Covers interfaces for mocks, build tags, httptest, fuzz targets."
+globs: []
+alwaysApply: false
+---
+
+# Mocking and Integration Testing
+
+Design for testability. Use interfaces for mocking. Separate unit and integration tests. Use fuzz testing for robustness.
+
+---
+
+## Design Around Interfaces for Mocking
+
+**Define interfaces at the point of use.** Pass dependencies via constructors. Use small interfaces (see [Small Interfaces](../language/small-interfaces.mdc)).
+
+```go
+// ✅ Good: Interface for testability
+type UserStore interface {
+    GetByID(ctx context.Context, id int) (*User, error)
+    Save(ctx context.Context, u *User) error
+}
+
+type UserService struct {
+    store UserStore
+}
+
+func NewUserService(store UserStore) *UserService {
+    return &UserService{store: store}
+}
+
+func (s *UserService) GetUser(ctx context.Context, id int) (*User, error) {
+    return s.store.GetByID(ctx, id)
+}
+
+// In test: inject mock
+type mockUserStore struct {
+    users map[int]*User
+}
+func (m *mockUserStore) GetByID(ctx context.Context, id int) (*User, error) {
+    return m.users[id], nil
+}
+func (m *mockUserStore) Save(ctx context.Context, u *User) error {
+    m.users[u.ID] = u
+    return nil
+}
+```
+
+---
+
+## Use httptest for HTTP Handlers
+
+**Use `net/http/httptest` to test HTTP handlers without starting a server.**
+
+```go
+// ✅ Good: httptest for handler tests
+func TestHandler(t *testing.T) {
+    handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprint(w, "hello")
+    })
+
+    req := httptest.NewRequest("GET", "/", nil)
+    rec := httptest.NewRecorder()
+
+    handler.ServeHTTP(rec, req)
+
+    if rec.Code != 200 {
+        t.Errorf("got status %d", rec.Code)
+    }
+    if rec.Body.String() != "hello" {
+        t.Errorf("got body %q", rec.Body.String())
+    }
+}
+```
+
+---
+
+## Use Build Tags for Integration Tests
+
+**Separate integration tests with build tags.** Run with `go test -tags=integration`.
+
+```go
+// integration_test.go
+//go:build integration
+
+package mypkg
+
+import "testing"
+
+func TestIntegrationWithDB(t *testing.T) {
+    db := connectToRealDB(t)  // Requires real DB
+    defer db.Close()
+    // ...
+}
+```
+
+```bash
+# Run unit tests only (default)
+go test ./...
+
+# Run integration tests
+go test -tags=integration ./...
+```
+
+---
+
+## Use Flags for Integration Test Configuration
+
+**Use `flag` or env vars for integration test addresses and credentials.** Don't hardcode.
+
+```go
+// ✅ Good: Configurable integration test
+var (
+    dbAddr = flag.String("db-addr", "localhost:5432", "DB address for integration tests")
+)
+
+func TestIntegration(t *testing.T) {
+    if testing.Short() {
+        t.Skip("skipping integration test in short mode")
+    }
+    conn := connect(*dbAddr)
+    // ...
+}
+```
+
+```bash
+go test -tags=integration -db-addr=staging-db:5432 ./...
+```
+
+---
+
+## Write Fuzz Tests for Edge Cases
+
+**Use `go test -fuzz` (Go 1.18+) for coverage-guided fuzzing.** Catches edge cases and security issues.
+
+```go
+// ✅ Good: Fuzz target
+func FuzzParseInput(f *testing.F) {
+    f.Add("valid input")
+    f.Add("")
+    f.Add("a" + strings.Repeat("x", 10000))
+
+    f.Fuzz(func(t *testing.T, input string) {
+        result, err := ParseInput(input)
+        if err != nil {
+            return  // Invalid input is OK
+        }
+        if result == nil && input != "" {
+            t.Error("expected non-nil result for non-empty input")
+        }
+    })
+}
+```
+
+**Fuzz test rules:**
+- **Stateless** - No shared state between calls
+- **Fast** - Each run ~1 second timeout
+- **Deterministic** - Same input → same output
+- Use `f.Add()` for seed corpus
+
+```bash
+go test -fuzz=FuzzParseInput -fuzztime=30s
+```
+
+---
+
+## Use Test Helpers and Stubs
+
+**Create `*_test` packages or `package creditcardtest` for shared stubs/fakes.** (Google style: test doubles in separate package.)
+
+```go
+// ✅ Good: Test helper package
+// package usertest
+func NewFakeUserStore(users ...*User) *FakeUserStore {
+    m := make(map[int]*User)
+    for _, u := range users {
+        m[u.ID] = u
+    }
+    return &FakeUserStore{users: m}
+}
+
+// In test
+store := usertest.NewFakeUserStore(&User{ID: 1, Name: "Alice"})
+svc := NewUserService(store)
+```
+
+---
+
+## Prefer Stubs Over Mocks When Simple
+
+**Use stubs/fakes when you just need controlled data.** Use mocks (gomock, testify/mock) when you need to verify call counts or order.
+
+```go
+// ✅ Good: Stub when verification not needed
+type stubStore struct {
+    user *User
+    err  error
+}
+func (s *stubStore) GetByID(ctx context.Context, id int) (*User, error) {
+    return s.user, s.err
+}
+
+// Use mock when you need: "Verify Save was called exactly once"
+```
+
+---
+
+## Arrange-Act-Assert Structure
+
+**Structure tests in three phases:** Arrange (setup), Act (call), Assert (verify).
+
+```go
+// ✅ Good: AAA structure
+func TestProcessOrder(t *testing.T) {
+    // Arrange
+    store := usertest.NewFakeUserStore(&User{ID: 1})
+    svc := NewOrderService(store)
+
+    // Act
+    err := svc.ProcessOrder(context.Background(), 1, 100.0)
+
+    // Assert
+    if err != nil {
+        t.Fatalf("ProcessOrder: %v", err)
+    }
+}
+```
+
+---
+
+## Related Rules
+
+**Go-Specific:**
+- [Table-Driven Tests](table-driven-tests.mdc) - Structure for multiple cases
+- [Small Interfaces](../language/small-interfaces.mdc) - Interface design for mocking
+
+**Universal:**
+- [Generic Testing Principles](../../../generic/testing/core-principles.mdc) - Test behavior not implementation
+
+---
+
+## References
+
+- [Go Fuzzing](https://go.dev/doc/security/fuzz/)
+- [Go Blog: Fuzzing is Beta Ready](https://go.dev/blog/fuzz-beta)
+- [Google Go Style: Test doubles](https://google.github.io/styleguide/go/best-practices#test-doubles)
+- [Peter Bourgon: Go in Production](https://peter.bourgon.org/go-in-production/)

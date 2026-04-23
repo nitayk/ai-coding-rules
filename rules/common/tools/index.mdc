@@ -1,0 +1,161 @@
+---
+description: "Comprehensive index of CLI tool references and usage guides. Use when: (1) Need to use CLI tools (curl, jq, git, docker, etc.), (2) Looking up command syntax, (3) Finding tool-specific patterns, (4) CLI tool best practices. Points to specific tool guides (curl.mdc, jq.mdc, git.mdc, etc.). Auto-loads when tool keywords detected via router."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-03-04"
+tags: ["tools", "cli", "index", "reference"]
+---
+
+# CLI Tools Index
+
+**Purpose**: Router for CLI tools - detects keywords and routes to specific tool files.
+
+**Building block**: CLI commands used by technologies (kcat for Kafka, kubectl for ArgoCD) and skills. Technologies reference tools for operations. See `generic/index.mdc` Building Blocks table.
+
+**When to use this**: When you need to use CLI tools or look up command syntax.
+
+**Graph Structure**: This is a Layer 1 node that routes to Layer 0 leaves (tool files) based on keywords.
+
+**Loading**: Router detects tool keywords → loads this index → routes to specific tool files.
+
+---
+
+## Keyword → File Routing
+
+| Keywords/Intent | Load File |
+|----------------|-----------|
+| **curl**, http request, rest api, api call, http client | `curl.mdc` |
+| **jq**, json parser, json filter, parse json, jq query | `jq.mdc` |
+| **git**, git commit, git branch, git merge, version control | `git.mdc` |
+| **docker**, docker container, docker image, docker logs, docker exec | `docker.mdc` |
+| **kcat**, kafkacat, kafka client, kafka cli, produce kafka, consume kafka | `kcat.mdc` |
+| **gh cli**, github cli, pull request cli, issue cli, gh pr, gh issue | `gh-cli.mdc` |
+| **aws cli**, s3 cli, ec2 cli, cloudwatch logs, aws logs, ssm cli | `aws-cli.mdc` |
+| **gcloud**, gcp cli, gcloud commands | `gcloud.mdc` |
+| **kubectl**, kubernetes cli, k8s cli, pod logs, kubectl exec, kubectl logs | `kubectl.mdc` |
+| **ripgrep**, rg, code search, grep alternative, search codebase | `ripgrep.mdc` |
+| **yq**, yaml parser, parse yaml, yaml filter, kubernetes yaml | `yq.mdc` |
+| **terraform**, terraform plan, terraform apply, infrastructure as code | `terraform.mdc` |
+| **helm**, helm install, helm upgrade, kubernetes charts | `helm.mdc` |
+| **slack history**, slack channel, read slack, catch up slack, slack messages | `../skills/slack-history/SKILL.md` |
+| **consul**, read consul, consul keys, consul config, consul values, ds-internal-api | `../skills/read-consul-keys/SKILL.md` — ⚠️ **group: iads** |
+
+---
+
+## Available Tools (Leaves)
+
+### HTTP & APIs
+- **[curl](curl.mdc)** - HTTP requests, REST APIs, authentication
+  - Keywords: curl, http request, rest api, api call, http client
+
+### JSON Processing
+- **[jq](jq.mdc)** - JSON parsing, filtering, manipulation
+  - Keywords: jq, json parser, json filter, parse json, jq query
+
+### Version Control
+- **[git](git.mdc)** - Version control commands, workflows
+  - Keywords: git, git commit, git branch, git merge, version control
+
+### Containers
+- **[docker](docker.mdc)** - Container management, logs, exec
+  - Keywords: docker, docker container, docker image, docker logs, docker exec
+
+### Kafka
+- **[kcat](kcat.mdc)** - Kafka CLI client for producing/consuming
+  - Keywords: kcat, kafkacat, kafka client, kafka cli, produce kafka, consume kafka
+
+### GitHub
+- **[gh-cli](gh-cli.mdc)** - GitHub CLI for PRs, issues, repos
+  - Keywords: gh cli, github cli, pull request cli, issue cli, gh pr, gh issue
+
+### AWS
+- **[aws-cli](aws-cli.mdc)** - AWS services (S3, EC2, CloudWatch, SSM)
+  - Keywords: aws cli, s3 cli, ec2 cli, cloudwatch logs, aws logs, ssm cli
+
+### GCP
+- **[gcloud](gcloud.mdc)** - GCP services (Compute, Storage, Logging, Cloud Run, GKE)
+  - Keywords: gcloud, gcp cli, gcloud commands
+
+### Kubernetes
+- **[kubectl](kubectl.mdc)** - Kubernetes CLI for pods, logs, exec
+  - Keywords: kubectl, kubernetes cli, k8s cli, pod logs, kubectl exec, kubectl logs
+
+### Search & Data
+- **[ripgrep](ripgrep.mdc)** - Fast code search (rg), recursive grep
+- **[yq](yq.mdc)** - YAML processor (like jq for JSON)
+
+### Infrastructure
+- **[terraform](terraform.mdc)** - Infrastructure as code (init, plan, apply)
+  - Keywords: terraform, terraform plan, terraform apply, infrastructure as code
+- **[helm](helm.mdc)** - Kubernetes package manager (install, upgrade, charts)
+  - Keywords: helm, helm install, helm upgrade, kubernetes charts
+
+### Slack
+- **[slack-history](../skills/slack-history/SKILL.md)** - Read Slack channel history via n8n webhook
+  - Keywords: slack history, slack channel, read slack, catch up slack, slack messages
+
+### Consul ⚠️ `iads`
+- **[read-consul-keys](../skills/read-consul-keys/SKILL.md)** - Read Consul KV via ds-internal-api proxy (python-consul)
+  - Keywords: consul, read consul, consul keys, consul config, ds-internal-api
+
+---
+
+## Loading Pattern
+
+**Router → This Index → Specific Tool File**
+
+1. Router detects tool keyword (e.g., "curl", "jq", "git")
+2. Router loads `.cursor/rules/shared/tools/index.mdc` (this file)
+3. Index points to specific tool file (e.g., `curl.mdc`)
+4. Tool file provides command syntax and usage patterns
+
+---
+
+## Quick Reference
+
+| Need | Tool | File |
+|------|------|------|
+| HTTP requests | curl | `curl.mdc` |
+| Parse JSON | jq | `jq.mdc` |
+| Git operations | git | `git.mdc` |
+| Docker commands | docker | `docker.mdc` |
+| Kafka CLI | kcat | `kcat.mdc` |
+| GitHub CLI | gh | `gh-cli.mdc` |
+| AWS CLI | aws | `aws-cli.mdc` |
+| GCP CLI | gcloud | `gcloud.mdc` |
+| Kubernetes CLI | kubectl | `kubectl.mdc` |
+| Code search | ripgrep (rg) | `ripgrep.mdc` |
+| Parse YAML | yq | `yq.mdc` |
+| Infrastructure (IaC) | terraform | `terraform.mdc` |
+| Kubernetes charts | helm | `helm.mdc` |
+| Slack history | curl + webhook | `../skills/slack-history/SKILL.md` |
+| Consul KV read ⚠️ `iads` | python-consul + ds-internal-api | `../skills/read-consul-keys/SKILL.md` |
+
+---
+
+## CLI Tool Installation
+
+When user needs to interact with 3rd party services (HTTP APIs, Kafka, AWS, Kubernetes, etc.), suggest CLI tools and check if installed. CLI tools provide better integration than manual API calls. If not installed, suggest installation command (each tool guide includes install instructions).
+
+---
+
+## CLI Safety (Best Practices)
+
+When suggesting or running CLI commands, especially destructive ones:
+
+1. **Use dry-run / noop when available**: `aws s3 rm --dryrun`, `kubectl delete --dry-run=client`
+2. **Confirm destructive operations**: Don't run `rm -rf`, `kubectl delete`, `gsutil rm` without explicit user confirmation
+3. **Specify scope explicitly**: Use `--region`, `--project`, `--namespace` to avoid wrong-target mistakes
+4. **Redirect long output**: For verbose commands, redirect to file (see `generic/agent-behavior/token-control.mdc`)
+5. **Prefer read-only first**: Use `list`, `describe`, `get` before `delete`, `apply`, `create`
+
+---
+
+## Related Resources
+
+- **Technologies**: See `technologies/` for technology guides (Memgraph, Kafka, Trino, Grafana, ArgoCD, etc.). Technologies build on tools for MCP/API operations.
+- **Investigation patterns**: Use `/code-structure-analysis`, `/service-breakdown`, `/service-migration`, `/service-refactoring` skills
+- **Skills**: See `skills/` for procedural workflows using these tools
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

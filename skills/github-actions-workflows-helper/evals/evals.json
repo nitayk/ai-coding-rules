@@ -1,0 +1,65 @@
+{
+  "skill_name": "github-actions-workflows-helper",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to set up a CI pipeline that builds a Docker image from my Go service and pushes it to our GCR registry at gcr.io/unity-source/my-go-service whenever I merge to main. I also want it to build on PRs but not push. We're on github.com.",
+      "expected_output": "A complete .github/workflows/build.yml file that uses build-docker-image action with GCP WIF, unity-linux-runner, conditional push on main, and proper permissions. Should mention WIF setup prerequisites and list which inputs are defaults.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We use ArgoCD for deployments and I need to set up manifest rendering with the common chart. When a PR is opened I want to see a preview of what will change, and when it merges I want the manifests to be rendered and committed to our state repo.",
+      "expected_output": "Two workflow files using render-with-common-chart and preview-rendered-manifests-with-common-chart reusable workflows. Should ask if user has already onboarded to ArgoCD, and if not, recommend the argocd-onboarding skill first.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "My team wants to get a Slack notification whenever our deployment workflow completes, whether it succeeds or fails. We also want to include which environment was deployed to in the message. Our Slack channel is #my-team-deploys.",
+      "expected_output": "A workflow using the send-slack-message reusable workflow with two notification jobs (success/failure). Should include environment in the message and mention the @PRE Slackbot prerequisite for private channels.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I need to deploy a new service to GKE. What's the recommended approach for setting up the deployment pipeline?",
+      "expected_output": "Should recommend Standard Deployments (ArgoCD), NOT direct Helm deploy. Should point user to argocd-onboarding skill for the full onboarding journey. Should NOT recommend deploy-with-common-chart for a new service. May provide the SD-based pipeline (render-with-common-chart + preview) as an example.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have an existing service that uses deploy-with-common-chart for deployment. I need to add a manual rollback workflow that our team can trigger from the GitHub Actions UI.",
+      "expected_output": "Should NOT generate a rollback-helm workflow. Should explain that deploy-with-common-chart and rollback-helm are legacy actions not covered by this skill, recommend migrating to Standard Deployments (ArgoCD), and point the user to the upstream documentation at https://github.com/Unity-Technologies/github-actions-workflows for legacy Helm action reference.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "How do I set up Workload Identity Federation for my GCP project so my GitHub Actions can push images to our own GCR registry? We have a service account called github-actions-cicd in our project.",
+      "expected_output": "Should provide WIF setup guidance from the bundled guides reference, including terraform module for WIF (terraform-google-pre-workload-identity-federation), PRE centralized identity pools, and the steps to grant the service account access. Should NOT require external repo access.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "I need to install NPM packages from our JFrog Artifactory in my CI pipeline and also publish a package back to our private NPM registry when merging to main.",
+      "expected_output": "Should provide workflows using auth-npm or npm-ci-install actions for reading, and Vault-based token fetching for publishing. Should reference the JFrog Artifactory guide with exact YAML examples for both installing and publishing.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "I need to build and push a Docker image to our Azure ACR registry called unitypreservices.azurecr.io when merging to main. We use Azure Workload Identity Federation.",
+      "expected_output": "A workflow using build-docker-image action with cloud: Azure, client-id, subscription-id, registry inputs. Should use unity-linux-runner and reference the Azure WIF setup guide for prerequisites.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "I want to set up monitoring and alerts for my service using Duke. I need the monitoring config to be validated on PRs and applied when merged to main.",
+      "expected_output": "A workflow using the duke reusable workflow. Should show the correct workflow reference path and inputs like duke_config_path. May also mention duke-reviewer for PR validation.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "I need to set up TechDocs for my repository so it shows up in the Unity Internal Developer Portal.",
+      "expected_output": "Should defer to the techdocs-onboarding skill for the full onboarding journey (mkdocs.yml, catalog-info.yaml, local validation). May provide a brief overview but should explicitly recommend the specialized skill.",
+      "files": []
+    }
+  ]
+}

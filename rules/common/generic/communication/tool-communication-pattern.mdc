@@ -1,0 +1,153 @@
+---
+description: "Always explain MCP tools when using them to educate users about the ecosystem. Use when: (1) Using MCP tools, (2) Explaining tool usage, (3) Documenting tool capabilities, (4) Educating about ecosystem, (5) Demonstrating tool integration. Covers MCP tool communication patterns and ecosystem education."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+---
+
+# Tool Communication Pattern
+
+## 🎯 Core Principle
+
+**When using MCP tools, always explain them to users first!**
+
+This helps users understand the ecosystem, set up their own tools, and know what's available.
+
+## 📋 Pattern to Follow
+
+```
+To [task], I'll use the [Tool Name] MCP tool (`mcp_tool_name`).
+According to [guide-file.mdc], this tool [brief explanation].
+
+[Then proceed with using the tool]
+```
+
+## ✅ Good Examples
+
+### Example 1: Memgraph (Code Analysis) - MANDATORY for Service Breakdown
+```
+To understand this service structure, I MUST use **Memgraph** (`mcp_memgraph_run_query`) 
+FIRST. According to `skills/service-breakdown/SKILL.md`, Memgraph is 
+MANDATORY before reading any code files - it shows relationships, call chains, and helps 
+identify dead code.
+
+This is a HEAVY task requiring 30-50+ Memgraph queries across 4 phases:
+- Phase 1: Broad discovery (5-10 queries)
+- Phase 2: Deep recursive analysis (10-20 queries) 
+- Phase 3: Targeted deep dives (10-15 queries)
+- Phase 4: Verification (5-10 queries)
+
+Let me start Phase 1 - finding all classes in this service:
+
+[Run query 1/30+]
+MATCH (c:Class)
+WHERE c.qualified_name CONTAINS 'data-science-online'
+RETURN c.name, c.path, c.qualified_name
+
+[Continue with remaining Phase 1 queries...]
+```
+
+**🚨 CRITICAL**: 
+- For service breakdown tasks, Memgraph is NOT optional - it's Step 0!
+- Expect 30-50+ queries minimum (not 5-10!)
+- This takes 2-4 hours (not 10 minutes!)
+- Use DEEP RECURSIVE queries (10 levels, not 5!)
+
+### Example 2: Trino (Data Validation)
+```
+To validate data in the device_installs table, I'll use **Trino** 
+(`mcp_trino-analytics_execute_query`). According to 
+`technologies/trino-reference-guide.mdc`, Trino lets us query Iceberg/Hive 
+tables directly for data validation.
+
+Let me run some validation queries...
+```
+
+### Example 3: Grafana (Monitoring)
+```
+To check if metrics are being recorded correctly, I'll use **Grafana** MCP.
+According to `technologies/grafana-reference-guide.mdc`, Grafana 
+provides access to dashboards and PromQL queries for monitoring validation.
+
+Let me search for the relevant dashboard...
+```
+
+## ❌ Bad Examples (Don't Do This)
+
+### Example 1: Silent Tool Usage
+```
+❌ [Just runs Memgraph queries without mentioning the tool]
+❌ [Provides SQL results without explaining Trino]
+```
+
+**Why bad?** User doesn't learn about available tools.
+
+### Example 2: Over-explaining Every Call
+```
+❌ "Using Memgraph tool again..." (for 10th query in same conversation)
+```
+
+**Why bad?** Repetitive and annoying after the first explanation.
+
+## 🎯 When to Explain
+
+- ✅ **First time using a tool** in a conversation
+- ✅ **When user seems unfamiliar** with the tool
+- ✅ **When switching to a different tool**
+- ❌ **Not for every single query** in the same conversation
+
+## 🔗 Available Tools & Guides
+
+| Tool | MCP Name | Guide | Purpose |
+|------|----------|-------|---------|
+| Memgraph | `mcp_memgraph_run_query` | `technologies/memgraph-reference-guide.mdc` | Code structure analysis |
+| Atlas | `mcp_atlas_*` | `technologies/atlas-reference-guide.mdc` | Runtime topology (Kafka, Aerospike, service deps) |
+| Trino | `mcp_trino-analytics_execute_query` | `technologies/trino-reference-guide.mdc` | Query Iceberg/Hive tables |
+| Grafana | `mcp_grafana_*` | `technologies/grafana-reference-guide.mdc` | Monitoring & dashboards |
+| Context7 | `mcp_context7_*` | (see below) | Library/API documentation |
+
+## Context7 Tool Usage
+
+**When to use Context7** (`mcp_context7_*`):
+- User requests code examples, setup, or configuration steps
+- User asks for library/API documentation
+- Suggesting environment variables, CLI flags, or configuration options for external tools/libraries
+
+**Always verify** configuration options exist before suggesting them (see `ROUTER.mdc` quality standards).
+
+**Tool call patterns**:
+```
+[[calls]]
+match = "when the user requests code examples, setup or configuration steps, or library/API documentation"
+tool  = "context7"
+
+[[calls]]
+match = "when suggesting environment variables, CLI flags, or configuration options for external tools/libraries"
+tool  = "context7"
+```
+
+## 💡 Why This Matters
+
+1. **Users learn the ecosystem** - They discover what tools are available
+2. **Users can set up tools** - They know what to configure in `.cursor/mcp.json`
+3. **Better collaboration** - Teams share understanding of tooling
+4. **Self-service** - Users can use tools independently after learning
+
+## 🚀 Setup Reference
+
+Point users to:
+- **MCP Setup Guide**: `mcp/complete-guide.mdc`
+- **Example Configuration**: `mcp/example-config.json`
+- **Smart Router**: `ROUTER.mdc` (auto-loads, detects intent and loads guides)
+
+## Related Rules
+
+- [Prompt Engineering Principles](prompt-engineering-principles.mdc) - Techniques for optimizing LLM prompts and understanding architecture limitations
+- [Business Communication Standards](business-communication-standards.mdc) - BLUF format for business explanations
+
+---
+
+**Remember: Be an educational guide, not a silent worker!**
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

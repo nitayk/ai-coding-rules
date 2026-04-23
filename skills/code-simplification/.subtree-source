@@ -1,0 +1,9 @@
+# Subtree Source Information
+# This directory is maintained as a snapshot from an upstream repository.
+# DO NOT manually edit files in this directory.
+# Use the update script to pull in changes from upstream.
+
+SOURCE_REPO=https://github.com/addyosmani/agent-skills.git
+SOURCE_PATH=skills/code-simplification
+LAST_SYNC_COMMIT=9534f44c5448086fcc0046f9d83752c654c81930
+LAST_SYNC_DATE=2026-04-16 23:09:31 -0700

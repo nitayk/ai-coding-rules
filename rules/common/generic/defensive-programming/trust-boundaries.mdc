@@ -1,0 +1,170 @@
+---
+description: "Validate external data at trust boundaries - API responses, config, user input. Use when: (1) Handling API responses, (2) Parsing config, (3) Processing user input, (4) Schema evolution, (5) Defensive coding at boundaries. Covers validation at boundaries, safe property access, graceful fallbacks, and backward compatibility."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2025-03-04"
+tags: ["defensive-programming", "trust-boundaries", "validation", "api", "external-data"]
+---
+
+# Trust Boundaries: Validating External Data
+
+**APPLY WHEN:** Handling data from outside your system—API responses, config files, user input, environment variables, or any untrusted source.
+
+**Core Principle**: **Never trust external data.** Validate at the boundary, fail fast on invalid input, provide safe defaults when appropriate.
+
+---
+
+## Why Trust Boundaries Matter
+
+External data can change without notice:
+- **API schema evolution**: Backend adds/renames/removes fields
+- **Config drift**: Deployments, environment differences
+- **User input**: Malformed, malicious, or unexpected
+- **Integrations**: Third-party services change contracts
+
+**DO**: Treat all data crossing a boundary as untrusted until validated.
+**STOP**: Assuming structure, types, or presence of fields.
+
+---
+
+## 0. Check Validity, Never Check Lack of Invalidity
+
+**Core Principle**: **Validate against what IS valid (whitelist), not what is NOT invalid (blacklist).**
+
+**DO**:
+- Define the set of allowed values/patterns
+- Check that each char/field/element is permitted
+- Use allowlisting (e.g., regex for allowed chars, schema for allowed structure)
+
+**STOP**:
+- Checking for "bad" chars (dash, underscore, apostrophe...) — you'll miss hundreds
+- Blacklisting known-bad patterns — impossible to enumerate all malicious input
+- Trying to salvage invalid input — often creates security holes
+
+**Why**: "The universe is essentially out to get you: There are many more ways input can be bad than good." (Jerf.org, Lazy Programmer's Guide) Good input is defined by a small set of rules; bad input is unbounded.
+
+**Reference**: OWASP recommends allowlisting; denylisting is prone to evasion.
+
+---
+
+## 1. Validate at the Boundary
+
+**Validate as soon as data enters your system—before it propagates:**
+
+- **API layer**: Validate request/response structure before passing to business logic
+- **Config loading**: Validate config schema before use
+- **User input**: Validate at form/API entry point
+- **Environment variables**: Validate required vars at startup
+
+**Pattern**:
+```
+External Source → Validate → Parse → Typed Internal Representation → Business Logic
+```
+
+**STOP**: Passing raw `unknown`/`any`/`Object` deep into your codebase.
+
+---
+
+## 2. Safe Property Access
+
+**Use safe access patterns—never assume properties exist:**
+
+| Language | Safe Access | Unsafe |
+|----------|-------------|--------|
+| JavaScript/TypeScript | `obj?.field`, `obj?.nested?.field` | `obj.field` |
+| Python | `getattr(obj, 'field', default)`, `obj.get('field', default)` | `obj.field`, `obj['field']` |
+| Scala | `obj.flatMap(_.field)`, `Option(obj).flatMap(_.field)` | `obj.field` (if nullable) |
+| Go | `if v, ok := m["key"]; ok { ... }` | `m["key"]` (zero value) |
+| Kotlin/Swift | `obj?.field`, `obj?.nested?.field` | `obj.field` |
+| Java | `Optional.ofNullable(obj).map(o -> o.field)` | `obj.getField()` |
+
+**Provide sensible defaults** when missing data is acceptable; **fail fast** when it's required.
+
+---
+
+## 3. Schema Evolution Scenarios to Handle
+
+| Scenario | Strategy |
+|----------|----------|
+| **Field renamed** | Check both old and new names during migration period |
+| **Field moved** | Check flat and nested structures |
+| **Field removed** | Provide default or fail with clear message |
+| **New field added** | Ignore unknown fields (forward compatibility) |
+| **Type changed** | Validate type before use, handle coercion or fail |
+| **Array ↔ Object** | Check structure before iteration |
+| **Null/undefined** | Always handle; never assume non-null |
+
+---
+
+## 4. Graceful Degradation
+
+**When validation fails or data is partial:**
+
+**DO**:
+- Return empty collection instead of crashing
+- Use default values for non-critical fields
+- Log warnings for missing expected fields
+- Expose partial data when UI can still function
+
+**STOP**:
+- Crashing on missing optional fields
+- Exposing internal errors to users
+- Silently dropping critical data without logging
+
+**Example** (pseudocode):
+```
+if (!validateResponse(response)) {
+  log.warn("API response validation failed", { expected: requiredFields, received: keys(response) })
+  return emptyResult  // or fail, depending on criticality
+}
+```
+
+---
+
+## 5. Type Guards and Validation Helpers
+
+**Create reusable validation for common shapes:**
+
+- **Generic response validator**: Check required top-level keys exist
+- **Type guards**: `isUser(obj)`, `isArrayOf(obj, isUser)` before processing
+- **Parser functions**: `parseUser(raw): User | null` that return typed or null
+- **Schema libraries**: Use JSON Schema, Zod, Pydantic, etc. when available
+
+**Principle**: Centralize validation logic; don't scatter checks throughout the codebase.
+
+---
+
+## 6. Error Handling at Boundaries
+
+**DO**:
+- Transform validation failures into domain-specific errors
+- Include context (what failed, what was expected)
+- Preserve original error when wrapping
+
+**STOP**:
+- Swallowing validation errors
+- Exposing raw parse errors to callers
+- Losing context about which field failed
+
+---
+
+## Checklist
+
+Before processing external data:
+- [ ] Is validation at the boundary (before use)?
+- [ ] Are all optional fields accessed safely?
+- [ ] Are required fields validated explicitly?
+- [ ] Is there a fallback for missing/invalid data?
+- [ ] Are validation failures logged with context?
+- [ ] Is the internal representation typed (no raw `any`/`Object`)?
+
+---
+
+## Related Rules
+
+- [Error Handling Universal Patterns](../error-handling/universal-patterns.mdc) - Fail fast, explicit errors
+- [Silent Failure Check](../error-handling/silent-failure-check.mdc) - Detect swallowed errors
+- [Security Core Principles](../security/core-principles.mdc) - Input validation, least privilege
+
+**Language-specific**: See `frontend/javascript-typescript/language/api-defensive-programming.mdc` for JS/TS patterns; backend rules for config/validation patterns.

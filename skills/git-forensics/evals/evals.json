@@ -1,0 +1,48 @@
+{
+  "skill_name": "git-forensics",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just cloned this repo and want to understand it before diving into the code. What can you tell me about it?",
+      "expected_output": "A Repo Health Report with contribution style, risk matrix, bus factor, momentum, and firefighting sections — produced entirely from git history before reading any source files.",
+      "files": [],
+      "expectations": [
+        "Runs git log --oneline before reading any source files (other than CONTRIBUTING.md or README for Phase 0)",
+        "Checks for CONTRIBUTING.md or README for declared commit conventions",
+        "Runs the churn hotspot command (git log --format=format: --name-only)",
+        "Runs git shortlog for bus factor with both all-time and 6-month windows",
+        "Uses learned commit keywords in grep, not hardcoded fix|bug|broken",
+        "Produces a Repo Health Report with a Contribution Style section",
+        "Does NOT read source files before completing the report"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Which files in this repo are the most risky or problematic? I want to know where to focus my attention.",
+      "expected_output": "A Risk Matrix table ranking files by compound score from both churn (git history) and bug commit density, with the highest-risk files called out clearly.",
+      "files": [],
+      "expectations": [
+        "Runs the churn hotspot command (git log --format=format: --name-only)",
+        "Runs bug clustering command using learned keywords (not hardcoded fix|bug|broken)",
+        "Cross-references both lists to identify files appearing in BOTH top-churn and top-bug lists",
+        "Produces a Risk Matrix table with churn count and bug commit count columns",
+        "Ranks files by compound score, not just churn alone"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "How does this team write commit messages? Is there a standard they follow?",
+      "expected_output": "A Contribution Style section that compares documented intent (CONTRIBUTING.md/README) vs. actual practice (sampled from git log), with real examples and a note on any drift or divergence.",
+      "files": [],
+      "expectations": [
+        "Checks CONTRIBUTING.md for declared commit conventions",
+        "Also checks README for contribution guidelines",
+        "Samples git log --oneline -100 to observe actual commit practice",
+        "Compares declared vs. actual and notes if they diverge",
+        "Includes real examples extracted from the commit log",
+        "Notes if no convention is documented or consistently followed",
+        "Detects and reports drift if convention changed over time"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+---
+description: "Universal debugging strategies - reproduce, isolate, hypothesis-driven investigation. Use when: (1) Debugging issues, (2) Troubleshooting bugs, (3) Investigating problems, (4) Reproducing bugs, (5) Isolating root causes. Covers debugging methodology, reproduction strategies, and systematic investigation."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+tags: ["debugging", "universal", "troubleshooting", "investigation"]
+---
+
+# Universal Debugging Strategies
+
+**APPLY WHEN:** Investigating bugs, performance issues, or unexpected behavior.
+
+---
+
+## Core Debugging Process
+
+### 1. Reproduce the Issue
+
+**DO**:
+- Reproduce consistently before investigating
+- Document exact steps to reproduce
+- Identify minimal reproduction case
+- Note environment differences (dev vs prod)
+
+**STOP**:
+- Debugging without reproduction
+- Assuming "it works on my machine" means it's fixed
+- Debugging intermittent issues without logs
+
+**Rule**: If you can't reproduce it, you can't fix it (or verify the fix)
+
+---
+
+### 2. Gather Information
+
+**DO**:
+- Check logs (application, system, error logs)
+- Check metrics (CPU, memory, request rates, error rates)
+- Check recent changes (git history, deployments)
+- Check related systems (dependencies, databases)
+
+**STOP**:
+- Jumping to conclusions without data
+- Ignoring error messages
+- Assuming you know the cause
+
+**Tools**: Logs, metrics dashboards, APM tools, debuggers, profilers
+
+---
+
+### 3. Form Hypotheses
+
+**DO**:
+- Start with simplest explanation
+- List multiple hypotheses
+- Test hypotheses systematically
+- Document what you tried
+
+**STOP**:
+- Fixing symptoms without understanding root cause
+- Assuming first hypothesis is correct
+- Making changes without testing hypothesis
+
+**Example**:
+```
+Hypothesis 1: Database connection pool exhausted
+Test: Check connection pool metrics
+Result: Pool at 50% - hypothesis rejected
+
+Hypothesis 2: Slow query causing timeout
+Test: Check slow query log
+Result: Query takes 30s - hypothesis confirmed
+```
+
+---
+
+### 4. Isolate the Problem
+
+**DO**:
+- Narrow down to smallest reproducing case
+- Isolate components (test in isolation)
+- Use binary search (comment out half the code)
+- Create minimal test case
+
+**STOP**:
+- Changing multiple things at once
+- Debugging entire system when issue is localized
+- Not isolating before fixing
+
+**Technique**: Divide and conquer - if issue happens in module A+B, test A and B separately
+
+---
+
+### 5. Verify the Fix
+
+**DO**:
+- Reproduce issue before fix
+- Apply fix
+- Verify issue is resolved
+- Check for regressions
+- Test edge cases
+
+**STOP**:
+- Assuming fix works without verification
+- Not testing related functionality
+- Deploying without verification
+
+---
+
+## Debugging Techniques
+
+### Logging Strategy
+
+**DO**:
+- Add strategic log statements (entry/exit, key decisions, errors)
+- Use appropriate log levels (DEBUG, INFO, WARN, ERROR)
+- Include context (request ID, user ID, timestamps)
+- Log before and after state changes
+
+**STOP**:
+- Logging everything (noise)
+- Logging sensitive data (passwords, tokens, PII)
+- Using print statements in production code
+
+**Example**:
+```python
+logger.info("Processing user registration", extra={
+    "user_id": user_id,
+    "email": email,  # OK if not sensitive
+    "timestamp": datetime.now()
+})
+```
+
+---
+
+### Using Debuggers
+
+**DO**:
+- Set breakpoints at suspicious code
+- Step through execution
+- Inspect variable values
+- Use conditional breakpoints
+- Check call stack
+
+**STOP**:
+- Using debugger as only tool
+- Not understanding what debugger shows
+- Ignoring stack traces
+
+---
+
+### Binary Search Debugging
+
+**Technique**: Comment out half the code, test, repeat
+
+1. Comment out half the functionality
+2. Test if issue still occurs
+3. If yes → issue in commented code, if no → issue in remaining code
+4. Repeat with smaller section
+
+**Use when**: Issue is hard to isolate, large codebase
+
+---
+
+### Rubber Duck Debugging
+
+**Technique**: Explain the problem out loud (to a rubber duck, colleague, or yourself)
+
+**Why it works**: Forces you to structure your thinking, often reveals the issue
+
+**DO**: Explain what code should do, what it actually does, what you've tried
+
+---
+
+### Scientific Method
+
+1. **Observe**: What's happening?
+2. **Hypothesize**: What could cause this?
+3. **Predict**: What should happen if hypothesis is true?
+4. **Test**: Run experiment
+5. **Analyze**: Was prediction correct?
+6. **Repeat**: Refine hypothesis
+
+---
+
+## Common Debugging Mistakes
+
+**❌ Confirmation Bias**
+- Only looking for evidence that supports your theory
+- **Fix**: Actively look for evidence against your theory
+
+**❌ Premature Fixes**
+- Fixing symptoms without understanding root cause
+- **Fix**: Understand WHY before fixing
+
+**❌ Not Reading Error Messages**
+- Ignoring stack traces and error details
+- **Fix**: Read error messages carefully, they usually tell you what's wrong
+
+**❌ Changing Multiple Things**
+- Making several changes at once
+- **Fix**: Change one thing at a time, test, then proceed
+
+**❌ Not Checking Recent Changes**
+- Debugging without checking what changed
+- **Fix**: Check git history, recent deployments, config changes
+
+---
+
+## Debugging Checklist
+
+When debugging an issue:
+- [ ] Can I reproduce it consistently?
+- [ ] Have I checked logs and error messages?
+- [ ] Have I checked recent changes (git, deployments)?
+- [ ] Have I formed hypotheses and tested them?
+- [ ] Have I isolated the problem to smallest case?
+- [ ] Have I verified my fix actually resolves the issue?
+- [ ] Have I checked for regressions?
+
+---
+
+## Language-Specific Debugging Tools
+
+- **Scala**: sbt debugger, IntelliJ debugger, `println` debugging, logging frameworks
+- **Python**: `pdb`, `ipdb`, `logging`, `traceback`, IDE debuggers
+- **Go**: `delve`, `pprof`, `go tool trace`, `log` package
+- **Java**: JDB, IntelliJ/Eclipse debuggers, `jstack`, `jmap`, logging frameworks
+- **JavaScript/TypeScript**: Chrome DevTools, Node.js debugger, `console.log`, `debugger` statement
+- **Swift**: Xcode debugger, LLDB, Instruments, `print()` debugging
+- **Kotlin**: Android Studio debugger, Logcat, `println` debugging
+
+**Reference**: Language-specific debugging guides in `backend/` and `mobile/` directories.
+
+---
+
+## When to Ask for Help
+
+**Ask for help when**:
+- You've spent significant time (> 2 hours) without progress
+- Issue is blocking critical work
+- You need domain expertise you don't have
+- Issue is in unfamiliar codebase/system
+
+**Before asking**:
+- Document what you've tried
+- Provide reproduction steps
+- Include relevant logs/errors
+- Explain your hypotheses and tests
+
+**Remember**: Debugging is a skill that improves with practice. Don't give up too early, but also don't waste time - ask for help when stuck.

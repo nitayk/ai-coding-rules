@@ -1,0 +1,8 @@
+{
+  "skill_name": "review-as-author",
+  "evals": [
+    {"id": 1, "prompt": "Self-review my changes before I commit.", "expected_output": "Agent runs git diff, reviews against all Google Engineering Practices author criteria, checks CL description and size, reports findings with severity levels, gives a verdict.", "files": [], "expectations": ["Agent gathers changes via git diff", "Agent checks CL description quality and CL size", "Agent reviews design, functionality, complexity, tests, naming, comments", "Agent uses severity levels and provides a verdict"]},
+    {"id": 2, "prompt": "Run review-as-author on my staged changes.", "expected_output": "Agent reviews staged changes from the author's perspective.", "files": [], "expectations": ["Agent checks git diff --cached for staged changes", "Agent runs through the pre-commit checklist", "Agent flags red-flag patterns if found"]},
+    {"id": 3, "prompt": "Check if my last commit is ready for review.", "expected_output": "Agent reviews the most recent commit against author self-review criteria.", "files": [], "expectations": ["Agent falls back to git diff HEAD~1", "Agent evaluates commit message quality", "Agent checks CL size and scope"]}
+  ]
+}

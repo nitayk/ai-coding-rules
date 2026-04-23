@@ -1,0 +1,167 @@
+---
+description: "Cursor Automations - always-on agents triggered by schedules or events (GitHub, Slack, Linear, PagerDuty, webhooks). Use when: (1) Setting up automations, (2) Choosing triggers and tools, (3) Review/monitoring or chore use cases, (4) Billing and permissions."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-15"
+tags: ["automations", "cloud-agents", "always-on", "scheduled", "triggers"]
+---
+
+# Cursor Automations Guide
+
+Cursor Automations run **cloud agents** in the background on schedules or in response to events from GitHub, Slack, Linear, PagerDuty, and webhooks. They continuously monitor and improve your codebase by following your instructions and using configured tools.
+
+**Create automations**: [cursor.com/automations](https://cursor.com/automations)  
+**Templates**: [cursor.com/marketplace/automations](https://cursor.com/marketplace/automations)  
+**Docs**: [cursor.com/docs/cloud-agent/automations](https://cursor.com/docs/cloud-agent/automations)
+
+---
+
+## Getting Started
+
+1. **Create** the automation at cursor.com/automations or start from a marketplace template
+2. **Choose tools** the agent can use (Send to Slack, Comment on PR, Open PR, MCP servers)
+3. **Write a prompt** with instructions for the automation
+4. **Choose a trigger** (schedule, GitHub event, Slack message, webhook, etc.)
+5. **Watch it run** — the agent spins up a cloud sandbox and executes
+
+For scheduled or Slack triggers, you also choose a **repository and branch** (Cursor cannot infer them from a PR).
+
+---
+
+## Triggers
+
+An automation can have **multiple triggers**; it runs when any trigger fires.
+
+| Trigger | Events |
+|---------|--------|
+| **Scheduled** | Recurring schedule or cron expression. May run with delay but not before indicated time. |
+| **GitHub** | CI completed, Push to branch, PR commented/merged/pushed/opened, Draft opened |
+| **Slack** | New message in channel (keyword/regex filter optional), Channel created (public channels only) |
+| **Webhook** | Private HTTP endpoint — POST to start a run. Connect to CI, monitoring, internal systems. Save automation first to get URL + API key. |
+| **Linear** | Issue created, Status changed, End of cycle |
+| **PagerDuty** | Incident triggered, acknowledged, resolved; Any incident event |
+
+---
+
+## Tools
+
+| Tool | Purpose |
+|-----|---------|
+| **Open pull request** | Agent writes code, creates branch, opens PR. Use when automation should make code changes. |
+| **Comment on pull request** | Posts review/inline comments. Requires PR trigger. Can approve/request changes if approvals enabled. |
+| **Request reviewers** | Agent uses git, memory, etc. to identify domain experts. Requires PR trigger. |
+| **Send to Slack** | Sends messages to a channel. Target specific channel or let agent choose. |
+| **Read Slack channels** | Read-only access to list and read public channel messages. Use when agent needs context before replying/opening PR. |
+| **MCP server** | Connects MCP so agent can use external tools and data. Only connect trusted servers. |
+| **Memories** | Agent reads/writes persistent notes across runs. Build agents that improve over time. Disable if handling untrusted input. |
+
+Automations also include the same base tools as cloud agents (computer use, demos, CI fix). See [Cloud agent capabilities](https://cursor.com/docs/cloud-agent/capabilities).
+
+---
+
+## Use Cases
+
+### Review and Monitoring
+
+- **Security review** — Trigger on every push to main; audit diff for vulnerabilities; post high-risk findings to Slack
+- **Agentic codeowners** — On PR open/push: classify risk (blast radius, complexity, infra impact); auto-approve low-risk; assign reviewers for high-risk
+- **Incident response** — PagerDuty trigger → agent uses Datadog MCP to investigate logs, checks recent code changes, posts to on-call Slack with proposed fix PR
+- **Find vulnerabilities** — Review PRs for security issues, flag exploitable weaknesses before merge
+- **Bugbot-style** — PR opened/updated → automated review (style, correctness, security)
+
+### Chores
+
+- **Weekly summary** — Cron → post Slack digest of merged PRs, bug fixes, tech debt, security/dependency updates
+- **Test coverage** — Daily: identify recently merged code needing tests; add tests following conventions; run tests; open PR
+- **Bug report triage** — Slack message → check duplicates, create Linear issue via MCP, investigate root cause, attempt fix, reply in thread
+- **Clean up feature flags** — Find stale fully-rolled-out flags, remove dead code paths
+- **Fix CI failures** — Detect CI failures on main, automatically open fix PRs
+- **Generate docs** — Create/update developer docs for recently changed or under-documented code
+
+### External Examples (Rippling)
+
+- **Personal assistant** — Cron every 2h: read Slack (notes, TODOs, Loom), GitHub PRs, Jira; deduplicate; post clean dashboard
+- **Slack → Jira** — Create Jira issues from threads
+- **Summarize discussions** — Post to Confluence
+- **Incident triage, weekly status, on-call handoff**
+
+---
+
+## Marketplace Automation Templates
+
+| Template | Purpose |
+|----------|---------|
+| Assign PR reviewers | Assign based on code changes; auto-approve low-risk PRs |
+| Summarize changes daily | Post daily Slack digest of notable repo changes and risks |
+| Find vulnerabilities | Review PRs for security vulnerabilities |
+| Fix bugs reported in Slack | Monitor channel, investigate, fix with PR |
+| Add test coverage | Review recent changes, add tests for high-risk logic |
+| Clean up feature flags | Find stale fully-rolled-out flags, remove dead code |
+| Find critical bugs | Analyze commits for high-severity bugs, submit safe fixes |
+| Fix CI failures | Detect CI failures on main, open fix PRs |
+| Generate docs | Create/update docs for recently changed code |
+| Investigate Datadog errors | Investigate recurring production errors, propose fixes |
+| Triage Linear issues | Triage new issues, open PRs for easy fixes |
+| Investigate PagerDuty incidents | Use Datadog + code context |
+
+---
+
+## Settings
+
+### Model
+
+Choose which model the agent uses. Same models as cloud agents, tailored for autonomous use.
+
+### Environment
+
+Inherited from [Cloud Agents dashboard](https://cursor.com/dashboard?tab=cloud-agents):
+
+- **Disabled** — Skip dependency install. Use when agent only reads/reviews code.
+- **Enabled** — Install dependencies before running. Use when automation needs to build, test, or execute.
+
+Configure env and secrets in Cloud Agents dashboard.
+
+### Permissions
+
+| Scope | Who can view | Who can manage | Billing |
+|-------|--------------|----------------|---------|
+| **Private** | Only you (admins can view/disable) | Only you | Your usage |
+| **Team Visible** | Team members | Only you (admins can disable) | Your usage |
+| **Team Owned** | Team members | Team admins only | Team usage pool |
+
+Team Owned automations open PRs as `cursor`; Private open as your GitHub account.
+
+### Identity
+
+- Slack messages sent as Cursor bot
+- Private: PRs as your GitHub account
+- Team-scoped: PRs as `cursor`; comments/reviews as `cursor`
+
+---
+
+## Billing
+
+Automations create cloud agents; billed per [cloud agent usage](https://cursor.com/docs/models-and-pricing#model-pricing). Allocation depends on permission scope (see table above).
+
+---
+
+## Prompt Tips
+
+- Describe the output format you want
+- Set a quality bar for when to open PR, comment, or do nothing
+- Include decision rules for different cases
+- Reference enabled tools (at-mention or by name)
+- Be specific about what to check, change, or produce
+
+---
+
+## Related
+
+- [Cloud agents overview](https://cursor.com/docs/cloud-agent)
+- [Cloud agent setup](https://cursor.com/docs/cloud-agent/setup)
+- [Cloud agent capabilities](https://cursor.com/docs/cloud-agent/capabilities)
+- [Webhooks API](https://cursor.com/docs/cloud-agent/api/webhooks) — receive status change events (ERROR, FINISHED)
+- [Linear integration](https://cursor.com/docs/integrations/linear)
+- [Slack integration](https://cursor.com/docs/integrations/slack)
+- [GitHub integration](https://cursor.com/docs/integrations/github)

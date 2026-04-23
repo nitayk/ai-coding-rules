@@ -1,0 +1,100 @@
+---
+description: "Helm CLI for Kubernetes package management - install, upgrade, rollback, charts. Use when: (1) Managing Helm releases, (2) Installing charts, (3) Release management, (4) Chart development. Covers core commands and best practices."
+globs: []
+alwaysApply: false
+---
+
+# Helm CLI Guide
+
+## Triggers
+**APPLY WHEN:** User needs to install/upgrade Helm charts, manage releases, or work with Kubernetes packages
+**SKIP WHEN:** Using ArgoCD for Helm (see `technologies/argocd-reference-guide.mdc`)
+
+## Core Directive
+**Use helm for Kubernetes package operations** — Install, upgrade, rollback. Prefer `helm upgrade --install` for idempotent deployments.
+
+## Installation
+
+```bash
+# macOS
+brew install helm
+
+# Verify
+helm version
+```
+
+**Source**: [Helm Install](https://helm.sh/docs/intro/install/)
+
+---
+
+## Core Commands
+
+### Release Management
+```bash
+helm install <release> <chart>           # Install new release
+helm upgrade <release> <chart>            # Upgrade existing release
+helm upgrade --install <release> <chart> # Install or upgrade (idempotent)
+helm uninstall <release>                 # Remove release
+helm rollback <release> <revision>       # Rollback to previous revision
+helm list                               # List releases
+helm list -A                            # All namespaces
+helm status <release>                    # Release status
+helm history <release>                  # Revision history
+```
+
+### Repository
+```bash
+helm repo add <name> <url>    # Add repository
+helm repo update              # Update repo index
+helm search repo <term>       # Search charts
+helm search hub <term>        # Search Helm Hub
+```
+
+### Chart Operations
+```bash
+helm create <chartname>       # Create new chart
+helm template <chart>        # Render templates (dry-run)
+helm lint <chart>            # Lint chart
+helm dependency update       # Update chart dependencies
+helm get values <release>    # Get current values
+```
+
+**Source**: [Helm Commands](https://helm.sh/docs/helm/)
+
+---
+
+## Common Patterns
+
+```bash
+# Install with custom values
+helm install myapp ./mychart -f values.yaml
+
+# Upgrade with set
+helm upgrade myapp ./mychart --set key=value
+
+# Dry-run (template only)
+helm install myapp ./mychart --dry-run --debug
+
+# Wait for rollout
+helm upgrade myapp ./mychart --wait --timeout 5m
+```
+
+---
+
+## Best Practices
+
+1. **Labels** — Use `app.kubernetes.io/name`, `app.kubernetes.io/instance`
+2. **Values** — Structure values; use `--set` for overrides
+3. **Lint** — Run `helm lint` before install/upgrade
+4. **Secrets** — Use helm-secrets or SOPS for sensitive data
+5. **Dependencies** — Use subcharts for complex dependencies
+
+**Source**: [Helm Chart Best Practices](https://helm.sh/docs/chart_best_practices/)
+
+---
+
+## Related
+
+- **Kubernetes**: `kubectl.mdc`
+- **ArgoCD**: `technologies/argocd-reference-guide.mdc` — Helm via ArgoCD
+- **Official**: [Helm Docs](https://helm.sh/docs/)

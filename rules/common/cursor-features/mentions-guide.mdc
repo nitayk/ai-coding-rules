@@ -1,0 +1,87 @@
+---
+description: "Guide to @ Mentions in Cursor - navigate and reference context using @Files, @Code, @Docs, and built-in commands."
+globs: []
+alwaysApply: false
+---
+
+# @ Mentions Guide
+
+Navigate suggestions using arrow keys. Press `Enter` to select. If the suggestion is a category like `Files`, the suggestions filter to show the most relevant items within that category.
+
+## @Files & Folders
+
+### Referencing Files
+
+Reference entire files by selecting `@Files & Folders` followed by the filename to search. You can also drag files from the sidebar directly into Agent to add as context.
+
+### Referencing Folders
+
+When referencing folders using `@Folders`, Cursor provides the folder path and overview of its contents to help the AI understand what's available.
+
+**Tip**: After selecting a folder, type `/` to navigate deeper and see all subfolders.
+
+### Context Management
+
+Large files and folders are automatically condensed to fit within context limits. See [file & folder condensation](https://cursor.com/docs/agent/chat/summarization#file--folder-condensation) for details.
+
+## @Code
+
+Reference specific code sections using the `@Code` symbol. This provides more granular control than `@Files & Folders`, letting you select precise code snippets instead of entire files.
+
+## @Docs
+
+The `@Docs` feature lets you use documentation to help write code. Cursor includes popular documentation and you can add your own.
+
+### Using Existing Documentation
+
+Type `@Docs` in chat to see available documentation. Browse and select from popular frameworks and libraries.
+
+### Adding Your Own Documentation
+
+To add documentation not already available:
+
+1. Type `@Docs` and select **Add new doc**
+2. Paste the URL of the documentation site
+
+Once added, Cursor reads and understands the documentation, including all subpages. Use it like any other documentation.
+
+Turn on **Share with team** to make documentation available to everyone on your team.
+
+### Managing Your Documentation
+
+Go to **Cursor Settings** > **Indexing & Docs** to see all your added documentation. From here:
+
+- Edit documentation URLs
+- Remove documentation you no longer need
+- Add new documentation
+
+## Built-in Commands
+
+- **Summarize**: Compress the context window and provide a summary of the conversation.
+
+You can also define [custom commands](/docs/context/commands) to use in the chat.
+
+## Best Practices
+
+### File References
+
+- **Use @Files for entire files**: When you need the full context of a file
+- **Use @Code for snippets**: When you only need specific sections
+- **Drag and drop**: Quick way to add files from sidebar
+
+### Folder References
+
+- **Use @Folders for context**: When you need to understand a directory structure
+- **Navigate deeper**: Type `/` after selecting a folder to see subfolders
+- **Large folders**: Automatically condensed to fit context limits
+
+### Documentation
+
+- **Add team docs**: Share documentation with your team using "Share with team"
+- **Keep docs updated**: Remove outdated documentation
+- **Use popular docs**: Cursor includes many popular frameworks automatically
+
+## See Also
+
+- [Cursor @ Mentions Documentation](https://cursor.com/docs/context/mentions)
+- [Custom Commands Guide](../commands/README.md)

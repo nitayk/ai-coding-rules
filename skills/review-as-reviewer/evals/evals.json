@@ -1,0 +1,8 @@
+{
+  "skill_name": "review-as-reviewer",
+  "evals": [
+    {"id": 1, "prompt": "Review this PR as a reviewer.", "expected_output": "Agent fetches PR diff, performs three-pass review (broad assessment, primary components, complete review), reports findings with severity, gives verdict.", "files": [], "expectations": ["Agent gathers PR changes", "Agent follows three-pass review process", "Agent checks design, functionality, complexity, tests, naming, comments, style", "Agent uses severity levels and provides LGTM/Request Changes verdict"]},
+    {"id": 2, "prompt": "Do a code review on the changes in this branch.", "expected_output": "Agent reviews branch changes from the reviewer's perspective with structured feedback.", "files": [], "expectations": ["Agent checks git diff against base branch", "Agent evaluates CL size and suggests splitting if needed", "Agent writes review comments following Google's commenting guidelines"]},
+    {"id": 3, "prompt": "Review their changes before we merge.", "expected_output": "Agent performs a full reviewer-perspective review.", "files": [], "expectations": ["Agent performs broad assessment first", "Agent acknowledges good patterns with GOOD severity", "Agent flags red-flag patterns if found"]}
+  ]
+}

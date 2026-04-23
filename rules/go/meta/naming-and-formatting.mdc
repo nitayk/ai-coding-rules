@@ -1,0 +1,302 @@
+---
+description: "Go naming conventions and formatting based on Effective Go. Use when: (1) Writing Go code, (2) Following Go conventions, (3) Naming identifiers, (4) Formatting code, (5) Maintaining consistency. Covers Go naming conventions, formatting standards, and Effective Go principles."
+globs: []
+alwaysApply: false
+---
+
+# Go Naming and Formatting
+
+Based on [Effective Go](https://go.dev/doc/effective_go) and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments).
+
+## Naming Conventions
+
+### Package Names
+```go
+// ✅ GOOD: Short, lowercase, single word
+package http
+package json
+package user
+
+// ❌ BAD: Underscores, mixed case, or multi-word
+package http_util
+package jsonParser
+package user_service
+```
+
+### Variables and Functions
+```go
+// ✅ GOOD: MixedCase (camelCase or PascalCase)
+var userCount int
+func getUserByID(id int) *User { }
+
+// Exported (public)
+var MaxRetries int
+func ProcessData(data []byte) error { }
+
+// ❌ BAD: Underscores in names
+var user_count int
+func get_user_by_id(id int) *User { }
+```
+
+### Acronyms
+```go
+// ✅ GOOD: Keep acronyms uppercase
+var userID int
+var httpClient *http.Client
+var urlPath string
+
+type HTTPServer struct { }
+type UserID int
+
+// ❌ BAD: Mixed case acronyms
+var userId int
+var httpClient *http.Client
+type HttpServer struct { }
+```
+
+### Interface Names
+```go
+// ✅ GOOD: Single-method interfaces end in -er
+type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+// ✅ GOOD: Multi-method interfaces use descriptive names
+type UserRepository interface {
+    FindByID(id int) (*User, error)
+    Save(user *User) error
+    Delete(id int) error
+}
+```
+
+### Getters and Setters
+```go
+// ✅ GOOD: Omit 'Get' prefix for getters
+type User struct {
+    name string
+}
+
+func (u *User) Name() string {
+    return u.name
+}
+
+func (u *User) SetName(name string) {
+    u.name = name
+}
+
+// ❌ BAD: Using 'Get' prefix
+func (u *User) GetName() string {
+    return u.name
+}
+```
+
+## Code Organization
+
+### Imports
+```go
+// ✅ GOOD: Group imports (standard, third-party, local)
+import (
+    "fmt"
+    "os"
+    
+    "github.com/pkg/errors"
+    "github.com/sirupsen/logrus"
+    
+    "myapp/internal/models"
+    "myapp/internal/service"
+)
+
+// ❌ BAD: Mixed import groups
+import (
+    "fmt"
+    "myapp/internal/models"
+    "github.com/pkg/errors"
+    "os"
+)
+```
+
+### Declaration Grouping
+```go
+// ✅ GOOD: Group related declarations
+const (
+    StatusPending  = "pending"
+    StatusActive   = "active"
+    StatusComplete = "complete"
+)
+
+var (
+    ErrNotFound     = errors.New("not found")
+    ErrInvalidInput = errors.New("invalid input")
+)
+
+type (
+    UserID    int
+    ProductID int
+)
+
+// ❌ BAD: Separate declarations
+const StatusPending = "pending"
+const StatusActive = "active"
+const StatusComplete = "complete"
+```
+
+## Formatting
+
+### Indentation
+```go
+// ✅ GOOD: Use gofmt/goimports (tabs for indentation)
+func processData(items []Item) error {
+    for _, item := range items {
+        if err := validate(item); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+```
+
+### Line Length
+```go
+// ✅ GOOD: Break long lines naturally
+result, err := someFunction(
+    firstArgument,
+    secondArgument,
+    thirdArgument,
+)
+if err != nil {
+    return nil, fmt.Errorf("failed to process: %w", err)
+}
+
+// ✅ GOOD: Break long struct literals
+user := User{
+    ID:        123,
+    FirstName: "John",
+    LastName:  "Doe",
+    Email:     "john@example.com",
+    CreatedAt: time.Now(),
+}
+```
+
+### Comments
+```go
+// ✅ GOOD: Package comment (godoc)
+// Package user provides user management functionality.
+// 
+// This package handles user authentication, authorization,
+// and profile management.
+package user
+
+// ✅ GOOD: Exported function comment
+// FindByID retrieves a user by their ID.
+// Returns ErrNotFound if the user doesn't exist.
+func FindByID(id int) (*User, error) {
+    // ...
+}
+
+// ❌ BAD: No comment for exported function
+func FindByID(id int) (*User, error) {
+    // ...
+}
+```
+
+## Idiomatic Patterns
+
+### Error Handling Position
+```go
+// ✅ GOOD: Check error immediately
+result, err := doSomething()
+if err != nil {
+    return nil, err
+}
+// Use result
+
+// ❌ BAD: Separate error check
+result, err := doSomething()
+// ... other code ...
+if err != nil {
+    return nil, err
+}
+```
+
+### Short Variable Names
+```go
+// ✅ GOOD: Short names for short scopes
+for i, v := range values {
+    fmt.Println(i, v)
+}
+
+// ✅ GOOD: Receiver names (1-2 letters)
+func (u *User) Save() error { }
+func (uc *UserController) HandleRequest() { }
+
+// ❌ BAD: Long names for short scopes
+for index, value := range values {
+    fmt.Println(index, value)
+}
+```
+
+### Named Return Values
+```go
+// ✅ GOOD: Named returns for documentation
+func ReadFile(path string) (data []byte, err error) {
+    // ...
+    return
+}
+
+// ✅ GOOD: Use named returns for complex functions
+func parseResponse(resp *http.Response) (result Result, statusCode int, err error) {
+    // Can use naked return
+    defer resp.Body.Close()
+    
+    statusCode = resp.StatusCode
+    if statusCode != 200 {
+        err = fmt.Errorf("unexpected status: %d", statusCode)
+        return
+    }
+    
+    // ... parse result ...
+    return
+}
+
+// ❌ BAD: Named returns with explicit values (confusing)
+func process() (result int, err error) {
+    return 42, nil  // Don't use named and explicit together
+}
+```
+
+### Blank Identifier
+```go
+// ✅ GOOD: Use _ for unused values
+_, err := doSomething()  // Ignore first return value
+if err != nil {
+    return err
+}
+
+// ✅ GOOD: Import for side effects
+import _ "github.com/lib/pq"  // PostgreSQL driver
+
+// ✅ GOOD: Type assertions with safety
+if value, ok := interface{}.(int); ok {
+    fmt.Println(value)
+}
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (meaningful names, code organization)
+
+**Go-Specific:**
+- This file provides Go-specific naming and formatting conventions
+
+---
+
+## References
+
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- [Go Style Guide](https://google.github.io/styleguide/go/)

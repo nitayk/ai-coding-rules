@@ -1,0 +1,135 @@
+---
+description: "Frontend performance - bundle size, tree-shaking, lazy loading, code splitting. Use when: (1) Optimizing bundle size, (2) Lazy loading, (3) Code splitting, (4) Performance review."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx", "**/*.vue"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-04"
+tags: ["performance", "bundle", "lazy-loading", "tree-shaking", "frontend"]
+---
+
+# Performance Best Practices
+
+Minimize bundle size. Use tree-shaking. Lazy load routes and heavy components. Avoid circular dependencies.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Optimizing bundle size, adding new dependencies, implementing lazy loading, performance review.
+**SKIP WHEN:** Internal-only scripts or negligible bundle impact.
+
+---
+
+## Core Directive
+
+**Keep initial bundle small** - Use tree-shaking. Lazy load non-critical code. Split vendor and app chunks.
+
+---
+
+## Tree-Shaking Friendly Imports
+
+**Use named imports; avoid importing entire libraries:**
+
+```typescript
+// Good: Named import (tree-shakeable)
+import { debounce } from "lodash-es";
+import { format } from "date-fns";
+
+// Good: Path import for lodash
+import debounce from "lodash/debounce";
+
+// Bad: Full library import
+import _ from "lodash";  // Entire library bundled
+```
+
+---
+
+## Dynamic Imports for Code Splitting
+
+**Lazy load routes and heavy components:**
+
+```typescript
+// Good: Route-based code splitting
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Settings = lazy(() => import("./pages/Settings"));
+
+// Good: Conditional heavy component
+const HeavyChart = lazy(() => import("./HeavyChart"));
+function Report() {
+  const [showChart, setShowChart] = useState(false);
+  return (
+    <>
+      <button onClick={() => setShowChart(true)}>Show Chart</button>
+      {showChart && (
+        <Suspense fallback={<Spinner />}>
+          <HeavyChart />
+        </Suspense>
+      )}
+    </>
+  );
+}
+
+// Bad: Eager import of all routes
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
+```
+
+---
+
+## Avoid Barrel File Bloat
+
+**Be careful with barrel files (index.ts) that re-export everything:**
+
+```typescript
+// Bad: Barrel that pulls in everything
+// components/index.ts
+export * from "./Button";
+export * from "./Modal";
+export * from "./Chart";  // Heavy
+// Usage: import { Button } from "./components" - may pull Chart
+
+// Good: Direct imports for heavy components
+import { Button } from "./components/Button";
+import { Chart } from "./components/Chart";  // Explicit
+```
+
+---
+
+## Bundle Analysis
+
+**Use bundle analyzer to find large dependencies:**
+
+```bash
+# Vite
+vite build --mode analyze
+
+# Webpack
+webpack --stats
+```
+
+Check for: duplicate packages, large transitive deps, unused imports.
+
+---
+
+## Module Preloading
+
+**Use modulepreload for critical modules:**
+
+```html
+<link rel="modulepreload" href="/critical-module.js" />
+```
+
+---
+
+## Related Rules
+
+- [React Patterns](../frameworks/react-patterns.mdc) - useMemo, useCallback, lazy
+- [Vue Best Practices](../frameworks/vue-best-practices.mdc) - Vue lazy loading
+
+---
+
+## References
+
+- [Vite: Build Optimizations](https://vitejs.dev/guide/build.html)
+- [webpack: Code Splitting](https://webpack.js.org/guides/code-splitting/)
+- [ES Modules: Performance](https://esmodules.com/performance/)

@@ -1,0 +1,299 @@
+---
+description: "Universal architecture principles - interface-centric design, separation of concerns, dependency injection. Use when: (1) Designing systems, (2) Reviewing architecture, (3) Refactoring code, (4) Creating abstractions, (5) Managing dependencies. Covers interface-centric design, separation of concerns, and dependency injection patterns."
+globs: []
+alwaysApply: false
+version: "1.1.0"
+last_updated: "2025-01-21"
+tags: ["architecture", "universal", "design", "interfaces"]
+---
+
+# Universal Architecture Principles
+
+**APPLY WHEN:** Designing system architecture, organizing code structure, or refactoring large codebases.
+
+---
+
+## Core Principles
+
+### 1. Interface-Centric Design
+
+**DO**:
+- Depend on interfaces/abstractions, not concrete implementations
+- Define clear interfaces for services and components
+- Use dependency injection to provide implementations
+
+**STOP**:
+- Tightly coupling to concrete classes
+- Hard-coding implementations
+- Making components hard to test or swap
+
+**Benefits**:
+- Flexibility (easy to swap implementations)
+- Testability (easy to mock interfaces)
+- Maintainability (clear contracts)
+
+**Example**:
+```typescript
+// ✅ Good: Interface-centric
+interface UserService {
+  findUser(id: string): Promise<User | null>;
+  createUser(data: UserData): Promise<User>;
+}
+
+class UserFacade {
+  constructor(private userService: UserService) {}
+  // Uses interface, not concrete class
+}
+
+// ❌ Bad: Concrete dependencies
+class BadUserFacade {
+  constructor(private userService: DatabaseUserService) {}
+  // Tightly coupled to specific implementation
+}
+```
+
+---
+
+### 2. Single Responsibility Principle (SRP)
+
+**DO**:
+- Each class/module has ONE clear responsibility
+- Split complex components into focused ones
+- Name components without "and" (e.g., not "UserAndOrderService")
+
+**STOP**:
+- Classes handling multiple unrelated concerns
+- Components that are hard to name clearly
+- Mixing business logic with infrastructure concerns
+
+**Example**:
+```python
+# ❌ Bad: Multiple responsibilities
+class UserOrderService:
+    def create_user(self, data): pass
+    def create_order(self, data): pass
+    def send_email(self, message): pass
+    def generate_report(self): pass
+
+# ✅ Good: Focused responsibilities
+class UserService:
+    def create_user(self, data): pass
+
+class OrderService:
+    def create_order(self, data): pass
+
+class EmailService:
+    def send_email(self, message): pass
+```
+
+---
+
+### 3. Separation of Concerns
+
+**DO**:
+- Separate business logic from infrastructure (I/O, databases, APIs)
+- Use clear layer boundaries (Domain → Service → Infrastructure)
+- Keep cross-cutting concerns separate (logging, monitoring, auth)
+
+**STOP**:
+- Mixing business rules with I/O operations
+- Putting database code in business logic
+- Coupling domain models to infrastructure
+
+**Layer Organization**:
+```
+Domain Layer      - Core business logic, entities, value objects
+Service Layer     - Business operations, orchestration
+Infrastructure   - External concerns (DB, APIs, file I/O)
+Facade/API Layer  - Clean public interface
+```
+
+---
+
+### 4. Dependency Injection
+
+**DO**:
+- Use constructor injection for dependencies
+- Make dependencies explicit in function signatures
+- Provide dependencies from outside (don't create internally)
+
+**STOP**:
+- Creating dependencies inside classes (`new Database()`)
+- Using global singletons for dependencies
+- Hidden dependencies (static calls, global state)
+
+**Benefits**:
+- Testability (easy to inject test doubles)
+- Flexibility (easy to swap implementations)
+- Clear dependencies (explicit in constructor)
+
+**Example**:
+```go
+// ✅ Good: Constructor injection
+type UserService struct {
+    repo UserRepository
+    logger Logger
+}
+
+func NewUserService(repo UserRepository, logger Logger) *UserService {
+    return &UserService{repo: repo, logger: logger}
+}
+
+// ❌ Bad: Creating dependencies internally
+type BadUserService struct {}
+
+func (s *BadUserService) CreateUser(data UserData) {
+    repo := NewDatabaseRepository()  // Hidden dependency!
+    // ...
+}
+```
+
+---
+
+### 5. Encapsulation & Information Hiding
+
+**DO**:
+- Hide complex subsystem initialization behind simple interfaces
+- Expose only what clients need
+- Use factory patterns for complex object creation
+
+**STOP**:
+- Exposing internal implementation details
+- Requiring clients to know about complex setup
+- Leaking abstraction boundaries
+
+**Example**:
+```java
+// ✅ Good: Encapsulated creation
+class OrderProcessingFacadeFactory {
+    OrderProcessingFacade create(Config config) {
+        // Complex initialization hidden
+        var db = setupDatabase(config.database);
+        var payment = setupPaymentService(config.payment);
+        var email = setupEmailService(config.email);
+        return new OrderProcessingFacade(db, payment, email);
+    }
+}
+
+// Clients only see simple interface
+var facade = factory.create(config);
+```
+
+---
+
+## Architectural Patterns
+
+### Layered Architecture
+
+**Structure**:
+- **Domain Layer**: Core business logic, entities, value objects (no dependencies on other layers)
+- **Service Layer**: Business operations, orchestration (depends on domain)
+- **Infrastructure Layer**: External concerns (depends on domain/service)
+- **Presentation Layer**: API/UI (depends on service layer)
+
+**Rule**: Dependencies point inward (infrastructure → service → domain)
+
+---
+
+### Facade Pattern
+
+**Purpose**: Provide simple interface to complex subsystem
+
+**DO**:
+- Create facades for complex subsystems
+- Hide complexity behind clean API
+- Keep facades focused (single responsibility)
+
+**Example**:
+```typescript
+// Complex subsystem
+class BiddingService { /* complex */ }
+class TrackingService { /* complex */ }
+class AnalyticsService { /* complex */ }
+
+// Simple facade
+class AdTechFacade {
+  constructor(
+    private bidding: BiddingService,
+    private tracking: TrackingService,
+    private analytics: AnalyticsService
+  ) {}
+  
+  async processAd(request: AdRequest): Promise<AdResult> {
+    // Simple interface hiding complexity
+  }
+}
+```
+
+---
+
+## Error Handling Architecture
+
+### Consistent Error Types
+
+**DO**:
+- Define domain-specific error types
+- Use sealed types/ADTs for error variants
+- Handle errors consistently across layers
+
+**STOP**:
+- Using generic exceptions everywhere
+- Mixing error types from different layers
+- Swallowing errors silently
+
+**Example**:
+```scala
+// ✅ Good: Domain-specific errors
+sealed trait DomainError
+case class ValidationError(field: String, message: String) extends DomainError
+case class NotFoundError(resource: String, id: String) extends DomainError
+case class BusinessRuleError(rule: String, message: String) extends DomainError
+```
+
+---
+
+## Testing Architecture
+
+### Interface-Based Testing
+
+**DO**:
+- Test against interfaces, not concrete classes
+- Use dependency injection for test doubles
+- Keep tests isolated from implementation details
+
+**STOP**:
+- Testing concrete implementations directly
+- Coupling tests to internal structure
+- Using real infrastructure in unit tests
+
+---
+
+## Benefits
+
+### Maintainability
+- Clear separation of concerns
+- Easy to locate and modify functionality
+- Reduced coupling between components
+
+### Testability
+- Easy to mock interfaces for testing
+- Clear test boundaries
+- Isolated component testing
+
+### Flexibility
+- Easy to swap implementations
+- Support for multiple deployment configurations
+- Extensible architecture
+
+---
+
+## Language-Specific Notes
+
+- **Scala**: Use traits for interfaces, prefer sealed traits for ADTs
+- **Python**: Use ABC (Abstract Base Classes) for interfaces, prefer composition
+- **Go**: Use interfaces (implicit), prefer small interfaces
+- **Java**: Use interfaces, avoid deep inheritance hierarchies
+- **TypeScript**: Use interfaces/types, prefer composition over inheritance
+- **Swift/Kotlin**: Use protocols/interfaces, prefer value types
+
+**Reference**: Language-specific architecture rules in `backend/` and `mobile/` directories.

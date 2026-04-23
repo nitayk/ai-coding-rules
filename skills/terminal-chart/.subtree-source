@@ -1,0 +1,9 @@
+# Subtree Source Information
+# This directory is maintained as a snapshot from an upstream repository.
+# DO NOT manually edit files in this directory.
+# Use the update script to pull in changes from upstream.
+
+SOURCE_REPO=https://github.com/Unity-Technologies/ai-agent-skills.git
+SOURCE_PATH=skills/ads/terminal-chart
+LAST_SYNC_COMMIT=f617341b33d83dafc32243cfc4b5ffb5acca0f5d
+LAST_SYNC_DATE=2026-04-14 09:47:56 -0400

@@ -1,0 +1,365 @@
+---
+description: "Write table-driven tests - idiomatic Go testing pattern for multiple test cases. Use when: (1) Writing Go tests, (2) Testing multiple scenarios, (3) Creating test tables, (4) Following Go testing conventions, (5) Organizing test cases. Covers table-driven test patterns, test organization, and idiomatic Go testing."
+globs: []
+alwaysApply: false
+---
+
+# Table-Driven Tests
+
+Use table-driven tests to consolidate multiple test cases into a single test function. This is the idiomatic Go testing pattern.
+
+---
+
+## Basic Table-Driven Test Structure
+
+**Define test cases as a slice of structs:**
+
+```go
+// ✅ Good: Table-driven test
+func TestProcessItems(t *testing.T) {
+    tests := []struct {
+        name    string
+        input   []string
+        want    []string
+        wantErr bool
+    }{
+        {
+            name:    "empty slice",
+            input:   []string{},
+            want:    []string{},
+            wantErr: false,
+        },
+        {
+            name:    "single item",
+            input:   []string{"a"},
+            want:    []string{"A"},
+            wantErr: false,
+        },
+        {
+            name:    "multiple items",
+            input:   []string{"a", "b", "c"},
+            want:    []string{"A", "B", "C"},
+            wantErr: false,
+        },
+        {
+            name:    "invalid input",
+            input:   nil,
+            want:    nil,
+            wantErr: true,
+        },
+    }
+
+    for _, tt := range tests {
+        tt := tt  // Capture loop variable
+        t.Run(tt.name, func(t *testing.T) {
+            got, err := ProcessItems(tt.input)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("ProcessItems() error = %v, wantErr %v", err, tt.wantErr)
+                return
+            }
+            if !reflect.DeepEqual(got, tt.want) {
+                t.Errorf("ProcessItems() = %v, want %v", got, tt.want)
+            }
+        })
+    }
+}
+```
+
+**Key points:**
+- `name` field for descriptive test case names
+- Use `t.Run()` for subtests (enables filtering with `go test -run`)
+- Capture loop variable: `tt := tt`
+- Check errors before comparing results
+
+---
+
+## Use Subtests with t.Run
+
+**Always use `t.Run()` to create subtests:**
+
+```go
+// ✅ Good: Subtests with t.Run
+for _, tt := range tests {
+    tt := tt  // Capture
+    t.Run(tt.name, func(t *testing.T) {
+        // Test logic here
+    })
+}
+
+// ❌ Bad: No subtests - all cases run in one test
+for _, tt := range tests {
+    // Test logic - failures are hard to identify
+    got, err := ProcessItems(tt.input)
+    if err != nil {
+        t.Errorf("Failed for %s", tt.name)
+    }
+}
+```
+
+**Benefits:**
+- Each case runs as separate test
+- Can filter: `go test -run TestProcessItems/empty`
+- Clear failure messages with case name
+- Can parallelize subtests safely
+
+---
+
+## Capture Loop Variables
+
+**Always capture loop variable to avoid closure bugs:**
+
+```go
+// ✅ Good: Capture loop variable
+for _, tt := range tests {
+    tt := tt  // Capture - creates new variable for each iteration
+    t.Run(tt.name, func(t *testing.T) {
+        // Uses captured tt
+        got, err := ProcessItems(tt.input)
+        // ...
+    })
+}
+
+// ❌ Bad: Using loop variable directly (closure bug)
+for _, tt := range tests {
+    t.Run(tt.name, func(t *testing.T) {
+        // All subtests may use same tt value!
+        got, err := ProcessItems(tt.input)
+        // ...
+    })
+}
+```
+
+---
+
+## Use Named Struct Types for Complex Cases
+
+**Define named struct when test cases have many fields:**
+
+```go
+// ✅ Good: Named struct for complex cases
+func TestValidateUser(t *testing.T) {
+    type testCase struct {
+        name      string
+        user      *User
+        wantErr   bool
+        wantField string  // Which field should fail
+    }
+
+    tests := []testCase{
+        {
+            name: "valid user",
+            user: &User{
+                Name:  "John",
+                Email: "john@example.com",
+                Age:   30,
+            },
+            wantErr:   false,
+            wantField: "",
+        },
+        {
+            name: "missing email",
+            user: &User{
+                Name: "John",
+                Age:  30,
+            },
+            wantErr:   true,
+            wantField: "email",
+        },
+    }
+
+    for _, tt := range tests {
+        tt := tt
+        t.Run(tt.name, func(t *testing.T) {
+            err := ValidateUser(tt.user)
+            // ... assertions
+        })
+    }
+}
+```
+
+---
+
+## Use Anonymous Structs for Simple Cases
+
+**Anonymous structs are fine for simple test cases:**
+
+```go
+// ✅ Good: Anonymous struct for simple cases
+func TestAdd(t *testing.T) {
+    tests := []struct {
+        name string
+        a    int
+        b    int
+        want int
+    }{
+        {"positive numbers", 1, 2, 3},
+        {"zero", 0, 5, 5},
+        {"negative", -1, 1, 0},
+    }
+
+    for _, tt := range tests {
+        tt := tt
+        t.Run(tt.name, func(t *testing.T) {
+            got := Add(tt.a, tt.b)
+            if got != tt.want {
+                t.Errorf("Add(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
+            }
+        })
+    }
+}
+```
+
+---
+
+## Use cmp.Equal for Complex Comparisons
+
+**Use `github.com/google/go-cmp/cmp` for better error messages:**
+
+```go
+// ✅ Good: Using cmp.Equal
+import (
+    "github.com/google/go-cmp/cmp"
+    "testing"
+)
+
+func TestProcessData(t *testing.T) {
+    tests := []struct {
+        name  string
+        input []int
+        want  *Result
+    }{
+        {
+            name:  "basic case",
+            input: []int{1, 2, 3},
+            want: &Result{
+                Sum:   6,
+                Count: 3,
+                Avg:   2.0,
+            },
+        },
+    }
+
+    for _, tt := range tests {
+        tt := tt
+        t.Run(tt.name, func(t *testing.T) {
+            got := ProcessData(tt.input)
+            if diff := cmp.Diff(tt.want, got); diff != "" {
+                t.Errorf("ProcessData() mismatch (-want +got):\n%s", diff)
+            }
+        })
+    }
+}
+
+// ❌ Bad: reflect.DeepEqual gives poor error messages
+if !reflect.DeepEqual(got, tt.want) {
+    t.Errorf("Mismatch")  // No details!
+}
+```
+
+---
+
+## Parallelize Independent Subtests
+
+**Use `t.Parallel()` for independent test cases:**
+
+```go
+// ✅ Good: Parallel subtests
+for _, tt := range tests {
+    tt := tt
+    t.Run(tt.name, func(t *testing.T) {
+        t.Parallel()  // Run subtests in parallel
+        got, err := ProcessItems(tt.input)
+        // ... assertions
+    })
+}
+
+// ⚠️ Warning: Only use if tests are truly independent
+// Don't use if tests share state, global variables, or resources
+```
+
+---
+
+## Include Edge Cases and Error Cases
+
+**Test edge cases, boundaries, and error conditions:**
+
+```go
+// ✅ Good: Comprehensive test cases
+tests := []struct {
+    name    string
+    input   int
+    want    int
+    wantErr bool
+}{
+    {"zero", 0, 0, false},
+    {"negative", -1, 0, true},
+    {"minimum valid", 1, 1, false},
+    {"maximum valid", 100, 100, false},
+    {"over maximum", 101, 0, true},
+    {"boundary", 50, 50, false},
+}
+```
+
+---
+
+## Keep Test Logic Simple
+
+**Move complex setup to helper functions:**
+
+```go
+// ✅ Good: Simple test logic, helper for setup
+func TestProcessOrder(t *testing.T) {
+    tests := []struct {
+        name string
+        setupOrder func() *Order
+        wantStatus string
+    }{
+        {
+            name: "pending order",
+            setupOrder: func() *Order {
+                return createTestOrder("pending")
+            },
+            wantStatus: "processing",
+        },
+    }
+
+    for _, tt := range tests {
+        tt := tt
+        t.Run(tt.name, func(t *testing.T) {
+            order := tt.setupOrder()
+            ProcessOrder(order)
+            if order.Status != tt.wantStatus {
+                t.Errorf("Status = %s, want %s", order.Status, tt.wantStatus)
+            }
+        })
+    }
+}
+
+// Helper function
+func createTestOrder(status string) *Order {
+    return &Order{
+        ID:     123,
+        Status: status,
+        Items:  []Item{{ID: 1, Price: 10.0}},
+    }
+}
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Testing Principles](../../../../generic/testing/core-principles.mdc) - Universal testing principles (test behavior not implementation, AAA pattern, isolation)
+
+**Go-Specific:**
+- This file provides Go-specific implementation (table-driven tests, subtests)
+- [Error Handling Patterns](../language/error-handling-patterns.mdc) - Testing error cases
+
+---
+
+## References
+
+- [Go Testing Package](https://pkg.go.dev/testing)
+- [Go Blog: Subtests and Sub-benchmarks](https://go.dev/blog/subtests)
+- [Google Go Style Guide: Table-Driven Tests](https://google.github.io/styleguide/go/decisions#table-driven-tests)

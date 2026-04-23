@@ -1,0 +1,340 @@
+---
+description: "Pythonic best practices - idiomatic Python patterns, comprehensions, dataclasses, and EAFP. Use when: (1) Writing idiomatic Python, (2) Using list/dict comprehensions, (3) Working with dataclasses, (4) Applying EAFP principle, (5) Writing Pythonic code. Covers comprehensions, dataclasses, EAFP, and idiomatic patterns."
+globs: []
+alwaysApply: false
+---
+
+# Pythonic Patterns
+
+Write idiomatic Python code that leverages the language's strengths: readability, expressiveness, and "batteries included" philosophy.
+
+---
+
+## Use Comprehensions for Transformations
+
+**Prefer list/dict/set comprehensions over loops for simple transformations:**
+
+```python
+# ✅ Good: List comprehension
+squares = [x**2 for x in range(10)]
+
+# ✅ Good: Dict comprehension
+user_map = {user.id: user.name for user in users}
+
+# ✅ Good: Set comprehension with condition
+unique_emails = {user.email for user in users if user.is_active}
+
+# ❌ Bad: Verbose loop
+squares = []
+for x in range(10):
+    squares.append(x**2)
+```
+
+**For complex logic, use loops:**
+
+```python
+# ✅ Good: Loop for complex logic
+results = []
+for item in items:
+    processed = expensive_operation(item)
+    if processed.is_valid():
+        results.append(processed)
+    logger.info(f"Processed {item.id}")
+
+# ❌ Bad: Overly complex comprehension
+results = [
+    expensive_operation(item)
+    for item in items
+    if expensive_operation(item).is_valid()  # Computed twice!
+]
+```
+
+---
+
+## Use Dataclasses for Data Holders
+
+**Use `@dataclass` for classes that primarily hold data:**
+
+```python
+# ✅ Good: Dataclass reduces boilerplate
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class User:
+    name: str
+    email: str
+    age: Optional[int] = None
+    is_active: bool = True
+
+# Auto-generates __init__, __repr__, __eq__
+user = User("John", "john@example.com", age=30)
+print(user)  # User(name='John', email='john@example.com', age=30, is_active=True)
+
+# ❌ Bad: Verbose manual class
+class User:
+    def __init__(self, name: str, email: str, age: Optional[int] = None, is_active: bool = True):
+        self.name = name
+        self.email = email
+        self.age = age
+        self.is_active = is_active
+    
+    def __repr__(self):
+        return f"User(name={self.name!r}, email={self.email!r}, age={self.age}, is_active={self.is_active})"
+    
+    def __eq__(self, other):
+        if not isinstance(other, User):
+            return False
+        return (self.name, self.email, self.age, self.is_active) == \
+               (other.name, other.email, other.age, other.is_active)
+```
+
+---
+
+## Follow EAFP (Easier to Ask for Forgiveness than Permission)
+
+**Try operations and handle exceptions rather than checking first:**
+
+```python
+# ✅ Good: EAFP - Pythonic approach
+try:
+    value = my_dict[key]
+except KeyError:
+    value = default_value
+
+# ❌ Bad: LBYL (Look Before You Leap) - less Pythonic
+if key in my_dict:
+    value = my_dict[key]
+else:
+    value = default_value
+```
+
+**For file operations:**
+
+```python
+# ✅ Good: EAFP with context manager
+try:
+    with open("config.json") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    config = default_config
+except json.JSONDecodeError as e:
+    logger.error(f"Invalid JSON: {e}")
+    config = default_config
+
+# ❌ Bad: Check first
+if os.path.exists("config.json"):
+    with open("config.json") as f:
+        config = json.load(f)  # File might be deleted between check and open!
+else:
+    config = default_config
+```
+
+---
+
+## Use Context Managers for Resources
+
+**Always use context managers (`with`) for resources:**
+
+```python
+# ✅ Good: Context manager ensures cleanup
+with open("data.txt") as f:
+    data = f.read()
+    process(data)
+# File automatically closed
+
+# ✅ Good: Multiple context managers
+with open("input.txt") as infile, open("output.txt", "w") as outfile:
+    data = infile.read()
+    outfile.write(process(data))
+
+# ❌ Bad: Manual resource management
+f = open("data.txt")
+data = f.read()
+f.close()  # Might not execute if exception occurs
+```
+
+**Create custom context managers:**
+
+```python
+# ✅ Good: Custom context manager
+from contextlib import contextmanager
+
+@contextmanager
+def database_transaction(db):
+    """Context manager for database transactions."""
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+# Usage
+with database_transaction(db) as tx:
+    tx.execute("INSERT INTO users ...")
+```
+
+---
+
+## Leverage Built-ins and Standard Library
+
+**Use Python's built-ins and standard library before writing custom code:**
+
+```python
+# ✅ Good: Use built-ins
+from collections import defaultdict, Counter
+from itertools import groupby, chain
+from functools import lru_cache
+
+# Count occurrences
+word_counts = Counter(text.split())
+
+# Group by key
+grouped = {k: list(v) for k, v in groupby(sorted(items), key=lambda x: x.category)}
+
+# Cache expensive function
+@lru_cache(maxsize=128)
+def expensive_computation(n: int) -> int:
+    # ...
+    pass
+
+# ❌ Bad: Reinventing the wheel
+def count_words(text: str) -> dict[str, int]:
+    counts = {}
+    for word in text.split():
+        if word not in counts:
+            counts[word] = 0
+        counts[word] += 1
+    return counts
+```
+
+---
+
+## Use Generators for Large Sequences
+
+**Use generators for memory-efficient iteration:**
+
+```python
+# ✅ Good: Generator expression
+large_sum = sum(x**2 for x in range(1000000))  # Memory efficient
+
+# ✅ Good: Generator function
+def read_large_file(filename: str):
+    """Yield lines one at a time."""
+    with open(filename) as f:
+        for line in f:
+            yield process_line(line)
+
+# Process without loading entire file into memory
+for line in read_large_file("huge.txt"):
+    process(line)
+
+# ❌ Bad: Loading everything into memory
+all_lines = [process_line(line) for line in open("huge.txt")]
+for line in all_lines:
+    process(line)
+```
+
+---
+
+## Prefer Explicit Over Implicit
+
+**Make code intent clear:**
+
+```python
+# ✅ Good: Explicit and clear
+def calculate_total(items: list[Item]) -> float:
+    """Calculate total price of items."""
+    return sum(item.price for item in items)
+
+# ✅ Good: Named arguments for clarity
+user = User(
+    name="John",
+    email="john@example.com",
+    age=30
+)
+
+# ❌ Bad: Unclear intent
+def calc(items):
+    return sum(i.p for i in items)
+
+# ❌ Bad: Positional arguments for many parameters
+user = User("John", "john@example.com", 30, True, "admin")
+```
+
+---
+
+## Use Meaningful Names
+
+**Choose descriptive names that express intent:**
+
+```python
+# ✅ Good: Descriptive names
+def calculate_discount_price(original_price: float, discount_percent: float) -> float:
+    return original_price * (1 - discount_percent / 100)
+
+# ✅ Good: Domain-specific names
+def validate_user_registration(user_data: dict) -> bool:
+    return user_data.get("email") and user_data.get("age", 0) >= 18
+
+# ❌ Bad: Generic or unclear names
+def calc(p: float, d: float) -> float:
+    return p * (1 - d / 100)
+
+def check(d: dict) -> bool:
+    return d.get("e") and d.get("a", 0) >= 18
+```
+
+---
+
+## Write Small, Focused Functions
+
+**Each function should do one thing:**
+
+```python
+# ✅ Good: Small, focused functions
+def validate_email(email: str) -> bool:
+    """Validate email format."""
+    return "@" in email and "." in email.split("@")[1]
+
+def validate_age(age: int) -> bool:
+    """Validate age is positive."""
+    return age > 0
+
+def validate_user(user: User) -> bool:
+    """Validate user data."""
+    return validate_email(user.email) and validate_age(user.age)
+
+# ❌ Bad: One function doing everything
+def validate_user(user: User) -> bool:
+    """Validate everything."""
+    if "@" not in user.email or "." not in user.email.split("@")[1]:
+        return False
+    if user.age <= 0:
+        return False
+    if len(user.name) < 2:
+        return False
+    # ... many more validations
+    return True
+```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (SOLID, DRY, KISS, YAGNI, pure functions)
+
+**Python-Specific:**
+- [Type Annotations Everywhere](type-annotations-everywhere.mdc) - Type hints for all code
+- [Error Handling Patterns](error-handling-patterns.mdc) - Exception handling
+- [Advanced Features](advanced-features.mdc) - Decorators, context managers
+
+---
+
+## References
+
+- [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/)
+- [The Zen of Python](https://www.python.org/dev/peps/pep-0020/)
+- [Python Documentation](https://docs.python.org/3/)

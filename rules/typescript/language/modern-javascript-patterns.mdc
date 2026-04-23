@@ -1,0 +1,176 @@
+---
+description: "Modern JavaScript patterns - ES6+, const/let, destructuring, modules, optional chaining. Use when: (1) Writing JavaScript, (2) ES6+ features, (3) Module organization, (4) Avoiding legacy patterns."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-04"
+tags: ["javascript", "es6", "modules", "modern-js", "patterns"]
+---
+
+# Modern JavaScript Patterns
+
+Use ES6+ features consistently. Prefer const over let. Use destructuring and optional chaining. Organize with ES modules.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Writing JavaScript, refactoring legacy code, adopting modern syntax.
+**SKIP WHEN:** Working in codebase with explicit legacy constraints.
+
+---
+
+## Core Directive
+
+**Use modern JavaScript** - const/let, arrow functions, destructuring, async/await. Avoid var and callback-style async.
+
+---
+
+## Variable Declaration
+
+**Prefer const; use let only when reassignment is needed:**
+
+```javascript
+// Good: const by default
+const apiUrl = "https://api.example.com";
+const config = { timeout: 5000 };
+let retryCount = 0;
+
+// Bad: var (function-scoped, hoisting issues)
+var apiUrl = "https://api.example.com";
+```
+
+---
+
+## Arrow Functions and Callbacks
+
+**Use arrow functions for callbacks; preserve this when needed:**
+
+```javascript
+// Good: Arrow functions for callbacks
+const doubled = numbers.map(n => n * 2);
+const filtered = items.filter(item => item.active);
+
+// Good: Multi-line with block
+const sorted = users.sort((a, b) => {
+  return a.name.localeCompare(b.name);
+});
+
+// Bad: Unnecessary function keyword
+const doubled = numbers.map(function(n) { return n * 2; });
+```
+
+---
+
+## Destructuring
+
+**Use destructuring for objects and arrays:**
+
+```javascript
+// Good: Object destructuring
+const { id, name, email } = user;
+const { data, error } = await fetchUser();
+
+// Good: Array destructuring
+const [first, ...rest] = items;
+const [min, max] = getRange();
+
+// Good: Default values
+const { theme = "light", notifications = true } = settings;
+
+// Bad: Manual property access when destructuring fits
+const id = user.id;
+const name = user.name;
+```
+
+---
+
+## Optional Chaining and Nullish Coalescing
+
+**Use ?. and ?? for safe access and defaults:**
+
+```javascript
+// Good: Optional chaining
+const city = user?.address?.city;
+const firstItem = items?.[0];
+
+// Good: Nullish coalescing (null/undefined only)
+const limit = config.limit ?? 10;
+const name = user.name ?? "Unknown";
+
+// Bad: Nested ternary or manual checks
+const city = user && user.address && user.address.city;
+const limit = config.limit !== undefined ? config.limit : 10;
+```
+
+---
+
+## ES Modules
+
+**Use import/export; avoid CommonJS in new code:**
+
+```javascript
+// Good: Named exports
+export function formatDate(date) { /* ... */ }
+export const DEFAULT_LOCALE = "en";
+
+// Good: Named imports
+import { formatDate, DEFAULT_LOCALE } from "./utils";
+
+// Good: Default export for single primary export
+export default function App() { /* ... */ }
+import App from "./App";
+
+// Bad: require/module.exports in ES module context
+const utils = require("./utils");
+module.exports = { formatDate };
+```
+
+---
+
+## Template Literals
+
+**Use template literals for string interpolation:**
+
+```javascript
+// Good: Template literals
+const message = `Hello, ${user.name}!`;
+const url = `/api/users/${id}/orders`;
+
+// Bad: String concatenation
+const message = "Hello, " + user.name + "!";
+```
+
+---
+
+## Spread and Rest
+
+**Use spread for copying and merging; rest for variadic args:**
+
+```javascript
+// Good: Spread for objects
+const updated = { ...user, name: newName };
+
+// Good: Spread for arrays
+const combined = [...arr1, ...arr2];
+const copy = [...original];
+
+// Good: Rest parameters
+function sum(...numbers) {
+  return numbers.reduce((a, b) => a + b, 0);
+}
+```
+
+---
+
+## Related Rules
+
+- [TypeScript Strict Type Safety](typescript-strict-type-safety.mdc) - Type-safe patterns
+- [Async Patterns](async-patterns.mdc) - async/await usage
+
+---
+
+## References
+
+- [MDN: JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
+- [TC39 Finished Proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md)

@@ -1,0 +1,21 @@
+---
+description: "Pointer only: Unity Ads code graph docs live outside this repo. This rules package is ironSource/iAds (Memgraph). Load when: neo4j or Unity code graph keywords appear — redirects to the right home."
+globs: []
+alwaysApply: false
+group: iads
+---
+
+# Neo4j / Unity Ads code graph — not documented here
+
+**mobile-cursor-rules** (this repository) documents **ironSource / iAds / ISX** workflows: **Memgraph**, Atlas, Kafka, … — see **`memgraph-reference-guide.mdc`** and **`/code-graph-architect`**.
+
+**Unity Ads** (`uads/**`) code graph MCP usage and skills are **documented in that product’s own rules/skills package** — not duplicated here.
+
+| If you need… | Go to |
+|--------------|--------|
+| Unity Ads code graph skill and references | Your product’s **agent-skills** / rules package for `uads/**` (not this repo) |
+| **ironSource** Memgraph code graph | **`memgraph-reference-guide.mdc`** + **`/code-graph-architect`** (this repo) |
+
+**Cypher** (query language): [Cypher Manual](https://neo4j.com/docs/cypher-manual/current/) — language reference; backends vary by product.
+
+Do **not** expand this file with Unity-specific content; keep repos independent.

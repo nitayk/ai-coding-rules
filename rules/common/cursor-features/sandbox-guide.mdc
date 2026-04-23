@@ -1,0 +1,177 @@
+---
+description: "Sandbox network access controls and filesystem restrictions for Cursor Agent. Covers sandbox.json configuration, network policies, allowlists/denylists, filesystem paths, merge rules, and enterprise controls. Use when: (1) Configuring sandbox network access, (2) Setting up allowlists, (3) Understanding sandbox restrictions, (4) Enterprise security policies."
+globs: []
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-02-18"
+tags: ["sandbox", "security", "network", "access-control", "enterprise"]
+---
+
+# Sandbox Configuration Guide
+
+The sandbox restricts Agent terminal commands to prevent unauthorized file access and network activity. Available on macOS (v2.0+) and Linux (v2.3.0+). Granular network and filesystem controls added in Cursor 2.5.
+
+## Default Behavior
+
+| Access Type | Default |
+|-------------|---------|
+| File access | Read: full filesystem. Write: workspace directories only. |
+| Network access | Blocked entirely |
+| Temporary files | Full access to `/tmp/` |
+
+## Configuration File (`sandbox.json`)
+
+Place `sandbox.json` in either or both locations:
+
+| Location | Scope | Priority |
+|----------|-------|----------|
+| `~/.cursor/sandbox.json` | All workspaces (per-user) | Lower |
+| `.cursor/sandbox.json` | Single workspace (per-repo) | Higher |
+
+Both are optional. When both exist, per-repo settings take priority.
+
+## Network Policy
+
+### Allow specific domains (recommended)
+
+```json
+{
+  "networkPolicy": {
+    "default": "deny",
+    "allow": [
+      "registry.npmjs.org",
+      "pypi.org",
+      "*.githubusercontent.com"
+    ]
+  }
+}
+```
+
+### Allow all network
+
+```json
+{
+  "networkPolicy": {
+    "default": "allow"
+  }
+}
+```
+
+### Pattern syntax
+
+| Format | Example | Matches |
+|--------|---------|---------|
+| Exact domain | `"registry.npmjs.org"` | That exact host |
+| Wildcard | `"*.example.com"` | Any subdomain of `example.com`, including itself |
+| CIDR | `"10.0.0.0/8"` | Any IP in that range |
+
+**Rules**: Deny always beats allow. Matching is domain/IP only (URL paths ignored). Private/RFC 1918 addresses and cloud metadata endpoints (`169.254.169.254`) blocked by default.
+
+## Schema Reference
+
+### Top-level fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | string | `"workspace_readwrite"` | `"workspace_readwrite"`, `"workspace_readonly"`, or `"insecure_none"` |
+| `additionalReadwritePaths` | `string[]` | `[]` | Extra paths the agent can read and write |
+| `additionalReadonlyPaths` | `string[]` | `[]` | Extra paths the agent can read |
+| `disableTmpWrite` | boolean | `false` | Remove default write access to `/tmp/` |
+| `enableSharedBuildCache` | boolean | `false` | Share npm/pip/cargo caches between sandboxed and unsandboxed runs |
+
+### networkPolicy object
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `default` | `"allow"` or `"deny"` | `"deny"` | Action when no rule matches |
+| `allow` | `string[]` | `[]` | Domains/IPs to allow |
+| `deny` | `string[]` | `[]` | Domains/IPs to deny (highest priority, always blocks) |
+
+## Full Example
+
+A full-stack project needing packages, containers, database, and shared paths:
+
+```json
+{
+  "networkPolicy": {
+    "default": "deny",
+    "allow": [
+      "registry.npmjs.org",
+      "registry.yarnpkg.com",
+      "pypi.org",
+      "files.pythonhosted.org",
+      "*.docker.io",
+      "ghcr.io",
+      "*.googleapis.com"
+    ],
+    "deny": [
+      "*.internal.corp.example.com"
+    ]
+  },
+  "additionalReadwritePaths": [
+    "/home/me/.docker"
+  ],
+  "additionalReadonlyPaths": [
+    "/opt/shared/design-tokens"
+  ],
+  "enableSharedBuildCache": true
+}
+```
+
+## Policy Merge Order
+
+```
+per-user  <  per-repo  <  team-admin  <  hardcoded
+(lowest)                                (highest)
+```
+
+- Restrictive booleans (`disableTmpWrite`): `true` wins
+- `networkPolicy.default`: `"deny"` wins over `"allow"`
+- Deny lists: always unioned
+- Allow lists: unioned, unless team-admin allowlist present (replaces union)
+- Paths: unioned across all sources
+
+## Protected Paths (Always Write-Protected)
+
+These are never writable regardless of `sandbox.json`:
+- `.cursorignore`, `.code-workspace`
+- `.git/hooks/**`, `.git/config`, `.git/info/attributes`
+- `.vscode/**`
+- `.cursor/*.json`, `.cursor/**/*.json`, `.cursor/.workspace-trusted`
+
+**Writable exceptions**: `.cursor/rules/`, `.cursor/commands/`, `.cursor/worktrees/`, `.cursor/skills/`, `.cursor/agents/`
+
+## Editor Settings
+
+Configure in Settings > Cursor Settings > Agents > Auto-Run:
+
+| Setting | Options |
+|---------|---------|
+| Auto-Run Mode | Run in Sandbox / Ask Every Time / Run Everything |
+| Auto-Run Network Access | sandbox.json Only / sandbox.json + Defaults / Allow All |
+| Command Allowlist | Commands that skip sandbox |
+| MCP Allowlist | MCP tools that skip sandbox |
+
+## Enterprise Controls
+
+Admins on Enterprise plan can enforce from [dashboard](https://cursor.com/dashboard):
+- Sandbox mode enforcement
+- Network allowlists/denylists (team-wide)
+- Terminal command allowlists
+- MCP tool protection
+- File deletion protection
+
+## When Sandbox Blocks a Command
+
+| Option | Description |
+|--------|-------------|
+| Skip | Cancel, let Agent try alternatives |
+| Run | Execute without sandbox restrictions |
+| Add to allowlist | Run unrestricted and auto-approve for future use |
+
+## See Also
+
+- [Official Sandbox Docs](https://cursor.com/docs/agent/terminal)
+- [Enterprise Security](https://cursor.com/docs/account/agent-security)
+
+<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->

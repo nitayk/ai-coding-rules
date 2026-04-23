@@ -1,0 +1,198 @@
+---
+description: "Async/await and Promise patterns - try/catch, Promise.allSettled, timeouts, retries, AbortController. Use when: (1) Writing async code, (2) Handling promises, (3) Implementing retries, (4) Fetch with timeout, (5) Concurrent operations."
+globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+alwaysApply: false
+version: "1.0.0"
+last_updated: "2026-03-04"
+tags: ["async", "promises", "await", "concurrency", "javascript", "typescript"]
+---
+
+# Async Patterns
+
+Use async/await consistently. Handle errors at appropriate levels. Use Promise utilities for concurrent operations and timeouts.
+
+---
+
+## Triggers
+
+**APPLY WHEN:** Writing async code, handling promises, implementing retries or timeouts.
+**SKIP WHEN:** Synchronous-only code or simple one-off fetches.
+
+---
+
+## Core Directive
+
+**Use async/await consistently** - Avoid mixing callbacks and promises. Handle errors at boundaries, not at every level.
+
+---
+
+## Try/Catch for Async/Await
+
+**Wrap await calls in try/catch; let errors propagate to boundaries:**
+
+```typescript
+// Good: Try/catch at appropriate level
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  const data: unknown = await response.json();
+  return validateUser(data);
+}
+
+// Good: Higher-level handler
+async function loadUserProfile(userId: string) {
+  try {
+    const user = await fetchUser(userId);
+    setUser(user);
+  } catch (error) {
+    showErrorToast(error instanceof Error ? error.message : "Failed to load");
+  }
+}
+
+// Bad: Catching at every level
+async function badFetch() {
+  try {
+    const res = await fetch(url);
+    try {
+      const data = await res.json();
+      try {
+        return process(data);
+      } catch (e) { /* redundant */ }
+    } catch (e) { /* redundant */ }
+  } catch (e) { /* redundant */ }
+}
+```
+
+---
+
+## Promise.allSettled for Multiple Operations
+
+**Use Promise.allSettled when all results matter, including failures:**
+
+```typescript
+// Good: Handle both success and failure
+async function fetchMultipleUsers(ids: string[]): Promise<UserResult[]> {
+  const results = await Promise.allSettled(
+    ids.map(id => fetchUser(id))
+  );
+  return results.map((result, i) => {
+    if (result.status === "fulfilled") {
+      return { id: ids[i], user: result.value, error: null };
+    }
+    return { id: ids[i], user: null, error: result.reason };
+  });
+}
+
+// Bad: Promise.all short-circuits on first rejection
+const users = await Promise.all(ids.map(fetchUser));  // Fails entirely if one fails
+```
+
+---
+
+## Timeout with AbortController
+
+**Use Promise.race with AbortController for cancellable timeouts:**
+
+```typescript
+// Good: Timeout with proper cancellation
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// Bad: Timeout without cancelling fetch (request continues)
+async function badFetchWithTimeout(url: string, ms: number) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Timeout")), ms)
+  );
+  return Promise.race([fetch(url), timeout]);  // Fetch keeps running
+}
+```
+
+---
+
+## Retry with Exponential Backoff
+
+**Retry transient errors with exponential backoff and jitter:**
+
+```typescript
+// Good: Retry with backoff
+async function fetchWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      const delay = Math.min(1000 * 2 ** attempt + Math.random() * 1000, 10000);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw new Error("Unreachable");
+}
+```
+
+---
+
+## Custom Error Classes for Handling
+
+**Use custom errors to distinguish retriable vs permanent failures:**
+
+```typescript
+// Good: Custom error for specific handling
+class NetworkError extends Error {
+  constructor(message: string, public readonly statusCode?: number) {
+    super(message);
+    this.name = "NetworkError";
+  }
+}
+
+async function fetchUser(id: string): Promise<User> {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) {
+    throw new NetworkError(`HTTP ${res.status}`, res.status);
+  }
+  return res.json();
+}
+
+// Handler can distinguish
+try {
+  await fetchUser(id);
+} catch (e) {
+  if (e instanceof NetworkError && e.statusCode === 429) {
+    await retryWithBackoff(() => fetchUser(id));
+  } else {
+    throw e;
+  }
+}
+```
+
+---
+
+## Related Rules
+
+- [Error Handling Patterns](error-handling-patterns.mdc) - Try/catch, error boundaries
+- [API Defensive Programming](api-defensive-programming.mdc) - Safe API response handling
+- [Generic Error Handling](../../../generic/error-handling/universal-patterns.mdc) - Universal principles
+
+---
+
+## References
+
+- [MDN: async function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
+- [MDN: AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
+- [Promise.allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)

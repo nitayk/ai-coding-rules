@@ -128,16 +128,16 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 {
   "permissions": {
     "deny": [
-      "Read(./.claude/rules/shared/tools/**)",
-      "Read(./.claude/rules/shared/docs/**)",
-      "Read(./.claude/rules/shared/meta/**)"
+      "Read(./.cursor/**)"
     ]
   }
 }
 SETTINGS_EOF
-  echo "  Created: $SETTINGS_FILE"
+  echo "  Created: $SETTINGS_FILE (hides .cursor/ from Claude — Cursor .mdc files stay out of context)"
 else
   echo "  Skip: $SETTINGS_FILE (already exists)"
+  echo "  TIP: Add this deny to hide Cursor rules from Claude context:"
+  echo "       \"Read(./.cursor/**)\""
 fi
 
 echo ""

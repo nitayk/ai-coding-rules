@@ -1,0 +1,106 @@
+---
+description: "Web accessibility (a11y) best practices - WCAG 2.1, ARIA, semantic HTML, keyboard navigation, screen readers. Use when: (1) Building UI components, (2) Adding forms or interactive elements, (3) Reviewing for accessibility, (4) Fixing a11y issues."
+globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.html"]
+alwaysApply: false
+tags: ["accessibility", "a11y", "wcag", "aria", "frontend"]
+---
+
+# Accessibility Best Practices (a11y)
+
+**APPLY WHEN:** Building or modifying UI components, forms, or interactive elements.
+
+---
+
+## Core Principles
+
+### 1. Semantic HTML First
+
+Use native elements before ARIA. Semantic HTML provides built-in accessibility.
+
+**DO**:
+- `<button>` for actions, `<a>` for navigation
+- `<main>`, `<nav>`, `<header>`, `<footer>`, `<article>`, `<section>` for structure
+- `<label>` for form inputs, `<fieldset>` + `<legend>` for groups
+- `<h1>`–`<h6>` in logical order (no skipping levels)
+
+**STOP**:
+- `<div onClick>` when `<button>` or `<a>` is appropriate
+- Generic `<div>` or `<span>` for headings, lists, or landmarks
+
+### 2. Keyboard Navigation
+
+All interactive elements must be reachable and operable via keyboard.
+
+**DO**:
+- Ensure focus order is logical (tab order matches visual order)
+- Use `tabindex="0"` only when necessary for custom components
+- Provide visible focus indicators (do not remove with `outline: none` without replacement)
+- Support Escape to close modals/dropdowns
+
+**STOP**:
+- Using `tabindex="-1"` to hide focusable elements from keyboard users
+- Trapping focus without an escape path in modals
+
+### 3. ARIA When Native HTML Is Not Enough
+
+Use ARIA to supplement, not replace, semantic HTML.
+
+**DO**:
+- `role="button"` + `tabindex="0"` + keyboard handlers for custom buttons
+- `aria-label` or `aria-labelledby` when visible label is missing
+- `aria-expanded`, `aria-controls` for expandable/collapsible content
+- `aria-live` for dynamic content updates (polite or assertive)
+
+**STOP**:
+- Redundant ARIA (e.g., `role="button"` on `<button>`)
+- `aria-hidden="true"` on focusable content
+
+### 4. Forms and Inputs
+
+**DO**:
+- Associate every input with a `<label>` (use `htmlFor`/`for` or wrap)
+- Use `aria-describedby` for help text or error messages
+- Use `aria-invalid` and `aria-errormessage` for validation errors
+- Group related fields with `<fieldset>` and `<legend>`
+
+**STOP**:
+- Placeholder-only labels (placeholders are not sufficient)
+- Hiding labels with `display: none` when they should be visible to assistive tech
+
+### 5. Images and Media
+
+**DO**:
+- Provide `alt` text for meaningful images (describe content or function)
+- Use `alt=""` for decorative images
+- Provide captions or transcripts for video/audio
+
+**STOP**:
+- Missing `alt` on `<img>` (causes screen readers to read filename)
+- Using images of text when real text would work
+
+### 6. Color and Contrast
+
+**DO**:
+- Ensure text meets WCAG AA contrast (4.5:1 for normal text, 3:1 for large)
+- Do not rely on color alone to convey information
+- Provide text or icons in addition to color for status/errors
+
+---
+
+## Quick Checklist
+
+- [ ] All interactive elements keyboard-accessible
+- [ ] Focus order is logical
+- [ ] Form inputs have associated labels
+- [ ] Images have appropriate `alt` text
+- [ ] Headings are in logical order
+- [ ] Color is not the only indicator of meaning
+- [ ] Custom components have correct ARIA roles and states
+
+---
+
+## Resources
+
+- [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
+- [ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)

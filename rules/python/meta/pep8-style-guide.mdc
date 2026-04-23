@@ -1,0 +1,272 @@
+---
+description: "PEP 8 Python style guide - naming, formatting, and code organization. Use when: (1) Writing Python code, (2) Following PEP 8 standards, (3) Formatting code, (4) Code reviews, (5) Maintaining consistency. Covers PEP 8 naming conventions, formatting rules, and code organization standards."
+globs: []
+alwaysApply: false
+---
+
+# PEP 8 Style Guide
+
+Official Python style guide based on [PEP 8](https://peps.python.org/pep-0008/).
+
+## Naming Conventions
+
+### Variables and Functions
+```python
+# ✅ GOOD: snake_case for variables and functions
+user_count = 10
+total_revenue = calculate_revenue()
+
+def process_user_data(user_id: int) -> dict:
+    pass
+
+# ❌ BAD: camelCase or PascalCase
+userCount = 10
+def ProcessUserData(userId):
+    pass
+```
+
+### Classes
+```python
+# ✅ GOOD: PascalCase for classes
+class UserProfile:
+    pass
+
+class HTTPRequestHandler:
+    pass
+
+# ❌ BAD: snake_case or camelCase
+class user_profile:
+    pass
+```
+
+### Constants
+```python
+# ✅ GOOD: SCREAMING_SNAKE_CASE for constants
+MAX_RETRIES = 3
+DEFAULT_TIMEOUT = 30
+
+# ❌ BAD: lowercase or mixed case
+maxRetries = 3
+```
+
+### Private Members
+```python
+# ✅ GOOD: Single leading underscore for internal use
+class Service:
+    def __init__(self):
+        self._internal_state = {}
+    
+    def _internal_method(self):
+        pass
+
+# ✅ GOOD: Double leading underscore for name mangling (rare)
+class BaseClass:
+    def __init__(self):
+        self.__private = "value"
+```
+
+## Indentation and Line Length
+
+### Indentation
+```python
+# ✅ GOOD: 4 spaces per indentation level
+def process_data(items):
+    for item in items:
+        if item.is_valid():
+            process(item)
+
+# ❌ BAD: 2 spaces or tabs
+def process_data(items):
+  for item in items:
+    if item.is_valid():
+      process(item)
+```
+
+### Line Length
+```python
+# ✅ GOOD: Maximum 79 characters for code, 72 for docstrings
+def calculate_result(
+    parameter1: int,
+    parameter2: str,
+    parameter3: Optional[dict] = None
+) -> Result:
+    """Calculate result based on parameters.
+    
+    Maximum 72 characters for docstring lines to allow
+    for proper rendering in various contexts.
+    """
+    pass
+
+# ✅ GOOD: Breaking long lines
+result = some_function(
+    first_argument,
+    second_argument,
+    third_argument
+)
+```
+
+## Imports
+
+### Import Order
+```python
+# ✅ GOOD: Standard library, third-party, local
+# 1. Standard library imports
+import os
+import sys
+from typing import Optional, List
+
+# 2. Third-party imports
+import numpy as np
+import pandas as pd
+
+# 3. Local application imports
+from myapp.models import User
+from myapp.utils import helper_function
+```
+
+### Import Style
+```python
+# ✅ GOOD: Explicit imports
+from typing import Optional, List, Dict
+
+# ✅ GOOD: Import module for many items
+import collections
+users = collections.defaultdict(list)
+
+# ❌ BAD: Wildcard imports
+from typing import *
+```
+
+## Whitespace
+
+### Around Operators
+```python
+# ✅ GOOD: Single space around operators
+x = 1
+y = x + 2
+result = (x * 5) + (y / 2)
+
+# ❌ BAD: No spaces or inconsistent spacing
+x=1
+y = x+2
+result=(x*5)+(y/2)
+```
+
+### Function Arguments
+```python
+# ✅ GOOD: No space before comma, one space after
+def function(arg1, arg2, arg3):
+    pass
+
+result = function(1, 2, 3)
+
+# ❌ BAD: Spaces around commas
+def function(arg1 , arg2 , arg3):
+    pass
+```
+
+### Default Arguments
+```python
+# ✅ GOOD: No spaces around = for default arguments
+def function(arg1, arg2=None, arg3="default"):
+    pass
+
+# ❌ BAD: Spaces around =
+def function(arg1, arg2 = None, arg3 = "default"):
+    pass
+```
+
+## Comments and Docstrings
+
+### Inline Comments
+```python
+# ✅ GOOD: Two spaces before inline comment
+x = x + 1  # Increment x
+
+# ❌ BAD: One space or no separation
+x = x + 1 # Increment x
+x = x + 1# Increment x
+```
+
+### Docstrings
+```python
+# ✅ GOOD: Triple double quotes, PEP 257 format
+def calculate_total(items: List[Item]) -> float:
+    """Calculate total value of items.
+    
+    Args:
+        items: List of Item objects to calculate total for
+        
+    Returns:
+        Total value as float
+        
+    Raises:
+        ValueError: If items list is empty
+    """
+    if not items:
+        raise ValueError("Items list cannot be empty")
+    return sum(item.value for item in items)
+```
+
+## Expression Style
+
+### Comparisons
+```python
+# ✅ GOOD: Use 'is' for None comparisons
+if value is None:
+    pass
+
+if value is not None:
+    pass
+
+# ❌ BAD: Using == for None
+if value == None:
+    pass
+```
+
+### Boolean Checks
+```python
+# ✅ GOOD: Implicit truthiness
+if items:  # Check if list is non-empty
+    pass
+
+if not value:  # Check if value is falsy
+    pass
+
+# ❌ BAD: Explicit comparison
+if len(items) > 0:
+    pass
+
+if value == False:
+    pass
+```
+
+### String Checks
+```python
+# ✅ GOOD: Use 'in' for substring checks
+if "substring" in text:
+    pass
+
+# ✅ GOOD: Use str methods
+if text.startswith("prefix"):
+    pass
+
+# ❌ BAD: Manual slicing
+if text[0:6] == "prefix":
+    pass
+```
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.mdc) - Universal principles (meaningful names, code organization, comments)
+
+**Python-Specific:**
+- This file provides Python-specific style guide (PEP 8)
+
+---
+
+## References
+
+- [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/)
+- [PEP 257 – Docstring Conventions](https://peps.python.org/pep-0257/)
