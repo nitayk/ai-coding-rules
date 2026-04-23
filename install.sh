@@ -202,6 +202,17 @@ if [ -d "$LEGACY_CLAUDE_SUBMODULE" ] && [ -f "$LEGACY_CLAUDE_SUBMODULE/.git" ]; 
   fi
 fi
 
+# Step 0b: Remove stale .claude/rules/ populated by old installer (copied files, not submodule)
+if [ -d ".claude/rules" ] && [ ! -f ".claude/rules/.git" ]; then
+  log_warn "Found stale .claude/rules/ (causes Claude Code context explosion — loaded as context automatically)"
+  if [ "$DRY_RUN" = false ]; then
+    rm -rf ".claude/rules"
+    log_success "Removed stale .claude/rules/ directory"
+  else
+    log_info "Would remove stale .claude/rules/ directory"
+  fi
+fi
+
 # Step 1: Check if submodule exists
 log_info "Step 1: Checking submodule..."
 

@@ -992,7 +992,7 @@ ensure_claude_isolation() {
   mkdir -p "$repo_root/.claude"
   if [ -f "$settings_file" ]; then
     if command -v jq &>/dev/null; then
-      if ! jq -e ".permissions.deny" "$settings_file" &>/dev/null; then
+      if ! jq -e "(.permissions.deny | length) > 0" "$settings_file" &>/dev/null; then
         jq --argjson deny "$deny_patterns" '. + {permissions: ((.permissions // {}) + {deny: $deny})}' "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
         log_success "Added permissions.deny to .claude/settings.json (Claude isolation)"
       else
