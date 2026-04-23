@@ -940,7 +940,7 @@ sync_file_directory() {
   else
     log_info "${cap}s synced (copied)"
   fi
-  [ "$removed" -gt 0 ] && log_info "Removed $removed excluded ${item_type}(s) from prior install"
+  if [ "$removed" -gt 0 ]; then log_info "Removed $removed excluded ${item_type}(s) from prior install"; fi
 }
 
 resolve_target_paths() {
@@ -1279,7 +1279,7 @@ echo ""
 log_info "Summary:"
 echo "  Copied/Updated: $STATS_UPDATED"
 echo "  Skipped: $STATS_SKIPPED"
-[ "$STATS_ERRORS" -gt 0 ] && echo "  Errors: $STATS_ERRORS"
+if [ "$STATS_ERRORS" -gt 0 ]; then echo "  Errors: $STATS_ERRORS"; fi
 
 if [ "$BACKUP" = true ] && [ "$DRY_RUN" = false ] && [ -d "$BACKUP_DIR" ] && [ "$(ls -A "$BACKUP_DIR" 2>/dev/null)" ]; then
   echo ""
@@ -1310,4 +1310,4 @@ log_info "📋 To update later:"
 echo "    $ git submodule update --remote .cursor/rules/shared"
 echo "    $ bash .cursor/rules/shared/sync-rules.sh --target $TARGET"
 
-[ "$DRY_RUN" = true ] && { echo ""; log_info "Run without --dry-run to apply changes"; }
+if [ "$DRY_RUN" = true ]; then echo ""; log_info "Run without --dry-run to apply changes"; fi
