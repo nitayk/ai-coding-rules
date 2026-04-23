@@ -1,0 +1,318 @@
+# Scala Upgrade Reference Guide
+
+**Bundled with `/scala-upgrade-agent` skill.** Detailed phases, code snippets, and common issues for Scala 2.13.10/2.13.12 → 2.13.18 upgrades.
+
+**Estimated Time:** 2-4 hours for medium-sized repos (40+ modules, 2000+ tests)
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Phase 1: Build Configuration](#phase-1-build-configuration-updates)
+3. [Phase 2: Play JSON Migration](#phase-2-play-json-migration-292--306)
+4. [Phase 3: Code-Level Fixes](#phase-3-code-level-compatibility-fixes)
+5. [Phase 4: Testing & Validation](#phase-4-testing--validation)
+6. [Phase 5: CI/CD Considerations](#phase-5-cicd-considerations)
+7. [Phase 6: Post-Upgrade Validation](#phase-6-post-upgrade-validation)
+8. [Common Issues & Solutions](#common-issues--solutions)
+
+---
+
+## Prerequisites
+
+### Required Tools
+- SBT installed and configured
+- Git repository initialized
+- GitHub CLI (`gh`) for CI monitoring
+- Internet access for Maven Central lookups
+
+### Pre-Upgrade Checklist
+- [ ] Current Scala version identified
+- [ ] Build files located (`build.sbt`, `project/BuildSettings.scala`, `project/Dependencies.scala`)
+- [ ] Java version compatible (Scala 2.13.18 requires Java 8+, Java 11+ recommended)
+- [ ] Key dependencies identified (Play JSON, compiler plugins)
+- [ ] Test suite runs successfully on current version
+
+---
+
+## Phase 1: Build Configuration Updates
+
+### Step 1: Update Scala Version
+
+**Location:** `project/BuildSettings.scala`
+
+```scala
+// Before
+val buildScalaVersion = "2.13.10"  // or "2.13.12"
+
+// After
+val buildScalaVersion = "2.13.18"
+```
+
+### Step 2: Update Compiler Plugins
+
+**Location:** `project/BuildSettings.scala` or `project/LibsPool.scala`
+
+```scala
+// Kind Projector
+val kindProjector = compilerPlugin(
+  "org.typelevel" %% "kind-projector" % "0.13.3" cross CrossVersion.full
+)
+
+// Silencer (if used)
+val silencerVersion = "1.7.16"  // or latest compatible
+```
+
+**Location:** `project/plugins.sbt`
+
+```scala
+// WartRemover
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.1.6")  // or latest compatible
+
+// WartRemover Contrib (if used)
+addSbtPlugin("org.wartremover" % "sbt-wartremover-contrib" % "3.1.6")
+```
+
+### Step 3: Handle SemanticDB
+
+**⚠️ Critical:** Scala 2.13+ has built-in SemanticDB support. Do NOT use external `semanticdb-scalac` plugin.
+
+**Location:** `build.sbt`
+
+```scala
+// ❌ WRONG - Do NOT add external semanticdb-scalac
+// ThisBuild / dependencyOverrides += "org.scalameta" % "semanticdb-scalac_2.13.18" % "4.14.5"
+
+// ✅ CORRECT - Use built-in SemanticDB
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := "4.9.3"  // or latest compatible
+
+// Exclude external semanticdb-scalac if any plugin pulls it in
+ThisBuild / excludeDependencies ++= Seq(
+  ExclusionRule(organization = "org.scalameta", name = "semanticdb-scalac")
+)
+```
+
+### Step 4: Java 17 Compatibility (if needed)
+
+**Location:** `build.sbt`
+
+```scala
+// Force Groovy version for AWS SDK compatibility
+ThisBuild / dependencyOverrides ++= Seq(
+  "org.codehaus.groovy" % "groovy" % "3.0.20"
+)
+```
+
+---
+
+## Phase 2: Play JSON Migration (2.9.2 → 3.0.6)
+
+**⚠️ Breaking Change:** Play JSON 3.0.x changed group ID and has stricter implicit resolution.
+
+### Step 1: Update Play JSON Dependencies
+
+**Location:** `project/Dependencies.scala` or `project/LibsPool.scala`
+
+```scala
+// Before (Play JSON 2.9.2)
+val playJson = "com.typesafe.play" %% "play-json" % "2.9.2"
+val playJsonJoda = "com.typesafe.play" %% "play-json-joda" % "2.9.2"
+
+// After (Play JSON 3.0.6)
+val playJson = "org.playframework" %% "play-json" % "3.0.6"
+val playJsonJoda = "org.playframework" %% "play-json-joda" % "3.0.6"
+```
+
+### Step 2: Update play-json-extensions
+
+**⚠️ Critical:** `ai.x:play-json-extensions` is incompatible with Scala 2.13.18. Use Guardian fork.
+
+**Location:** `project/Dependencies.scala`
+
+```scala
+// Before
+val playJsonExtensions = "ai.x" %% "play-json-extensions" % "0.42.0"
+
+// After (Guardian fork)
+val playJsonExtensions = "com.gu" %% "play-json-extensions" % "1.0.4"
+```
+
+### Step 3: Update Imports
+
+**Mass replace across all Scala files:**
+
+```bash
+# Find files using old imports
+find . -name "*.scala" -type f -exec grep -l "import ai.x.play.json" {} \;
+
+# Replace with Guardian fork
+find . -name "*.scala" -type f -exec sed -i '' 's/import ai\.x\.play\.json/import com.gu.ai.x.play.json/g' {} \;
+```
+
+**Before:**
+```scala
+import ai.x.play.json.Jsonx
+import ai.x.play.json.Encoders._
+```
+
+**After:**
+```scala
+import com.gu.ai.x.play.json.Jsonx
+import com.gu.ai.x.play.json.Encoders._
+```
+
+### Step 4: Add Global Dependency Overrides and Exclusions
+
+**Location:** `build.sbt`
+
+```scala
+// Force Play JSON 3.0.6 (org.playframework) and exclude old com.typesafe.play versions globally
+ThisBuild / dependencyOverrides ++= Seq(
+  "org.playframework" %% "play-json" % "3.0.6",
+  "org.playframework" %% "play-functional" % "3.0.6",
+  "org.playframework" %% "play-json-joda" % "3.0.6"
+)
+
+ThisBuild / excludeDependencies ++= Seq(
+  ExclusionRule(organization = "com.typesafe.play", name = "play-json"),
+  ExclusionRule(organization = "com.typesafe.play", name = "play-functional"),
+  ExclusionRule(organization = "com.typesafe.play", name = "play-json-joda"),
+  ExclusionRule(organization = "ai.x", name = "play-json-extensions")  // Exclude old ai.x version
+)
+```
+
+### Step 5: Handle Assembly Merge Strategy (for sbt-assembly)
+
+**Location:** `project/DependenciesMisc.scala` or similar
+
+```scala
+import sbtassembly.AssemblyUtils
+import sbtassembly.MergeStrategy
+
+object PlayJson {
+  /** Prefers org.playframework version over com.typesafe.play version for Play JSON conflicts */
+  val preferNewVersion: MergeStrategy = new MergeStrategy {
+    val name = "preferNewPlayJson"
+    def apply(tempDir: File, path: String, files: Seq[File]): Either[String, Seq[(File, String)]] = {
+      val sortedFiles = files.sortBy { f =>
+        val (jar, _, _, isJar) = AssemblyUtils.sourceOfFileForMerge(tempDir, f)
+        if (isJar) {
+          val jarName = jar.getName
+          if (jarName.contains("org.playframework")) { 0 }
+          else if (jarName.contains("com.typesafe.play")) { 1 }
+          else { 2 }
+        } else { 2 }
+      }
+      Right(Seq(sortedFiles.head -> path))
+    }
+  }
+}
+
+mergeStrategy := {
+  case PathList("play", "api", "libs", _*) => PlayJson.preferNewVersion
+  case x => (mergeStrategy.value)(x)
+}
+```
+
+---
+
+## Phase 3: Code-Level Compatibility Fixes
+
+### Issue 1: Implicit Type Annotations Required
+
+**Error:** `Implicit definition should have explicit type`
+
+**Solution:** Add explicit types to all implicit definitions.
+
+```scala
+// Before
+implicit val fmt = Json.format[MyClass]
+implicit val ec = system.dispatcher
+
+// After
+implicit val fmt: OFormat[MyClass] = Json.format[MyClass]
+implicit val ec: ExecutionContext = system.dispatcher
+```
+
+### Issue 2: Deprecated APIs
+
+**Error:** `class AnyRefMap in package mutable is deprecated`
+
+**Solution:** Replace with `HashMap`.
+
+```scala
+// Before
+import scala.collection.mutable.AnyRefMap
+val map = AnyRefMap.empty[String, Int]
+
+// After
+import scala.collection.mutable.HashMap
+val map = HashMap.empty[String, Int]
+```
+
+### Issue 3: Ambiguous Implicit Resolution (Play JSON 3.0.6)
+
+**Error:** `ambiguous implicit values` for `Json.toJson`
+
+**Solution:** Explicitly specify the `Format` or add `implicit val mapFormat`.
+
+### Issue 4: Unused Parameter Warnings
+
+**Solution:** Use `@SuppressWarnings(Array("org.wartremover.warts.WartName"))` or `@scala.annotation.nowarn` (see skill Critical Learnings).
+
+### Issue 5: WartRemover Import Warnings
+
+**Solution:** Simplify wildcard imports.
+
+---
+
+## Phase 4: Testing & Validation
+
+```bash
+sbt clean compile
+sbt clean test
+sbt undeclaredCompileDependenciesTest unusedCompileDependenciesTest
+sbt scalafmtCheck
+sbt assembly  # Test locally before CI!
+```
+
+---
+
+## Phase 5: CI/CD Considerations
+
+**Assembly Conflicts:** Use custom merge strategy (Phase 2, Step 5). Test `sbt assembly` locally first.
+
+**Monitoring:** `gh pr checks --watch`
+
+---
+
+## Phase 6: Post-Upgrade Validation
+
+- [ ] All compilation errors fixed
+- [ ] All tests passing
+- [ ] Zero implicit type warnings (or suppressed)
+- [ ] Dependency checks clean
+- [ ] Linters pass
+- [ ] Assembly succeeds locally (if applicable)
+- [ ] CI/CD green
+
+---
+
+## Common Issues & Solutions
+
+| Issue | Solution |
+|-------|----------|
+| Plugin not found for target version | Use binary-compatible version (e.g., `kind-projector_2.13`) |
+| Transitive dependency conflicts | Add `dependencyOverrides`, `excludeDependencies`, merge strategy |
+| Compilation failures | Fix incrementally per Phase 3 |
+| Test failures | Update assertions for Play JSON error format changes |
+| CI/CD failure | Test assembly locally first |
+
+---
+
+## Related
+
+- **Play JSON Guide:** `backend/scala/data/play-json-gotchas.mdc`
+- **Scala Best Practices:** `backend/scala/`

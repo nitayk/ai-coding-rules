@@ -18,3 +18,4 @@ node_modules/
 # Backups created by install scripts
 .cursor/.setup-backup-*
 .claude/.setup-backup-*
+skills/e2e-workspace/
