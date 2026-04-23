@@ -1,0 +1,190 @@
+# Skill group definitions for --skills / --no-skills filtering.
+# A skill can appear in multiple groups. Groups are additive (union).
+#
+# Usage:
+#   --skills core,git               # sync only core + git groups
+#   --no-skills scala,office        # sync all MINUS scala + office groups
+#   --skills all                    # sync everything
+#
+# When --skills is omitted, the "defaults" value is used.
+#
+# NOTE: Anthropic skills (docx, pdf, pptx, xlsx, etc.) require installation
+# directly: npx skills add anthropics/skills
+
+defaults: all
+exclude_from_defaults: scala
+
+# Agent groups — controls which agents are synced alongside skills.
+# When --skills is used, only agents whose group overlaps the selected
+# skill groups are installed. Agents NOT listed in any group are always installed.
+agent_groups:
+  # Universal core agents (mapped from core/quality/git skill groups)
+  core:
+    - architect
+    - code-architect
+    - code-explorer
+    - code-reviewer
+    - code-simplifier
+    - documentation-writer
+    - git-workflow-specialist
+    - performance-optimizer
+    - planner
+    - security-auditor
+    - security-reviewer
+    - test-runner
+    - verifier
+    - build-error-resolver
+
+  # Go-specific agents (mapped from golang skill group)
+  golang:
+    - go-build-resolver
+    - go-reviewer
+
+  # Observability agents (mapped from observability skill group)
+  observability:
+    - monitoring-analyst
+    - data-validator
+
+# Rule groups — tags for .mdc rule files under rules/.
+# Rules live in the submodule checkout (not individually copied). The `group:`
+# frontmatter field is a passive annotation for agents/humans.
+rule_groups:
+  # No org-specific rule groups in the generic profile.
+  # Add custom groups here if needed.
+
+groups:
+  # === Foundation — every repo should have these ===
+  core:
+    - brainstorming
+    - writing-plans
+    - executing-plans
+    - using-superpowers
+    - dispatching-parallel-agents
+    - subagent-driven-development
+    - council
+    - strategic-compact
+    - session-memory
+    - continuous-learning-v2
+    - agent-token-optimization
+    - prompt-optimizer
+    - codebase-onboarding
+    - onboard-developer
+    - coding-standards
+    - finishing-a-development-branch
+    - task-breakdown
+    - prd-generation
+    - context-budget
+    - iterative-retrieval
+    - terminal-chart
+
+  # === Git & PR workflow ===
+  git:
+    - address-pr-feedback
+    - git-workflow
+    - git-forensics
+    - multi-agent-branching
+    - using-git-worktrees
+    - create-pr
+    - fix-issue
+    - generate-changelog
+    - pr-workflow
+    - github-ops
+    - gh-manage-project
+    - gh-search
+
+  # === Code quality & review ===
+  quality:
+    - code-cleanup
+    - code-optimization
+    - code-review-excellence
+    - requesting-code-review
+    - receiving-code-review
+    - review-as-author
+    - review-as-reviewer
+    - best-practices-enforcement
+    - verification-before-completion
+    - security-audit
+    - security-review
+    - code-simplification
+
+  # === Testing ===
+  testing:
+    - tdd-workflow
+    - test-driven-development
+    - test-until-pass
+
+  # === Debugging ===
+  debug:
+    - debug-workflow
+    - systematic-debugging
+
+  # === Documentation & writing ===
+  docs:
+    - generate-docs
+    - architecture-decision-records
+    - documentation-lookup
+    - doc-coauthoring
+
+  # === Research ===
+  research:
+    - deep-research
+    - search-first
+
+  # === Agent / skill development ===
+  agent:
+    - skill-creator
+    - writing-skills
+    - claude-api
+    - skill-stocktake
+    - rules-distill
+    - eval-harness
+    - agent-eval
+    - agent-introspection-debugging
+
+  # === Repo workflow ===
+  workflow:
+    - repository-organization
+    - mass-repo-orchestration
+
+  # === Go stack ===
+  golang:
+    - golang-testing
+
+  # === Frontend / web ===
+  frontend:
+    - frontend-design
+    - web-artifacts-builder
+    - agent-browser
+    - webapp-testing
+    - e2e
+
+  # === Office / document skills (from anthropics/skills) ===
+  office:
+    - docx
+    - pdf
+    - xlsx
+    - pptx
+    - gdoc
+
+  # === API design ===
+  api:
+    - api-design
+
+  # === Infrastructure (generic) ===
+  infra:
+    - docker-patterns
+    - setup-local-dev
+    - deployment-patterns
+
+  # === Miscellaneous ===
+  misc:
+    - code-migration
+    - ecc-harness-playbook
+    - github-actions-workflows-helper
+    - benchmark
+
+  # === Scala stack (excluded by default) ===
+  scala:
+    - scala-testing
+    - scala-upgrade-agent
+    - scala-dependency-hell

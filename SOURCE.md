@@ -2,11 +2,21 @@
 
 This repository **is** [nitayk/ai-coding-rules](https://github.com/nitayk/ai-coding-rules): the canonical package (rules, skills, installers).
 
-**Consumers** add it as a submodule and run installers from the submodule path, for example:
+**Consumers** add it as a submodule and run the unified installer from the submodule path:
 
-- `.cursor/rules/shared` → `bash .cursor/rules/shared/install-cursor.sh`
-- Claude Code: symlink or place at `.claude/rules/shared` → `bash .claude/rules/shared/install-claude.sh`
+```bash
+# Add submodule + sync (Cursor, default)
+bash .cursor/rules/shared/install.sh
 
-**`.cursor/skills`** in a consumer repo should be a **symlink** to `rules/shared/skills` (created by `install-cursor.sh` by default). Use `--copy` only if Cursor does not discover symlinked skill trees.
+# Claude Code target
+bash .cursor/rules/shared/install.sh --target claude
+
+# Both targets
+bash .cursor/rules/shared/install.sh --target cursor,claude
+```
+
+The submodule always lives at `.cursor/rules/shared` (never under `.claude/rules/` — Claude Code auto-loads all `.md` files there, causing context explosion). `sync-rules.sh` handles copying skills/agents/commands to the correct `.claude/` paths.
+
+Skills are always **copied** (not symlinked) because Cursor and Claude Code do not discover symlinked skill directories. Agents and commands use symlinks for automatic updates; use `--copy` to fall back to full copying.
 
 See also [UPSTREAM_SCOPE.md](./UPSTREAM_SCOPE.md) for how this pack relates to ironsource **mobile-cursor-rules** and Unity **ai-agent-skills**.

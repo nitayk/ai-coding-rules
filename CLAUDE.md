@@ -44,5 +44,5 @@ See `rules/communication-standards.md` for templates and examples.
 ## Setup
 
 1. Add as submodule: `git submodule add <repo-url> .claude/rules/shared`
-2. Run setup: `chmod +x .claude/rules/shared/install-claude.sh && .claude/rules/shared/install-claude.sh`
+2. Run setup: `bash .cursor/rules/shared/install.sh --target claude`
 3. Optional: Configure `.claude/settings.json` for permissions
