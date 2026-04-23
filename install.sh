@@ -234,7 +234,7 @@ if [ ! -d "$SUBMODULE_PATH" ] || [ ! -f "$SUBMODULE_PATH/.git" ]; then
       [ "$USE_SYMLINKS" = false ] && SYNC_ARGS+=(--copy)
       [ "$SKILLS_FILTER" != "defaults" ] && SYNC_ARGS+=(--skills "$SKILLS_FILTER")
       [ -n "$NO_SKILLS_FILTER" ] && SYNC_ARGS+=(--no-skills "$NO_SKILLS_FILTER")
-      bash "$SCRIPT_REAL/sync-rules.sh" "${SYNC_ARGS[@]}"
+      REPO_ROOT="$REPO_ROOT" bash "$SCRIPT_REAL/sync-rules.sh" "${SYNC_ARGS[@]}"
       exit $?
     fi
 
@@ -266,7 +266,7 @@ if [ ! -d "$SUBMODULE_PATH" ] || [ ! -f "$SUBMODULE_PATH/.git" ]; then
       [ "$USE_SYMLINKS" = false ] && SYNC_ARGS+=(--copy)
       [ "$SKILLS_FILTER" != "defaults" ] && SYNC_ARGS+=(--skills "$SKILLS_FILTER")
       [ -n "$NO_SKILLS_FILTER" ] && SYNC_ARGS+=(--no-skills "$NO_SKILLS_FILTER")
-      bash "$SCRIPT_REAL/sync-rules.sh" "${SYNC_ARGS[@]}"
+      REPO_ROOT="$REPO_ROOT" bash "$SCRIPT_REAL/sync-rules.sh" "${SYNC_ARGS[@]}"
       exit 0
     else
       log_info "Would add submodule: $SUBMODULE_URL → $SUBMODULE_PATH"
