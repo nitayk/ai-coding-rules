@@ -3,7 +3,6 @@ name: strategic-compact
 description: Suggests manual context compaction at logical intervals to preserve context through task phases rather than arbitrary auto-compaction.
 origin: ECC
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 # Strategic Compact Skill
 
@@ -130,3 +129,5 @@ Common sources of duplicate context:
 - [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) — Token optimization section
 - Memory persistence hooks — For state that survives compaction
 - `continuous-learning` skill — Extracts patterns before session ends
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

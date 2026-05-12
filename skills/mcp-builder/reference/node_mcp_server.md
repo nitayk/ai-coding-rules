@@ -968,3 +968,4 @@ Before finalizing your Node/TypeScript MCP server implementation, ensure:
 - [ ] Server runs: `node dist/index.js --help`
 - [ ] All imports resolve correctly
 - [ ] Sample tool calls work as expected
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

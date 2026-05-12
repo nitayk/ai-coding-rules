@@ -5,5 +5,5 @@
 
 SOURCE_REPO=https://github.com/affaan-m/everything-claude-code.git
 SOURCE_PATH=skills/skill-stocktake
-LAST_SYNC_COMMIT=1a50145d39c0fa415311da62e7a018edd4e6d976
-LAST_SYNC_DATE=2026-04-15 20:07:04 -0700
+LAST_SYNC_COMMIT=841beea45cb25ba51f29fa45b7e272938d19b80a
+LAST_SYNC_DATE=2026-04-30 12:25:14 -0400

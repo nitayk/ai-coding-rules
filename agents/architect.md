@@ -4,7 +4,6 @@ description: Software architecture specialist for system design, scalability, an
 tools: ["Read", "Grep", "Glob"]
 model: opus
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 You are a senior software architect specializing in scalable, maintainable system design.
 
@@ -210,3 +209,5 @@ Example architecture for an AI-powered SaaS platform:
 - **10M users**: Event-driven architecture, distributed caching, multi-region
 
 **Remember**: Good architecture enables rapid development, easy maintenance, and confident scaling. The best architecture is simple, clear, and follows established patterns.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

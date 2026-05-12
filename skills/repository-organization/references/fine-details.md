@@ -80,7 +80,7 @@ New contributors often **read folder names first** to build a mental model. That
 - Moves that **touch secrets** (`.env`, keys, credentials paths).
 - **Legal/PII** in filenames or paths (exports, HR, customer data).
 - **Vendor/third_party** subtrees—often forked; reorganize only with explicit OK.
-- **Mixed product lines** in one folder—use repo routing rules before blending.
+- **Mixed product lines** in one folder (e.g. iAds vs UADS)—use repo routing rules before blending.
 
 ## Anti-patterns (negative patterns)
 
@@ -119,3 +119,5 @@ Benchmarks and `generate_review.py` output for this skill live in a **sibling di
 `skills/repository-organization-workspace/` (e.g. `iteration-1/`, `benchmark.json`, `review.html`).
 
 That path is **gitignored** by `skills/*-workspace/` in the repo root `.gitignore`—regenerable local artifacts only. Agents and humans should use this location when running the skill-creator eval loop for **repository-organization**, not a random folder under `manage/`.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -816,3 +816,5 @@ jobs:
     with:
       docs_path: docs
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

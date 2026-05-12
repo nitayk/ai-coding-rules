@@ -798,3 +798,5 @@ jobs:
           echo "AMI ID: ${{ steps.extract_ami_data.outputs.ami_id }}"
           echo "AMI Region: ${{ steps.extract_ami_data.outputs.ami_region }}"
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

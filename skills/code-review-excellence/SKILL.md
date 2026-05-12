@@ -495,3 +495,5 @@ Full inline template: **`references/pr-review-comment-template-inline.md`**.
 - **assets/pr-review-template.md**: Standard review comment template
 - **assets/review-checklist.md**: Quick reference checklist
 - **scripts/pr-analyzer.py**: Analyze PR complexity and suggest reviewers
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

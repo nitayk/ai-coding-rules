@@ -30,3 +30,5 @@ Choose the appropriate format based on context:
 - Include file paths and line numbers for all code references
 - Write for the target audience (developers, users, stakeholders)
 - Use evidence, not assumptions
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

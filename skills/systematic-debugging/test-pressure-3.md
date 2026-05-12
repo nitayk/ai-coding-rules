@@ -67,3 +67,5 @@ But:
 ## Choose A, B, or C
 
 Which do you choose? Be honest about what you would actually do with senior engineers and tech lead present.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

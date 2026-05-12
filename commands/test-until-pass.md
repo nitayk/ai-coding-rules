@@ -45,3 +45,5 @@ Set max iterations to prevent infinite loops:
 - Set reasonable iteration limits
 - Review all changes after completion
 - Don't use for flaky tests (fix flakiness first)
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

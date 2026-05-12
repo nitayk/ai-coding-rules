@@ -1,9 +1,6 @@
 ---
 name: task-breakdown
-description: "Breaks PRDs into actionable task lists. Two-phase: parent tasks then sub-tasks. Use when PRD is approved and ready for implementation planning."
-version: "1.0.0"
-last_updated: "2026-01-25"
-tags: ["planning", "tasks", "workflow", "universal"]
+description: "Use when PRD is approved and ready for implementation planning, breaking down features into tasks, or creating development roadmap. Do NOT use for simple single-task changes, when PRD is not yet approved, or when requirements are unclear (use /prd-generation first)."
 ---
 # Task Breakdown
 
@@ -135,10 +132,10 @@ Type "Go" to proceed with sub-task breakdown, or suggest changes.
 - Be independently testable
 
 **Examples:**
-- "Add login form UI" ✓
-- "Add email validation" ✓
-- "Add auth API hook" ✓
-- "Add error handling" ✓
+- "Add login form UI" (good)
+- "Add email validation" (good)
+- "Add auth API hook" (good)
+- "Add error handling" (good)
 
 ### Too Large Tasks
 
@@ -148,8 +145,8 @@ Type "Go" to proceed with sub-task breakdown, or suggest changes.
 - Have unclear boundaries
 
 **Examples:**
-- "Build entire auth system" ✗
-- "Implement user dashboard" ✗
+- "Build entire auth system" (bad)
+- "Implement user dashboard" (bad)
 
 **Solution:** Break into smaller tasks
 
@@ -342,3 +339,5 @@ Type "Go" to proceed with sub-task breakdown, or suggest changes.
 > "Reference PRD requirements in tasks"
 
 > "Tasks should be independently completable"
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

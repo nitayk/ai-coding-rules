@@ -1,9 +1,6 @@
 ---
 name: tdd-workflow
-description: "Guides Test-Driven Development workflow following Red-Green-Refactor cycle. Write failing tests first (Red), implement minimal code to pass tests (Green), then refactor for quality while maintaining passing tests (Refactor). Ensures test coverage from the start and provides safety net for refactoring. Use when starting new features, adding functionality to existing code, refactoring with safety net, or ensuring test coverage. Produces well-tested code with comprehensive test suite."
-version: "1.0.0"
-last_updated: "2026-01-25"
-tags: ["testing", "tdd", "workflow", "universal"]
+description: "Use when starting new features, adding functionality to existing code, refactoring with safety net, or ensuring test coverage. Do NOT use for quick bug fixes (fix first, test after), purely cosmetic changes, documentation-only changes, or configuration changes without logic."
 ---
 # Test-Driven Development Workflow
 
@@ -11,14 +8,16 @@ Test-Driven Development (TDD) workflow following the Red-Green-Refactor cycle.
 
 **CRITICAL**: Write tests FIRST, then implement. Tests drive design and ensure correctness.
 
+**The Iron Law**: NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST. Write code before the test? Delete it. Start over. If you didn't watch the test fail, you don't know if it tests the right thing.
+
 ## What is Test-Driven Development?
 
 Test-Driven Development (TDD) is a software development methodology where you write tests before writing implementation code. It follows a three-phase cycle: Red (write failing test), Green (make test pass with minimal code), Refactor (improve code while keeping tests green).
 
 **Core Concept**: Tests drive design and ensure correctness:
-- ✅ **Red** - Write failing test that describes desired behavior
-- ✅ **Green** - Write minimal code to make test pass
-- ✅ **Refactor** - Improve code quality while keeping tests green
+- **Red** - Write failing test that describes desired behavior
+- **Green** - Write minimal code to make test pass
+- **Refactor** - Improve code quality while keeping tests green
 
 **Benefits:**
 - Test coverage from the start
@@ -53,11 +52,11 @@ def test_calculate_total():
 ### The Solution: Tests Drive Development
 
 **With TDD:**
-- ✅ Requirements clarified through tests
-- ✅ Edge cases considered upfront
-- ✅ Refactoring is safe (tests catch breaks)
-- ✅ High test coverage
-- ✅ Tests focus on behavior, not implementation
+- Requirements clarified through tests
+- Edge cases considered upfront
+- Refactoring is safe (tests catch breaks)
+- High test coverage
+- Tests focus on behavior, not implementation
 
 **Example of success:**
 ```
@@ -417,3 +416,5 @@ describe('PriceCalculator', () => {
 > "Tests are specifications written in code"
 
 > "If it's not tested, it's broken"
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

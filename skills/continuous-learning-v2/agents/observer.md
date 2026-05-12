@@ -3,7 +3,6 @@ name: observer
 description: Background agent that analyzes session observations to detect patterns and create instincts. Uses Haiku for cost-efficiency. v2.1 adds project-scoped instincts.
 model: haiku
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 # Observer Agent
 
@@ -197,3 +196,5 @@ When instincts are imported from Skill Creator (repo analysis), they have:
 - `scope: "project"` (since they come from a specific repo)
 
 These should be treated as team/project conventions with higher initial confidence (0.7+).
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

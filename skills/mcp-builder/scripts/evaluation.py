@@ -10,7 +10,7 @@ import re
 import sys
 import time
 import traceback
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
@@ -371,3 +371,4 @@ Examples:
 
 if __name__ == "__main__":
     asyncio.run(main())
+# Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths.

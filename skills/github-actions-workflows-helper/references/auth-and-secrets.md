@@ -559,3 +559,5 @@ jobs:
             ...
             <your-env-variable-name>=<your-azure-secret-name>
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

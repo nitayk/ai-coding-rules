@@ -1,6 +1,6 @@
 ---
 name: code-cleanup
-description: "Three-phase cleanup with certainty-graded findings. Detects AI slop, dead code, debug artifacts. Use when cleaning before commit/PR or after AI-generated code. Skip for feature implementation or refactoring."
+description: "Use when cleaning up code before commit or PR, after AI-generated code, removing debug artifacts, or reducing code noise. Do NOT use for feature implementation, code review (use code-reviewer agent), or refactoring logic (separate task)."
 ---
 
 # Code Cleanup
@@ -19,7 +19,7 @@ Three-phase detection pipeline that finds and removes AI slop, debug artifacts, 
 **DO NOT USE WHEN:**
 - Implementing features (just write clean code)
 - Code review (use code-reviewer agent instead)
-- Refactoring logic (use `/service-refactoring`)
+- Refactoring logic (separate task; use service-refactoring skill if available)
 - Only reading code without cleanup intent
 
 ## Core Directive
@@ -78,7 +78,7 @@ Analyze code structure for probable issues that need human judgment.
 - Deeply nested generics (3+ levels)
 
 **Dead Code Candidates:**
-- Functions with zero callers (use Memgraph if available, grep otherwise)
+- Functions with zero callers (use grep or code search; code graph if available)
 - Unused class fields/properties
 - Unreachable code after return/throw/break
 
@@ -174,3 +174,5 @@ Code Cleanup Report (in chat, not file):
 - `/best-practices-enforcement` skill - Standards validation
 - `/service-refactoring` skill - Structural improvements
 - `code-reviewer` agent - Full code review
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

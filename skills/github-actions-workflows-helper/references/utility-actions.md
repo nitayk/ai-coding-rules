@@ -567,3 +567,5 @@ jobs:
     sync-files: |
       ./api/schema.yaml ./target/config/schema.yaml
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

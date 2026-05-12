@@ -1,9 +1,7 @@
 ---
 name: pr-workflow
-description: "Manages complete PR lifecycle: pre-validation, status monitoring, bot feedback, merge. Use when creating PRs, monitoring status, or merging. More comprehensive than /create-pr."
-version: "1.0.0"
-last_updated: "2026-01-25"
-tags: ["git", "pr", "workflow", "ci-cd", "universal"]
+description: "Use when creating pull requests, monitoring PR status, addressing bot feedback, or merging PRs. Do NOT use for simple single-file changes (use /create-pr command) or when not using GitHub."
+disable-model-invocation: true
 ---
 # PR Workflow Management
 
@@ -16,11 +14,11 @@ Comprehensive pull request lifecycle management from creation to merge.
 PR workflow management is a comprehensive process that handles the complete pull request lifecycle from creation through merge. It includes pre-PR validation, continuous status monitoring, automated bot feedback handling, and merge coordination to ensure code quality and CI/CD compliance.
 
 **Core Concept**: A PR should be:
-- ✅ **Validated** - Pre-PR checks pass (tests, linting, build)
-- ✅ **Monitored** - Status checked continuously
-- ✅ **Addressed** - Bot feedback handled automatically
-- ✅ **Clean** - All checks pass before merge
-- ✅ **Coordinated** - Merged only when ready
+- **Validated** - Pre-PR checks pass (tests, linting, build)
+- **Monitored** - Status checked continuously
+- **Addressed** - Bot feedback handled automatically
+- **Clean** - All checks pass before merge
+- **Coordinated** - Merged only when ready
 
 ## Why This Matters
 
@@ -46,11 +44,11 @@ gh pr create --title "feat: new feature"
 ### The Solution: Automated Lifecycle Management
 
 **With PR workflow:**
-- ✅ Pre-PR checks ensure quality
-- ✅ Continuous monitoring catches issues
-- ✅ Bot feedback addressed automatically
-- ✅ Merge only when all checks pass
-- ✅ Consistent quality standards
+- Pre-PR checks ensure quality
+- Continuous monitoring catches issues
+- Bot feedback addressed automatically
+- Merge only when all checks pass
+- Consistent quality standards
 
 **Example of success:**
 ```
@@ -72,7 +70,7 @@ sbt test && sbt scalafmtCheck
 - Preparing PR for merge
 - Managing PR lifecycle autonomously
 
-**SKIP WHEN:**
+**DO NOT USE WHEN:**
 - Simple single-file changes (use `/create-pr` command instead)
 - Not using GitHub
 - PR already merged
@@ -435,3 +433,5 @@ gh pr view <pr-number> --web
 > "Address every bot comment - they're usually right"
 
 > "Monitor continuously - don't let PRs sit waiting"
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -28,6 +28,31 @@ Run `bash update-community.sh` to pull the latest from all sources.
   - `spec/` -- Agent Skills specification
   - `template/` -- Skill template
 
+## ironsource-mobile/mobile-agent-toolkit (one-time pull, manual)
+
+- **Repo**: https://github.com/ironsource-mobile/mobile-agent-toolkit (work; mirrored locally at `~/Repos/manage/mobile-cursor-rules`)
+- **License**: internal (only generic, non-Unity-specific skills pulled here)
+- **Sync model**: NOT in `update-community.sh`. Pulled manually; re-run by hand when MCR adds new generic skills you want.
+- **First pull (2026-05-12) — new skills**:
+  - `skills/agent-system-design` -- Agent decomposition, tool boundaries, orchestration
+  - `skills/cost-audit` -- LLM token spend audit via codeburn
+  - `skills/service-breakdown` -- Service architecture analysis (NOTE: body references Memgraph/Atlas/Trino MCPs — generic methodology, light edits if you want it MCP-free)
+  - `skills/service-migration` -- Cross-repo service migration
+  - `skills/service-refactoring` -- Service refactoring with validation
+- **Refresh sync (2026-05-12) — overlapping skills updated to MCR's version (50 total)**:
+  - Notable upgrades (large diffs): `e2e` (461→992 lines), `skill-creator`, `council`, `frontend-design`, `code-optimization`, `brainstorming`, `session-memory`, `test-until-pass`, `scala-testing`, `finishing-a-development-branch`, `writing-plans`
+  - Plus 39 smaller diffs (mostly additive / minor wording fixes)
+  - Plus flagged-then-applied: `using-git-worktrees`, `security-audit`
+- **Refresh sync — agents updated**: `architect`, `code-reviewer`, `data-validator`, `documentation-writer`, `git-workflow-specialist`, `monitoring-analyst`, `security-auditor`, `test-runner`, `verifier`
+- **Refresh sync — commands updated**: `create-pr`, `fix-issue`, `generate-changelog`, `generate-docs`, `test-until-pass`
+- **Preserved as personal-custom (NOT overwritten — personal version is heavily customized)**:
+  - `skills/best-practices-enforcement` (560 vs MCR's 118 lines)
+  - `skills/git-workflow` (521 vs 109)
+  - `skills/multi-agent-branching` (507 vs 104)
+  - `skills/prd-generation` (322 vs 87)
+- **Explicitly NOT pulled** (work-coupled to Unity Ads infra): `aerospike-best-practices`, `argocd-deployment`, `argocd-onboarding`, `atlas-analysis`, `code-graph-architect`, `full-network-analysis`, `grafana-monitoring`, `kronus-onboarding`, `memgraph-analysis`, `read-consul-keys`, `slack-history`, `trino-validation`, `victoria-traces-analysis`, `fff-search`, `e2e-workspace`. Same for MCR-only agents `memgraph-specialist`, `victoria-traces-specialist`, `deployment-investigator`, `service-{breakdown,migration,refactoring}-specialist`.
+- **NOT auto-updated — review manually**: `hooks/` (executes code, may have repo-specific paths/creds). Files differing from MCR: `hooks.json`, `hooks-cursor.json`, `cursor-adapter.js`, `run-hook.cmd`, `session-start`, `ecc/tool-observe.sh`, `ecc-hooks/{README.md,hooks.json}`, `quality/validate-yaml.py`, `security/block-dangerous-commands.sh`. Personal-only: `session-start.sh`. Use `diff -r ~/Personal/ai-coding-rules/hooks ~/Repos/manage/mobile-cursor-rules/.agents/hooks` to review.
+
 ## Custom (not synced from upstream)
 
 These skills are original and maintained directly in this repo:

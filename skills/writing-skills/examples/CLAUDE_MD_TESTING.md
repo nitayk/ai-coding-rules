@@ -187,3 +187,5 @@ For each variant:
 4. Compare compliance rates
 5. Identify which rationalizations break through
 6. Iterate on winning variant to close holes
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

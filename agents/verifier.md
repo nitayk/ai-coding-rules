@@ -57,3 +57,5 @@ LOW certainty:
 - Run tests, don't just read code
 - Report both successes and failures
 - Provide file paths and line numbers for all issues
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

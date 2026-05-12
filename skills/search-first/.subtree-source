@@ -5,5 +5,5 @@
 
 SOURCE_REPO=https://github.com/affaan-m/everything-claude-code.git
 SOURCE_PATH=skills/search-first
-LAST_SYNC_COMMIT=656cf4c94a3f2a0f6c7ca597e87d35e520b0ca56
-LAST_SYNC_DATE=2026-03-30 04:58:48 -0400
+LAST_SYNC_COMMIT=841beea45cb25ba51f29fa45b7e272938d19b80a
+LAST_SYNC_DATE=2026-04-30 12:25:14 -0400

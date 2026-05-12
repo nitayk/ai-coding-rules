@@ -1,0 +1,40 @@
+# /e2e — Legend & Cross-Phase Rules companion
+# Regenerate: d2 flow-legend.d2 flow-legend.svg
+
+direction: down
+
+classes: {
+  active: { style.fill: "#e6f4ea"; style.stroke: "#1e7e34"; style.font-size: 22 }
+  skipped: { style.fill: "#f0f0f0"; style.stroke: "#999"; style.stroke-dash: 4; style.font-color: "#777"; style.font-size: 22 }
+  hard: { style.fill: "#ffdddd"; style.stroke: "#a00"; style.stroke-width: 3; style.font-size: 22; style.bold: true }
+  blocker: { style.fill: "#fff3cd"; style.stroke: "#a06000"; style.stroke-width: 2; style.font-size: 22; style.bold: true }
+  deferred: { style.fill: "#e8e0ff"; style.stroke: "#5040a0"; style.stroke-dash: 4; style.font-size: 22 }
+  decision: { shape: diamond; style.fill: "#fdf5e6"; style.stroke: "#c70"; style.font-size: 22; style.bold: true }
+}
+
+legend: "LEGEND — node styles in flow.svg" {
+  style.fill: "#fafafa"; style.stroke: "#666"; style.stroke-width: 2
+
+  active_eg: "Active step" { class: active }
+  skipped_eg: "Skipped per classification" { class: skipped }
+  hard_eg: "HARD GATE (P6, P7)" { class: hard }
+  blocker_eg: "Blocker / special mode\n(spike P6, hotfix P6)" { class: blocker }
+  deferred_eg: "Deferred to P10 followup\n(hotfix P7 unless HIGH)" { class: deferred }
+  decision_eg: "Decision point" { class: decision }
+  hint: "Hover any active step in flow.svg\nto see what that skill does" { style.fill: "#fffbe6"; style.stroke: "#cc7700"; style.font-size: 20 }
+}
+
+cross_phase: "CROSS-PHASE RULES — apply at every phase transition, all classifications" {
+  style.fill: "#f5f5f5"; style.stroke: "#666"; style.stroke-width: 2
+
+  r1: "Exit-gate sentence — silent skip = defect"
+  r2: "Phase entry self-check"
+  r3: "Hard Gate Contract — no silent skip"
+  r4: "Subagent prompt requirement\n(literal /SKILL invocation in every dispatch)"
+  r5: "Structured questions only (numbered, one at a time)"
+  r6: "Memory paths {MEMORY_DIR}/e2e/"
+  r7: "Re-entry via docs/superpowers/e2e-tracker.md"
+  r8: "Context budget — /strategic-compact at <20%\n+ /context-budget (audit) + /agent-token-optimization (tiering)"
+  r9: "Error handling — Retry / Skip / Abort / Manual"
+  r10: "Missing skill — announce + run inline + log P10"
+}

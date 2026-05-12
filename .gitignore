@@ -19,3 +19,11 @@ node_modules/
 .cursor/.setup-backup-*
 .claude/.setup-backup-*
 skills/e2e-workspace/
+
+# --- ai-coding-rules managed (auto; do not remove) ---
+# Regenerate managed skills: bash .cursor/rules/shared/install.sh
+.agents/
+# Skill-creator / eval scratch dirs (not real skills)
+.cursor/skills/*-workspace/
+.claude/skills/*-workspace/
+# --- end ai-coding-rules managed ---

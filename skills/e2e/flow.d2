@@ -1,0 +1,405 @@
+# /e2e — Visual Flow Companion (top-down decision tree)
+#
+# This file is META documentation for the /e2e skill. The skill itself
+# lives in SKILL.md. Refresh this diagram when SKILL.md changes
+# STRUCTURALLY (new phase, new gate, changed skip-logic, new
+# classification, new hard gate). Cosmetic edits to SKILL.md do NOT
+# require a refresh — the diagram is a reference, not a real-time
+# mirror.
+#
+# Regenerate the SVG after editing:
+#   d2 flow.d2 flow.svg
+#
+# Style key:
+#   green   = active step
+#   gray    = skipped (per classification)
+#   red     = HARD GATE (P6, P7)
+#   yellow  = special partial mode (spike P6: cleanup-only)
+#   diamond = decision point (classification, conditional, executor pick)
+
+direction: down
+
+# ============================================================================
+# STYLE CLASSES
+# ============================================================================
+
+classes: {
+  active: { style.fill: "#e6f4ea"; style.stroke: "#1e7e34"; style.font-size: 36 }
+  skipped: { style.fill: "#f0f0f0"; style.stroke: "#999"; style.stroke-dash: 4; style.font-color: "#777"; style.font-size: 36 }
+  hard: { style.fill: "#ffdddd"; style.stroke: "#a00"; style.stroke-width: 3; style.font-size: 40; style.bold: true }
+  blocker: { style.fill: "#fff3cd"; style.stroke: "#a06000"; style.stroke-width: 2; style.font-size: 36; style.bold: true }
+  deferred: { style.fill: "#e8e0ff"; style.stroke: "#5040a0"; style.stroke-dash: 4; style.font-size: 36 }
+  decision: { shape: diamond; style.fill: "#fdf5e6"; style.stroke: "#c70"; style.font-size: 36; style.bold: true }
+  marker: { shape: oval; style.fill: "#fff"; style.stroke: "#333"; style.font-size: 44; style.bold: true }
+  groupbox: { style.fill: "#fbfbfb"; style.stroke: "#444"; style.stroke-width: 2; style.font-size: 44; style.bold: true }
+}
+
+# ============================================================================
+# ENTRY
+# ============================================================================
+
+start: "INPUT\nidea / ticket / issue # / spec link" { class: marker }
+
+# ============================================================================
+# PHASE 0 — INTAKE (expanded internal sequence + decisions)
+# ============================================================================
+
+P0: "Phase 0: INTAKE" {
+  class: groupbox
+
+  s1: "S1 load context\n(memory + git log + CLAUDE.md)" { class: active; tooltip: "Read past defaults/feedback from {MEMORY_DIR}/e2e/, recent git activity, and CLAUDE.md conventions." }
+  s1_super: "/using-superpowers (silent)" { class: active; tooltip: "Refresh the catalog of available skills. Avoids missing-skill surprises in later phases." }
+  q_issue: "input matches\n#N or <repo>#N ?" { class: decision }
+  s1_fix: "/fix-issue\nfetch issue body+comments" { class: active; tooltip: "Fetch a GitHub issue by number and use its body + comments as the task description." }
+  q_clean: "S1.5 git status:\nworkspace clean?" { class: decision }
+  s15_ship: "ship pending changes\nas separate PR FIRST" { class: active; tooltip: "If unrelated work is uncommitted, ship it as its own PR first. Reviewers shouldn't have to mentally separate scopes." }
+  s2: "S2 /prompt-optimizer" { class: active; tooltip: "Analyze raw prompt, identify gaps, output ready-to-paste optimized prompt. Advisory — never executes." }
+  q_raw: "raw idea?\n(no ticket/spec)" { class: decision }
+  s25: "S2.5 /prd-generation\n→ docs/superpowers/prds/" { class: active; tooltip: "Generate a short PRD from a raw idea. Captures problem, requirements, success criteria." }
+  s3: "S3 classify + stack tag" { class: active; tooltip: "Pick task type and stack tag. Drives skip-logic and stack-conditional skills downstream." }
+  s4: "S4 phase tracker" { class: active; tooltip: "Build the in-memory task list of all active phases. Persisted to e2e-tracker.md in P4." }
+  s5: "S5 /rename" { class: active; tooltip: "Built-in command. Renames session to e2e-{class}-{topic-slug} for findability." }
+
+  s1 -> s1_super -> q_issue
+  q_issue -> s1_fix: YES
+  q_issue -> q_clean: NO
+  s1_fix -> q_clean
+  q_clean -> s15_ship: NO
+  q_clean -> s2: YES
+  s15_ship -> s2
+  s2 -> q_raw
+  q_raw -> s25: YES
+  q_raw -> s3: NO
+  s25 -> s3
+  s3 -> s4 -> s5
+}
+
+start -> P0
+
+# ============================================================================
+# CLASSIFICATION FORK (the central branching decision)
+# ============================================================================
+
+q_class: "CLASSIFICATION\n(choose one)" { class: decision }
+P0 -> q_class
+
+# Each classification routes to a different P3 entry except feature-with-formal-spec
+# We keep ONE P3..P10 sequence and tag the entering edge with the class
+
+q_skip12: "feature: skip P1+P2?\n(formal spec sections?)" { class: decision }
+q_class -> q_skip12: feature
+
+# ============================================================================
+# PHASE 1 — RESEARCH (feature only, when no formal spec)
+# ============================================================================
+
+P1: "Phase 1: RESEARCH" {
+  class: groupbox
+
+  search: "/search-first" { class: active; tooltip: "Research-before-coding: find existing tools, libraries, patterns." }
+  docs: "/documentation-lookup" { class: active; tooltip: "Context7 MCP. Fetch up-to-date framework/library docs." }
+  iter: "/iterative-retrieval\n(if context-heavy)" { class: active; tooltip: "Progressively refine retrieval — avoids dumping huge result sets into orchestrator context." }
+  out: "research brief\n→ session scratchpad" { class: active }
+
+  search -> docs -> iter -> out
+}
+
+q_skip12 -> P1: NO
+
+# ============================================================================
+# PHASE 2 — DESIGN (feature only, when no formal spec)
+# ============================================================================
+
+P2: "Phase 2: DESIGN" {
+  class: groupbox
+
+  q_fwsel: "stack tag in\n{langchain, langgraph,\ndeep-agents}?" { class: decision }
+  fwsel: "/framework-selection\n(BEFORE brainstorming)" { class: active; tooltip: "Pick the right layer: LangChain vs LangGraph vs Deep Agents." }
+  brain: "/brainstorming\nsteps 1–8\n(BLOCKING gate)" { class: active; tooltip: "Design exploration. Stop before step 9; orchestrator handles planning in P3." }
+  q_uncertain: "user uncertain\nbetween approaches?" { class: decision }
+  council: "/council\n(4-voice tradeoff)" { class: active; tooltip: "Convene Architect/Skeptic/Pragmatist/Critic. Use for go/no-go calls with multiple valid paths." }
+  q_adr: "non-trivial\narchitectural decision?" { class: decision }
+  adr: "/architecture-decision-records" { class: active; tooltip: "Capture chosen approach + rejected alternatives as ADRs." }
+  out: "design doc\n→ docs/superpowers/specs/" { class: active }
+
+  q_fwsel -> fwsel: YES
+  q_fwsel -> brain: NO
+  fwsel -> brain
+  brain -> q_uncertain
+  q_uncertain -> council: YES
+  q_uncertain -> q_adr: NO
+  council -> q_adr
+  q_adr -> adr: YES
+  q_adr -> out: NO
+  adr -> out
+}
+
+P1 -> P2
+
+# ============================================================================
+# PHASE 3 — PLANNING (always runs)
+# ============================================================================
+
+P3: "Phase 3: PLANNING" {
+  class: groupbox
+
+  scan: "S0 codebase scan\n(code-explorer subagent)" { class: active; tooltip: "Always runs. Scan codebase for existing patterns related to the task." }
+  forensics: "/git-forensics\nownership + churn" { class: active; tooltip: "File ownership, churn, recent incidents on affected files. Avoid re-breaking just-fixed code." }
+  canon: "canonical-source rule\nfor submodule assets" { class: active; tooltip: "If change targets submodule asset (e.g. mobile-cursor-rules skill), FIRST read canonical path, not synced copy." }
+  q_5tasks: "5+ tasks\nor multi-subsystem?" { class: decision }
+  break: "/task-breakdown\n(decompose first)" { class: active; tooltip: "Decompose 5+ task plans before /writing-plans formalizes them." }
+  plans: "/writing-plans" { class: active; tooltip: "Formalize task list with TDD steps + verification per task." }
+  out: "plan doc\n→ docs/superpowers/plans/" { class: active }
+
+  scan -> forensics -> canon -> q_5tasks
+  q_5tasks -> break: YES
+  q_5tasks -> plans: NO
+  break -> plans -> out
+}
+
+# All non-feature classifications enter P3 directly
+q_skip12 -> P3: YES
+q_class -> P3: "bugfix / refactor"
+q_class -> P3: spike
+q_class -> P3: hotfix
+q_class -> P3: docs-only
+P2 -> P3
+
+# ============================================================================
+# PHASE 4 — SETUP
+# ============================================================================
+
+P4: "Phase 4: SETUP\n/using-git-worktrees\n+ persist e2e-tracker.md" { class: active; tooltip: "Non-skippable, even spikes get a worktree. Tracker persists for re-entry." }
+
+P3 -> P4
+
+# ============================================================================
+# PHASE 5 — EXECUTION
+# ============================================================================
+
+P5: "Phase 5: EXECUTION" {
+  class: groupbox
+
+  q_exec: "Pick executor" { class: decision }
+  sdd: "/subagent-driven-development\n(DEFAULT — multi-task)" { class: active; tooltip: "One engineer subagent per task with two-stage review (spec compliance, code quality)." }
+  exec: "/executing-plans\n(sequential, short)" { class: active; tooltip: "Single-executor with review checkpoints. For tightly sequential plans." }
+  inline: "inline orchestrator\n(≤3 files, single domain)" { class: active; tooltip: "Orchestrator implements directly. Forbidden when crossing service boundaries or touching prod." }
+  q_tdd: "TDD discipline\nby class" { class: decision }
+  tdd: "/tdd-workflow\nfeature/bugfix/refactor:\nred → green → refactor" { class: active; tooltip: "Red-green-refactor. Bugfix: failing-test-first. Refactor: behavior-preserving." }
+  no_tdd: "skip TDD\nhotfix/spike" { class: skipped }
+  q_par: "parallel\ntasks?" { class: decision }
+  para: "/dispatching-parallel-agents\n+ /multi-agent-branching" { class: active; tooltip: "Fan-out + result aggregation + failure isolation. Branch hygiene check before dispatch." }
+  q_stuck: "engineer\nstuck?" { class: decision }
+  stuck: "/systematic-debugging\nand/or /debug-workflow" { class: active; tooltip: "Root-cause investigation + Log→Reproduce→Fix cycle. Different failure shapes." }
+  mem: "/session-memory\n(persist decisions)" { class: active; tooltip: "Persist decisions across tasks/sessions. For multi-chat work." }
+
+  q_exec -> sdd -> q_tdd
+  q_exec -> exec -> q_tdd
+  q_exec -> inline -> q_tdd
+  q_tdd -> tdd
+  q_tdd -> no_tdd
+  tdd -> q_par
+  no_tdd -> q_par
+  q_par -> para: YES
+  q_par -> q_stuck: NO
+  para -> q_stuck
+  q_stuck -> stuck: YES
+  q_stuck -> mem: NO
+  stuck -> mem
+}
+
+P4 -> P5
+
+# ============================================================================
+# CRITICAL FORK — Skip P6+P7 per classification
+# ============================================================================
+
+q_skip67: "Skip P6 + P7?\n(per classification)" { class: decision }
+P5 -> q_skip67
+
+# ============================================================================
+# PHASE 6 (full) — feature / bugfix / refactor
+# ============================================================================
+
+P6_full: "Phase 6: QUALITY GATES (HARD)\nfeature / bugfix / refactor" {
+  class: groupbox
+  style.fill: "#fff5f5"
+
+  parallel_label: "ALL 4 RUN IN PARALLEL\n(read-only except cleanup)" { style.font-size: 16; style.italic: true }
+  cleanup: "/code-cleanup" { class: active; tooltip: "Debug artifacts, dead imports, AI-generated noise removal. ~30s, mechanical." }
+  simp: "/simplify\n(/code-simplification on Cursor)" { class: active; tooltip: "Reuse + quality + efficiency via 3 parallel subagents. Built-in command on Claude Code." }
+  sec: "/security-review" { class: active; tooltip: "OWASP-style per-PR vulnerability scan. + belt-and-suspenders happy-path test for any defensive arg-mutation." }
+  bp: "/best-practices-enforcement" { class: active; tooltip: "Coding standards, naming, immutability, structure. Read-only." }
+  q_perf: "perf-shaped\nrequirement?" { class: decision }
+  opt: "/code-optimization\n(5th gate, AFTER the 4)" { class: active; tooltip: "Perf/memory/efficiency optimization. Hot-path refactors." }
+  q_find: "Findings?" { class: decision }
+  fix_all: "Fix all (Recommended)\n→ re-run P6/P7/P8" { class: active; tooltip: "Default for any HIGH or MEDIUM≥2. Tracking-as-mitigation is NOT resolution." }
+  fix_some: "Fix HIGH only or\nFix HIGH+MED, defer LOW" { class: active }
+  commit_track: "Commit + track in PR\n(no HIGH allowed,\nexplicit OK)" { class: active }
+
+  parallel_label -> cleanup
+  parallel_label -> simp
+  parallel_label -> sec
+  parallel_label -> bp
+  cleanup -> q_perf
+  simp -> q_perf
+  sec -> q_perf
+  bp -> q_perf
+  q_perf -> opt: YES
+  q_perf -> q_find: NO
+  opt -> q_find
+  q_find -> fix_all
+  q_find -> fix_some
+  q_find -> commit_track
+}
+
+q_skip67 -> P6_full: "feature / bugfix / refactor / hotfix\n(hotfix: gates matter MORE on emergency\ncode that ships to prod, not less)"
+
+# ============================================================================
+# PHASE 6 (partial) — spike (throwaway code, no PR expected)
+# ============================================================================
+
+P6_spike: "Phase 6 partial — SPIKE\n• /code-cleanup ONLY\n  (spike code gets copy-pasted\n   into real impl —\n   debug prints + dead\n   imports must not leak)\n— other gates SKIP (throwaway)\n— P7 SKIP (no PR)" { class: blocker; tooltip: "Spike is exploratory throwaway. Only cleanup runs to prevent debug prints/dead imports leaking when the spike gets copy-pasted." }
+q_skip67 -> P6_spike: spike
+
+# ============================================================================
+# DOCS-ONLY (skip everything code-related)
+# ============================================================================
+
+skip_docs: "Phase 6 SKIPPED\nPhase 7 SKIPPED\n(no code)" { class: skipped }
+q_skip67 -> skip_docs: docs-only
+
+# Note: hotfix routing reverted from Stage E per-gate matrix.
+# Hotfix now follows the same P6 + P7 path as feature/bugfix/refactor.
+# HIGH-escalation rule (any HIGH from any P6 gate forces P7) lives in
+# the SKILL.md classification table.
+
+# ============================================================================
+# PHASE 7 — REVIEW (HARD)
+# ============================================================================
+
+P7: "Phase 7: REVIEW (HARD GATE)" {
+  class: groupbox
+  style.fill: "#fff5f5"
+
+  req: "/requesting-code-review\n→ code-reviewer subagent\n(model: opus override)" { class: active; tooltip: "Package the review request (diff + gate findings)." }
+  excel: "/code-review-excellence\n(reviewer methodology)" { class: active; tooltip: "Bugs and design issues over style. Constructive concrete feedback. Must-fix vs nice-to-have." }
+  q_findings: "Reviewer\nfindings?" { class: decision }
+  recv: "/receiving-code-review\n(author-side)" { class: active; tooltip: "Classify findings. Push back vs comply. Don't be performatively defensive." }
+  q_rounds: "≥2 rounds OR\n≥10 unresolved comments?" { class: decision }
+  addr: "/address-pr-feedback\n(triage thread)" { class: active; tooltip: "Triage which to apply, which to defer, which to discuss in-thread." }
+  done: "review APPROVED\n→ proceed to P8" { class: active }
+
+  req -> excel -> q_findings
+  q_findings -> recv: YES
+  q_findings -> done: NO
+  recv -> q_rounds
+  q_rounds -> addr: YES
+  q_rounds -> req: "NO\n(direct apply,\nthen re-review)"
+  addr -> req
+}
+
+P6_full -> P7
+
+# ============================================================================
+# PHASE 8 — VERIFICATION
+# ============================================================================
+
+P8: "Phase 8: VERIFICATION" {
+  class: groupbox
+
+  verif: "/verification-before-completion\n(no claims without evidence)" { class: active; tooltip: "Hard rule: present actual output BEFORE marking AC complete." }
+  base: "tests + build + lint" { class: active }
+  q_sec: "security-sensitive\ncode?\n(crypto/network/payload/authz)" { class: decision }
+  empirical: "EMPIRICAL not static\nrun against reference\n(Python hmac stdlib, etc.)" { class: blocker; tooltip: "grep + actionlint + unit tests are NOT sufficient. PR #106 missed 2 real bugs that empirical caught." }
+  q_restore: "command is\nrestore/lock/snapshot/pin?" { class: decision }
+  restore: "Restore-semantics check\n(restore must NOT mutate\nthe recorded state)" { class: blocker; tooltip: "Test: capture snapshot → mutate upstream → call restore → assert byte-identical. Caught ckpm bug where restore advanced the lockfile." }
+  q_upgrade: "interpreter / dep / base-image\nupgrade?" { class: decision }
+  smoke: "Smoke-test fast path\n(smallest Dockerfile build\n+ targeted in-container test)" { class: active; tooltip: "~3-5min vs 15-30min full suite. CI catches the rest. NOT permitted for logic/schema/wire-contract changes." }
+  q_flaky: "flaky suite or\nlong retry cycle?" { class: decision }
+  tup: "/test-until-pass\n(retry caps + stop condition)" { class: active; tooltip: "Formalizes fail → fix → re-run loop with explicit stop condition." }
+  q_pass: "All pass?" { class: decision }
+  fix: "fix → re-verify\n(loop)" { class: active }
+  done: "verification PASSED\n→ proceed to P9" { class: active }
+
+  verif -> base -> q_sec
+  q_sec -> empirical: YES
+  q_sec -> q_restore: NO
+  empirical -> q_restore
+  q_restore -> restore: YES
+  q_restore -> q_upgrade: NO
+  restore -> q_upgrade
+  q_upgrade -> smoke: YES
+  q_upgrade -> q_flaky: NO
+  smoke -> q_flaky
+  q_flaky -> tup: YES
+  q_flaky -> q_pass: NO
+  tup -> q_pass
+  q_pass -> fix: NO
+  q_pass -> done: YES
+  fix -> verif
+}
+
+P7 -> P8
+P6_spike -> P8
+skip_docs -> P8
+
+# ============================================================================
+# PHASE 9 — DELIVERY
+# ============================================================================
+
+P9: "Phase 9: DELIVERY" {
+  class: groupbox
+
+  no_coauthor: "HARD: no Co-Authored-By:\nin commits or PR body\n(commit hooks BLOCK)" { class: hard; tooltip: "User's commit hooks block any AI-attribution line. Strip it from default templates." }
+  finish: "/finishing-a-development-branch" { class: active; tooltip: "Present integration options as a structured numbered question." }
+  q_choice: "Choice?" { class: decision }
+  pr: "/create-pr\n+ /pr-workflow\n+ /github-ops" { class: active; tooltip: "Open PR + lifecycle (draft→ready→merge-strategy) + CI status checks + PR triage." }
+  merge: "merge to main\n(if CI green + rights)" { class: active }
+  keep: "keep branch\n(continue later)" { class: active }
+  discard: "discard\n(spike only)" { class: active }
+  q_release: "Release\nboundary?" { class: decision }
+  release: "/generate-changelog\n+ /security-audit" { class: active; tooltip: "Release notes + deeper periodic security check (vs the per-PR /security-review)." }
+  q_hooks: "Delivery hooks?\n(per-hook ASK)" { class: decision }
+  slack: "Slack canvas\n→ /slack-history\n(read context + draft msg)" { class: active; tooltip: "Wire the Slack-canvas hook. Read channel context, draft message, ASK before writing." }
+  jira: "Jira transition\n(confirm target first)" { class: active }
+  confl: "Confluence page\n(show diff before write)" { class: active }
+
+  no_coauthor -> finish -> q_choice
+  q_choice -> pr -> q_release
+  q_choice -> merge -> q_release
+  q_choice -> keep
+  q_choice -> discard
+  q_release -> release: YES
+  q_release -> q_hooks: NO
+  release -> q_hooks
+  q_hooks -> slack
+  q_hooks -> jira
+  q_hooks -> confl
+}
+
+P8 -> P9
+
+# ============================================================================
+# PHASE 10 — LEARN
+# ============================================================================
+
+P10: "Phase 10: LEARN" {
+  class: groupbox
+
+  save: "save to {MEMORY_DIR}/e2e/" { class: active }
+  prefixes: "prefixes:\ne2e:feedback:  user corrections\ne2e:default:   saved answers\ne2e:decision:  arch choices\ne2e:skip:      classification overrides\ne2e:followup:  hotfix-deferred reviews" { class: active }
+  q_hotfix_done: "classification\nwas hotfix?" { class: decision }
+  followup: "record\ne2e:followup:review:\n(file path, branch,\nbrief description)" { class: active; tooltip: "Surfaced next /e2e in this repo, or noted in PR if hotfix is still under review." }
+
+  save -> prefixes -> q_hotfix_done
+  q_hotfix_done -> followup: YES
+}
+
+P9 -> P10
+
+end: "DONE" { class: marker }
+P10 -> end
+
+# Cross-phase rules + legend live in flow-legend.d2 (separate diagram)
+# so this main tree stays narrow and screen-friendly.

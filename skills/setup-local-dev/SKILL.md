@@ -1,9 +1,6 @@
 ---
 name: setup-local-dev
-description: "Sets up persistent local development server using pm2 process management that survives terminal closes and IDE restarts. Configures pm2 to auto-restart on crashes, persist across sessions, and provide process monitoring. Use when starting development session, needing persistent dev server, doing long-running development work, or requiring server that survives terminal closes. Produces pm2-based dev server configuration with auto-restart and persistence enabled."
-version: "1.0.0"
-last_updated: "2026-01-25"
-tags: ["development", "server", "pm2", "workflow", "universal"]
+description: "Use when starting development session, needing persistent dev server, doing long-running development work, or requiring server that survives terminal closes. Do NOT use for quick one-off tasks, when not running a dev server, when using Docker Compose or Kubernetes, or when server is already running."
 ---
 # Setup Local Development Server
 
@@ -429,3 +426,5 @@ pm2 install pm2-logrotate
 > "Check status before starting - might already be running"
 
 > "Ecosystem files make configuration reusable"
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -42,3 +42,5 @@ Fetch a GitHub issue, analyze it, and implement the fix.
 - Link the PR back to the issue with "Fixes #123"
 
 Requires GitHub CLI (`gh`) installed and authenticated.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

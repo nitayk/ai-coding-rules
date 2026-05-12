@@ -80,7 +80,7 @@ Launch an Agent tool subagent (**general-purpose agent**) with the full inventor
 ```text
 Agent(
   subagent_type="general-purpose",
-  prompt="""
+  prompt="
 Evaluate the following skill inventory against the checklist.
 
 [INVENTORY]
@@ -89,7 +89,7 @@ Evaluate the following skill inventory against the checklist.
 
 Return JSON for each skill:
 { "verdict": "Keep"|"Improve"|"Update"|"Retire"|"Merge into [X]", "reason": "..." }
-"""
+"
 )
 ```
 

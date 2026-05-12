@@ -21,3 +21,5 @@ Clean git history with descriptive conventional-commit messages. Status report w
 
 - Every commit = compiles + tests pass + logical task complete
 - No WIP commits in final PR
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

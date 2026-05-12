@@ -1156,3 +1156,5 @@ Action [source code](https://github.com/Unity-Technologies/github-actions-workfl
 | Destroy PR preview environment | `destroy-pr-preview-env` | N/A |
 
 For **WIF/Vault authentication** details (Workload Identity Federation, service accounts, Vault secrets), see `guides-wif-vault-practices.md`.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

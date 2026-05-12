@@ -9,6 +9,8 @@ This skill helps you systematically address feedback from a pull request review.
 
 ## Requirements
 
+Agent-agnostic: use from any environment that can run shell scripts (e.g. Claude Code, Cursor).
+
 - **GitHub CLI (`gh`)**: Installed and authenticated.
 - **`jq`** (optional): Useful when feedback JSON is written to a file and you need counts or filtered views.
 
@@ -91,3 +93,5 @@ Parse the JSON (from the file or stdout) to identify:
 - **Skip uncertainty**: Prefer asking the user over guessing when a comment is ambiguous or needs a product/design call.
 - **Match intent**: Changes should reflect what the reviewer asked, not a different “improvement.”
 - **Confirm before commit**: Do not `git commit` (or push) without explicit user approval.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

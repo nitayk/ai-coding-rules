@@ -45,6 +45,18 @@ Reduce **LLM and agent-harness** cost: context window usage, model tiering, and 
 
 - Heavy operations (large DB pulls, deploys) often cost fewer **agent** tokens if run **via CLI** outside the agent, with results summarized in chat—especially if your MCP loads large payloads into context.
 
+### Tools that automate this
+
+External tools that close the loop on the practices above. Optional, opt-in, and easy to roll back.
+
+> **⚠ Do not act on `codeburn optimize` output without per-item verification — false-positive rate empirically exceeds 50%.** Hook-driven skills, project-scoped MCPs, and CLAUDE.md files owned by other engineers commonly get false-flagged as "unused/bloated." See `/cost-audit` for the per-category verification checklist.
+
+| Concern | Tool | What it does |
+|---|---|---|
+| Bash tool output bloating context | [`rtk-ai/rtk`](https://github.com/rtk-ai/rtk) | Local Bash hook compresses shell output (60–90% on `git`/`gh`/`docker`/`pytest`/`go test`) before it reaches the model. Install via `rtk init --global --hook-only --auto-patch` (no CLAUDE.md instruction bloat) |
+| Measuring where tokens actually go | [`getagentseal/codeburn`](https://github.com/getagentseal/codeburn) | Local TUI/CLI that reads session JSONLs, prices via LiteLLM. Use for baselines, per-project spend, ghost-skill/MCP audits. **Pair with `/cost-audit` skill — its `optimize` output is noisy and needs verification** |
+| Cross-session memory (avoid re-loading) | Curated harness memory (e.g. `~/.claude/projects/<id>/memory/MEMORY.md` index) | Loaded every session; cheaper than re-discovering context |
+
 ### Advanced (external)
 
 - **System prompt** / static overhead tuning is harness-specific; treat any “patch” workflows as **external** and optional.
@@ -81,3 +93,5 @@ This is **not** a substitute for `/verification-before-completion` (honesty gate
 | **Claude Code** | Same skills + **Claude `hooks.json`** hooks (e.g. `SessionStart`, lifecycle hooks). **Continuous learning** automation is **most** aligned with Claude Code hook paths—see `/continuous-learning-v2`; full ECC-style automation is **opt-in**, not guaranteed by submodule install alone. |
 
 Do **not** assume Cursor and Claude expose identical hook events or paths—see [hooks/README.md](../../hooks/README.md).
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

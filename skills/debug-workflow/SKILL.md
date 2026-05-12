@@ -1,6 +1,6 @@
 ---
 name: debug-workflow
-description: "Enforce a strict Log-Reproduce-Fix cycle for debugging. Use when fixing bugs, investigating errors, or troubleshooting failures."
+description: "Use when enforcing Log -> Reproduce -> Fix cycle for debugging. Do NOT use when fix is already identified."
 ---
 
 # Debug Workflow
@@ -22,7 +22,7 @@ description: "Enforce a strict Log-Reproduce-Fix cycle for debugging. Use when f
 3.  **Confirm**: "I have reproduced the issue. The error is..."
 
 ### Phase 2: Hypothesis
-1.  **Trace**: Use `grep` or `Memgraph` to trace the flow.
+1.  **Trace**: Use `grep` or code search to trace the flow. (Code graph / Memgraph if available.)
 2.  **Theorize**: "I believe the root cause is..."
 3.  **Verify Hypothesis**: Add log statements or breakpoints to confirm.
 
@@ -31,7 +31,29 @@ description: "Enforce a strict Log-Reproduce-Fix cycle for debugging. Use when f
 2.  **Test**: Run the reproduction case again.
 3.  **Verify**: "Test passed. Error is gone."
 
+## Streamlined Workflows (Zero Context Switching)
+
+### Slack Bug Thread
+1.  **Input**: User pastes a Slack bug thread and says "fix".
+2.  **Action**: Extract error details directly from the thread text. Treat it as the "Read Logs" step. Proceed to Reproduction.
+
+### CI Failures
+1.  **Input**: User says "Go fix the failing CI tests."
+2.  **Action**: 
+    - Locate CI output (ask user for log paste if not available).
+    - Identify failing test targets.
+    - Run those tests locally to reproduce.
+    - Fix.
+
+### Docker Logs
+1.  **Input**: User points to docker logs.
+2.  **Action**: 
+    - Read logs to troubleshoot distributed systems issues.
+    - Look for service interactions, timeouts, or connection errors.
+
 ## Strict Rules
 - **NEVER** fix blindly ("I'll try changing this").
 - **NEVER** skip reproduction (unless it's a syntax error).
 - **ALWAYS** provide evidence of the fix (test output).
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -676,3 +676,5 @@ jobs:
         with:
           shared_workflow_id: my-shared-workflow # This should be a unique name of your shared workflow
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -1,0 +1,9 @@
+# Subtree Source Information
+# This directory is maintained as a snapshot from an upstream repository.
+# DO NOT manually edit files in this directory.
+# Use the update script to pull in changes from upstream.
+
+SOURCE_REPO=https://github.com/obra/superpowers.git
+SOURCE_PATH=skills/dispatching-parallel-agents
+LAST_SYNC_COMMIT=f2cbfbefebbfef77321e4c9abc9e949826bea9d7
+LAST_SYNC_DATE=2026-05-04 15:05:01 -0700

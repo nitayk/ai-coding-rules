@@ -129,3 +129,5 @@ src/
 - Link to external resources
 - Update regularly as project evolves
 - Get feedback from new team members
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

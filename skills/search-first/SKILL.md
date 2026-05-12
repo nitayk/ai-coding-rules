@@ -3,7 +3,6 @@ name: search-first
 description: Research-before-coding workflow. Search for existing tools, libraries, and patterns before writing custom code. Invokes the researcher agent.
 origin: ECC
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 # /search-first — Research Before You Code
 
@@ -160,3 +159,5 @@ Result: 1 package + 1 schema file, no custom validation logic
 - **Ignoring MCP**: Not checking if an MCP server already provides the capability
 - **Over-customizing**: Wrapping a library so heavily it loses its benefits
 - **Dependency bloat**: Installing a massive package for one small feature
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

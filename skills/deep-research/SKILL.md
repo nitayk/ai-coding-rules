@@ -3,7 +3,6 @@ name: deep-research
 description: Multi-source deep research using firecrawl and exa MCPs. Searches the web, synthesizes findings, and delivers cited reports with source attribution. Use when the user wants thorough research on any topic with evidence and citations.
 origin: ECC
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 # Deep Research
 
@@ -154,3 +153,5 @@ Each agent searches, reads sources, and returns findings. The main session synth
 "What's happening with the US housing market right now?"
 "Investigate the competitive landscape for AI code editors"
 ```
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

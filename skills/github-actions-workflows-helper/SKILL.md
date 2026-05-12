@@ -88,3 +88,5 @@ Always provide:
 2. A brief explanation of what each major step does
 3. Any prerequisites the user needs to set up
 4. A note that full upstream documentation lives at `https://github.com/Unity-Technologies/github-actions-workflows`
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

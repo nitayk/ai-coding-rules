@@ -18,8 +18,8 @@ Determine the repository name and path using `git rev-parse --show-toplevel`. Th
 
 ## 3. Determine the base branch
 
-- Check if the repo has a default branch convention (e.g. `develop`, `release/next`).
-- Default to `main` if no convention is found.
+- For **unity-ads-sdk** repositories (`unity-ads-sdk-android`, `unity-ads-sdk-ios`): use `release/next`.
+- For all other repositories: use `main`.
 
 ## 4. Find the PR template
 
@@ -30,6 +30,8 @@ Search for a PR template in the following locations (in order of priority):
 3. `.github/pull_request_template.md`
 
 Read the first template found and use it as the structure for the PR body.
+
+For **unity-ads-sdk** repositories, prefer the repo-root template; only use `Unity/SDK/pull_request_template.md` if the change is confined to that subtree.
 
 **If no template is found**, use this default structure:
 ```
@@ -59,15 +61,22 @@ Read the first template found and use it as the structure for the PR body.
 
 ## 6. Choose PR title
 
-Use conventional commit format: `<type>(<scope>): <subject>`
+### Unity Ads SDK repositories
+
+```
+<type>(<scope>):<platform>: <subject>
+```
 
 | Part         | Values / rules |
 |--------------|----------------|
 | `<type>`     | `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf` |
-| `<scope>`    | Optional: module, area, or ticket number |
+| `<scope>`    | JIRA ticket number, e.g. `UASDK-5000` or `UASDK-NA` |
+| `<platform>` | `Android`, `iOS`, `Web` |
 | `<subject>`  | Short imperative description of the change |
 
-Example: `feat: add X` or `fix(auth): handle expired tokens`.
+### Other repositories
+
+Use a short imperative title, e.g. `feat: add X` or `fix: Y`.
 
 ## 7. Ask about draft status
 
@@ -92,3 +101,5 @@ gh pr create --base <base-branch> --title "<title>" --body-file <path-to-filled-
 
 - Always derive the PR body from the correct template so the format matches the repo's expectations.
 - Do not run commands to verify the PR was created on GitHub after `gh pr create` succeeds.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

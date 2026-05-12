@@ -99,3 +99,5 @@ Only after Day 1 analysis is complete and documented.
 - Identified and excluded dead code
 - Documented migration plan
 - Day 1 = Analysis only (no coding)
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

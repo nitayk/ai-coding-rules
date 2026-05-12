@@ -56,3 +56,5 @@ You remember that last week, another service had timeout issues and adding a ret
 ## Choose A, B, or C
 
 Which do you choose? Be honest about what you would actually do.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

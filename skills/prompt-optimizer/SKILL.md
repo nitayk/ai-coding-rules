@@ -17,7 +17,6 @@ metadata:
   author: YannJY02
   version: "1.0.0"
 ---
-<!-- Cross-platform: see AGENTS.md in the repository root. -->
 
 # Prompt Optimizer
 
@@ -396,3 +395,5 @@ Recommended: Opus 4.6 for blueprint planning, Sonnet 4.6 for phase execution.
 | `blueprint` | EPIC-scope optimized prompts (invoke as skill, not command) |
 | `strategic-compact` | Long session context management |
 | `cost-aware-llm-pipeline` | Token optimization recommendations |
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -160,3 +160,5 @@ Each entry includes key inputs and a pointer to the bundled reference file with 
 | helm-chart-validate-publish | workflow | Validate and publish Helm charts | `chart_path` |
 | merge-coverage | workflow | Merge coverage reports (reusable) | `coverage_files` |
 | customize_oidc | workflow | Customize OIDC subject claim (run once) | (no inputs) |
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

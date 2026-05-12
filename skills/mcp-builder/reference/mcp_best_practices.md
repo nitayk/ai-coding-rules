@@ -247,3 +247,5 @@ Comprehensive testing should cover:
 - Document security considerations
 - Specify required permissions and access levels
 - Document rate limits and performance characteristics
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

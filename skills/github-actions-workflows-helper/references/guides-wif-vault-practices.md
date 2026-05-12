@@ -789,3 +789,5 @@ jobs:
 ```
 
 Define environments (e.g., `production-service1`, `production-service2`) in your GitHub repo settings to configure approval rules.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
