@@ -137,12 +137,12 @@ Example (Cursor-shaped fragment — your merged file may differ):
 
 ## Setup
 
-Hooks are automatically synced when you run `sync-rules.sh` or `install.sh`:
+Hooks are automatically synced when you run `acr sync` or `acr install`:
 
 ```bash
-bash .cursor/rules/shared/sync-rules.sh
+acr sync
 # Or use the full installer:
-bash .cursor/rules/shared/install.sh
+acr install
 ```
 
 **What happens:**

@@ -13,13 +13,13 @@ Symlinks are the **default** behavior. The installer uses symlinks automatically
 
 ```bash
 # Default: Uses symlinks
-bash .cursor/rules/shared/install.sh
+acr install
 
 # Use copying instead (fallback)
-bash .cursor/rules/shared/install.sh --copy
+acr install --copy
 
 # Combine with other options
-bash .cursor/rules/shared/install.sh --dry-run --verbose
+acr install --dry-run --verbose
 ```
 
 ## Benefits of Symlinks

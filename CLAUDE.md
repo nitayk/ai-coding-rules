@@ -43,6 +43,7 @@ See `rules/communication-standards.md` for templates and examples.
 
 ## Setup
 
-1. Add as submodule: `git submodule add <repo-url> .claude/rules/shared`
-2. Run setup: `bash .cursor/rules/shared/install.sh --target claude`
-3. Optional: Configure `.claude/settings.json` for permissions
+1. Add as submodule: `git submodule add <repo-url> .cursor/rules/shared`
+2. Build the CLI: `go build -o acr ./.cursor/rules/shared/cli` (put `acr` on your PATH)
+3. Run setup: `acr install --target claude` (see `.cursor/rules/shared/cli/README.md`)
+4. Optional: Configure `.claude/settings.json` for permissions
