@@ -14,27 +14,36 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
 )
 
 var (
-	repoRoot string // worktree root holding the .sh scripts
-	acrBin   string // built acr binary
+	repoRoot string // worktree root that holds (or held) the .sh scripts
+	acrBin   string // built acr binary (empty when scripts are absent)
 )
 
 func TestMain(m *testing.M) {
-	// Tool availability is enforced per-test via requireTools (t.Skip).
-	root, err := findRepoRoot()
-	if err != nil {
-		os.Exit(0) // nothing to compare against; treat as skip
+	// Resolve paths relative to THIS test file, not by climbing the filesystem
+	// for sync-rules.sh — climbing wrongly escapes into a parent checkout once
+	// the scripts are deleted here. cliDir is the module under test; repoRoot is
+	// its parent (the worktree root where the original scripts live).
+	cliDir := moduleDir()
+	repoRoot = filepath.Dir(cliDir)
+
+	// If the original scripts are gone (deleted post-migration), there is no
+	// baseline to diff against: skip the whole package cleanly. Recover the
+	// scripts from git history to re-run parity.
+	if _, err := os.Stat(filepath.Join(repoRoot, "sync-rules.sh")); err != nil {
+		repoRoot = ""
+		os.Exit(m.Run())
 	}
-	repoRoot = root
 
 	bin := filepath.Join(os.TempDir(), "acr-parity-bin")
 	build := exec.Command("go", "build", "-o", bin, ".")
-	build.Dir = filepath.Join(root, "cli")
+	build.Dir = cliDir
 	if out, err := build.CombinedOutput(); err != nil {
 		println("failed to build acr:", string(out))
 		os.Exit(1)
@@ -45,34 +54,23 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// findRepoRoot walks up from the test's working directory looking for the
-// directory that contains sync-rules.sh.
-func findRepoRoot() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "sync-rules.sh")); err == nil {
-			return dir, nil
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return "", os.ErrNotExist
-		}
-		dir = parent
-	}
+// moduleDir returns the cli/ directory (parent of this parity package),
+// resolved from the test file's own path so it is independent of cwd and of
+// any parent checkout.
+func moduleDir() string {
+	_, file, _, _ := runtime.Caller(0) // .../cli/parity/parity_test.go
+	return filepath.Dir(filepath.Dir(file))
 }
 
 func requireTools(t *testing.T) {
 	t.Helper()
+	if repoRoot == "" {
+		t.Skip("original shell scripts not present (deleted post-migration); recover from git history to run parity")
+	}
 	for _, tool := range []string{"bash", "jq", "python3", "git"} {
 		if _, err := exec.LookPath(tool); err != nil {
 			t.Skipf("%s not available", tool)
 		}
-	}
-	if repoRoot == "" {
-		t.Skip("could not locate shell scripts")
 	}
 }
 
