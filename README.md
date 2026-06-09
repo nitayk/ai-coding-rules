@@ -23,48 +23,43 @@ Supports both **Cursor** and **Claude Code**.
 Cleanest separation -- your personal tools stay in personal projects, zero
 chance of mixing with org repos.
 
-```bash
-# One-time: clone to your home directory
-git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
+The shell scripts were replaced by a single Go CLI, **`acr`**. Build it once:
 
-# Setup any personal project (copies skills + rules + agents + commands)
-bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
+```bash
+# One-time: clone to your home directory and build the CLI
+git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
+cd ~/ai-coding-rules && go build -o ~/.local/bin/acr ./cli   # ensure ~/.local/bin is on PATH
+```
+
+See [`cli/README.md`](cli/README.md) for full command docs.
+
+```bash
+# Link the checkout into a project and deploy skills/rules/agents/commands
+acr link ~/projects/my-app
+cd ~/projects/my-app && acr sync          # add --copy to copy instead of symlink
 
 # Restart Cursor -- done! 57 skills + 200+ rules in that project.
 ```
 
 To update a project later:
 ```bash
-cd ~/ai-coding-rules && git pull && bash update-community.sh
-bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app   # re-copies
+cd ~/ai-coding-rules && git pull && acr update   # refresh community sources
+cd ~/projects/my-app && acr sync                 # re-deploy
 ```
 
-### Option B: Global skills install (if all your projects are personal)
+### Option B: Git submodule (team/open-source projects)
 
-Installs skills globally so every Cursor project gets them. Rules still need
-per-project setup (Cursor limitation -- rules can't live at user level on disk).
-
-```bash
-git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
-
-# Skills + agents + commands -> ~/.cursor/ (global)
-bash ~/ai-coding-rules/install-global.sh
-
-# Rules -> per project (Cursor requires this)
-bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
-```
-
-> **Warning**: Global skills also appear in work/org projects.
-> If your org repos already have `.cursor/skills/`, you'll get duplicates.
-
-### Option C: Git submodule (team/open-source projects)
-
-Version-pinned rules committed to the project repo:
+Version-pinned rules committed to the project repo. `acr install` adds the
+submodule, syncs, and installs a post-merge hook that re-syncs after `git pull`:
 
 ```bash
 git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
-bash .cursor/rules/shared/install-cursor.sh
+go build -o ~/.local/bin/acr ./.cursor/rules/shared/cli
+acr install --target cursor               # or: --target cursor,claude
 ```
+
+> Global (`~/.cursor/`) skill install is no longer supported — skills must live
+> in per-project directories.
 
 ### What goes where (Cursor architecture)
 
@@ -213,18 +208,15 @@ Install with: `npx skills add owner/repo --skill "skill-name"`
 ```bash
 cd ~/ai-coding-rules
 git pull
-bash update-community.sh          # fetch latest from obra/superpowers + anthropics/skills
+acr update                        # fetch latest from obra/superpowers + anthropics/skills
 git add -A && git commit -m "chore: update community skills"
 ```
 
 ### Re-apply to projects
 
 ```bash
-# Per-project (Option A)
-bash ~/ai-coding-rules/setup-project.sh ~/projects/my-app
-
-# Or global skills (Option B)
-bash ~/ai-coding-rules/install-global.sh
+# Linked or submodule project
+cd ~/projects/my-app && acr sync
 ```
 
 See [SOURCES.md](SOURCES.md) for full provenance tracking.
