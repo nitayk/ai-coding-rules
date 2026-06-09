@@ -101,10 +101,15 @@ func Run(o Options) error {
 
 	o.Log.Plain("")
 	o.Log.Info("Step 3: Running sync...")
-	if !fsx.IsDir(filepath.Join(subAbs, "skills")) && !o.DryRun {
-		return fmt.Errorf("submodule not initialized correctly: %s missing skills/", submodulePath)
-	}
-	if err := o.runSync(repoRoot, subAbs, targets); err != nil {
+	if !fsx.IsDir(filepath.Join(subAbs, "skills")) {
+		// On a fresh consumer the submodule was only *previewed* (dry-run), so
+		// there is nothing to sync yet — preview the step rather than erroring.
+		if o.DryRun {
+			o.Log.Info("Would run sync (after submodule is added)")
+		} else {
+			return fmt.Errorf("submodule not initialized correctly: %s missing skills/", submodulePath)
+		}
+	} else if err := o.runSync(repoRoot, subAbs, targets); err != nil {
 		return err
 	}
 

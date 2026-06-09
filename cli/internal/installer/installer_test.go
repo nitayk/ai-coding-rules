@@ -2,6 +2,8 @@ package installer
 
 import (
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -56,6 +58,33 @@ func TestRunRejectsUnknownProfile(t *testing.T) {
 	err := Run(Options{Target: "cursor", Profile: "weird", SkillsFilter: "defaults", Log: quietLogger()})
 	if err == nil || !strings.Contains(err.Error(), "profile") {
 		t.Fatalf("expected unknown-profile error, got: %v", err)
+	}
+}
+
+// TestRunDryRunFreshConsumer covers the fresh-consumer dry-run: the submodule
+// doesn't exist yet, so Run must preview every step (no error) and make no
+// filesystem changes. Regression for the parity gap where it exited non-zero.
+func TestRunDryRunFreshConsumer(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	err := Run(Options{
+		StartDir:     repo,
+		Target:       "cursor",
+		SkillsFilter: "defaults",
+		DryRun:       true,
+		Log:          quietLogger(),
+	})
+	if err != nil {
+		t.Fatalf("dry-run on fresh consumer should not error, got: %v", err)
+	}
+	// Nothing beyond the .git dir we created should have been written.
+	entries, _ := os.ReadDir(repo)
+	for _, e := range entries {
+		if e.Name() != ".git" {
+			t.Fatalf("dry-run wrote unexpected entry: %s", e.Name())
+		}
 	}
 }
 
