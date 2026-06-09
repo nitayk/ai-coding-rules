@@ -45,7 +45,7 @@ acr install --dry-run --verbose
 **Optional: Copying** (fallback if symlinks don't work)
 - Files are copied to `.cursor/` directories
 - Use `--copy` flag if symlinks don't work in your Cursor version
-- Requires running `install.sh` after submodule updates
+- Requires running `acr install` (or `acr sync`) after submodule updates
 
 ## Verification
 

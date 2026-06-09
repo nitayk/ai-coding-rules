@@ -18,13 +18,13 @@ Hooks are grouped by role. **Claude Code and Cursor only care that `hooks.json` 
 | **`security/`** | `block-secrets`, `scan-secrets*`, `block-dangerous-commands` |
 | **`quality/`** | `format-*.sh`, `validate-yaml.py` |
 | **`observability/`** | `audit.sh` |
-| **`ecc-hooks/`** | Vendored upstream ECC reference (git subtree); **excluded** from `sync-rules.sh` copy to consumer repos |
+| **`ecc-hooks/`** | Vendored upstream ECC reference (git subtree); **excluded** from the `acr sync` copy to consumer repos |
 
 **At repo root of `hooks/`:** `hooks.json`, `hooks-cursor.json`, `run-hook.cmd`, extensionless **`session-start`** (invoked via `run-hook.cmd` on some setups), `cursor-adapter.js`, and this README.
 
 ### Claude vs Cursor (tool observation)
 
-The shared `hooks/hooks.json` in this repo lists **both** harnesses. **`sync-rules.sh` strips keys per `--target`** (requires `jq`) so each install only ships events that product understands:
+The shared `hooks/hooks.json` in this repo lists **both** harnesses. **`acr sync` strips keys per `--target`** (native JSON handling — no `jq` needed) so each install only ships events that product understands:
 
 | Harness | Tool lifecycle hooks | Notes |
 |--------|------------------------|--------|
@@ -106,7 +106,7 @@ Hooks and MCP config under `.claude/` / `.mcp.json` are **shared through git** i
 
 ## Configuration
 
-Hooks are configured in **`.cursor/hooks/hooks.json`** (Cursor) or **`.claude/hooks.json`** (Claude Code). The submodule ships **`hooks/hooks.json`**; `sync-rules.sh` merges with any repo-specific file and **filters keys per `--target`** (see [Claude vs Cursor](#claude-vs-cursor-tool-observation)).
+Hooks are configured in **`.cursor/hooks/hooks.json`** (Cursor) or **`.claude/hooks.json`** (Claude Code). The submodule ships **`hooks/hooks.json`**; `acr sync` merges with any repo-specific file and **filters keys per `--target`** (see [Claude vs Cursor](#claude-vs-cursor-tool-observation)).
 
 Example (Cursor-shaped fragment — your merged file may differ):
 
@@ -262,7 +262,7 @@ exit 0
 
 ### Hooks Not Running
 
-1. **Check hooks are synced**: Run `sync-rules.sh` or `install.sh`
+1. **Check hooks are synced**: Run `acr sync` or `acr install`
 2. **Check permissions**: Scripts must be executable (`chmod +x`)
 3. **Check paths**: Use `.cursor/hooks/script.sh` (relative to project root)
 4. **Restart Cursor**: Hooks load on startup
@@ -342,9 +342,9 @@ Community guides (e.g. Longform “Everything Claude Code”) describe **PreComp
 }
 ```
 
-- Consumer repos: shared hooks are **merged** with repo-specific hooks via `merge_hooks_json` in `sync-rules.sh` (see script comments).
+- Consumer repos: shared hooks are **merged** with repo-specific hooks by `acr sync` (the merge logic lives in `cli/internal/hooksjson`).
 
-**Why `hooks-cursor.json` but no `hooks-claude.json`?** The **only** shared source `sync-rules.sh` reads is [`hooks.json`](hooks.json). It lists **both** harnesses; after merge, the script writes **`.claude/hooks.json`** or **`.cursor/hooks.json`** (the normal on-disk names) and **filters** keys per target with `jq`. **[`hooks-cursor.json`](hooks-cursor.json)** is an extra **Cursor-only sample** so the camelCase / simpler schema is easy to see without reading the full union file. Claude’s entries (`SessionStart`, `PreToolUse`, `PreCompact`, …) already live in **`hooks.json`**, so a separate `hooks-claude.json` would mostly duplicate **`hooks.json`** and go stale.
+**Why `hooks-cursor.json` but no `hooks-claude.json`?** The **only** shared source `acr sync` reads is [`hooks.json`](hooks.json). It lists **both** harnesses; after merge, `acr sync` writes **`.claude/hooks.json`** or **`.cursor/hooks.json`** (the normal on-disk names) and **filters** keys per target (native JSON, no `jq`). **[`hooks-cursor.json`](hooks-cursor.json)** is an extra **Cursor-only sample** so the camelCase / simpler schema is easy to see without reading the full union file. Claude’s entries (`SessionStart`, `PreToolUse`, `PreCompact`, …) already live in **`hooks.json`**, so a separate `hooks-claude.json` would mostly duplicate **`hooks.json`** and go stale.
 
 ### Cursor
 
