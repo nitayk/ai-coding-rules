@@ -30,9 +30,9 @@ Run `bash update-community.sh` to pull the latest from all sources.
 
 ## ironsource-mobile/mobile-agent-toolkit (one-time pull, manual)
 
-- **Repo**: https://github.com/ironsource-mobile/mobile-agent-toolkit (work; mirrored locally at `~/Repos/manage/mobile-cursor-rules`)
+- **Repo**: https://github.com/ironsource-mobile/mobile-agent-toolkit (work; checked out locally at `~/Repos/manage/mobile-agent-toolkit`). Formerly `mobile-cursor-rules` (MCR) — the older name still appears in notes below.
 - **License**: internal (only generic, non-Unity-specific skills pulled here)
-- **Sync model**: NOT in `update-community.sh`. Pulled manually; re-run by hand when MCR adds new generic skills you want.
+- **Sync model**: NOT covered by `acr update` (which only refreshes `obra/superpowers` + `anthropics/skills`). Pulled manually by copying selected `skills/`, `agents/`, `commands/` dirs; re-run by hand when the toolkit adds new generic skills you want.
 - **First pull (2026-05-12) — new skills**:
   - `skills/agent-system-design` -- Agent decomposition, tool boundaries, orchestration
   - `skills/cost-audit` -- LLM token spend audit via codeburn
@@ -45,13 +45,17 @@ Run `bash update-community.sh` to pull the latest from all sources.
   - Plus flagged-then-applied: `using-git-worktrees`, `security-audit`
 - **Refresh sync — agents updated**: `architect`, `code-reviewer`, `data-validator`, `documentation-writer`, `git-workflow-specialist`, `monitoring-analyst`, `security-auditor`, `test-runner`, `verifier`
 - **Refresh sync — commands updated**: `create-pr`, `fix-issue`, `generate-changelog`, `generate-docs`, `test-until-pass`
-- **Preserved as personal-custom (NOT overwritten — personal version is heavily customized)**:
-  - `skills/best-practices-enforcement` (560 vs MCR's 118 lines)
-  - `skills/git-workflow` (521 vs 109)
-  - `skills/multi-agent-branching` (507 vs 104)
-  - `skills/prd-generation` (322 vs 87)
-- **Explicitly NOT pulled** (work-coupled to Unity Ads infra): `aerospike-best-practices`, `argocd-deployment`, `argocd-onboarding`, `atlas-analysis`, `code-graph-architect`, `full-network-analysis`, `grafana-monitoring`, `kronus-onboarding`, `memgraph-analysis`, `read-consul-keys`, `slack-history`, `trino-validation`, `victoria-traces-analysis`, `fff-search`, `e2e-workspace`. Same for MCR-only agents `memgraph-specialist`, `victoria-traces-specialist`, `deployment-investigator`, `service-{breakdown,migration,refactoring}-specialist`.
-- **NOT auto-updated — review manually**: `hooks/` (executes code, may have repo-specific paths/creds). Files differing from MCR: `hooks.json`, `hooks-cursor.json`, `cursor-adapter.js`, `run-hook.cmd`, `session-start`, `ecc/tool-observe.sh`, `ecc-hooks/{README.md,hooks.json}`, `quality/validate-yaml.py`, `security/block-dangerous-commands.sh`. Personal-only: `session-start.sh`. Use `diff -r ~/Personal/ai-coding-rules/hooks ~/Repos/manage/mobile-cursor-rules/.agents/hooks` to review.
+- **Preserved as personal-custom (2026-05-12 — SUPERSEDED, see 2026-07-02 refresh below)**:
+  - `skills/best-practices-enforcement`, `skills/git-workflow`, `skills/multi-agent-branching`, `skills/prd-generation` were kept as the larger personal versions in the 2026-05-12 sync. The 2026-07-02 full-overwrite refresh replaced them with the toolkit versions (see below); recover the old personal versions from git history if wanted.
+- **Full-overwrite refresh (2026-07-02)** — pulled from `~/Repos/manage/mobile-agent-toolkit` (renamed from mobile-cursor-rules):
+  - **Skills**: 14 new generic added — `a11y-audit`, `design-ops`, `grilling`, `handoff`, `harness-bench`, `interaction-design`, `localization-design`, `markitdown`, `polyglot`, `tech-debt-audit`, `ui-uplift`, `ux-writing-skill`, `verify-branch-health`, `visual-critique`. All 85 overlapping skills overwritten with the toolkit version (incl. the four formerly-preserved custom ones above; `e2e` grew 992→1421 lines).
+  - **Agents**: 2 new added — `code-cleanup`, `harness-optimizer`; 18 overlapping overwritten.
+  - **Commands**: 2 new added — `ecc-env`, `evolve`; 5 overlapping overwritten.
+- **Explicitly NOT pulled** (work-coupled to Unity Ads infra / org MCPs): `aerospike-best-practices`, `argocd-deployment`, `argocd-onboarding`, `atlas-analysis`, `code-graph-architect`, `full-network-analysis`, `grafana-monitoring`, `kronus-onboarding`, `memgraph-analysis`, `read-consul-keys`, `slack-history`, `trino-validation`, `victoria-traces-analysis`, `org-level-search`, `ai-news-digest`, `fff-search`, `e2e-workspace`. Same for toolkit-only agents `memgraph-specialist`, `victoria-traces-specialist`, `deployment-investigator`, `service-{breakdown,migration,refactoring}-specialist`.
+- **Removed during the 2026-07-02 refresh** — `github-actions-workflows-helper` was deleted: it documents Unity's internal CI infra end-to-end (`vault.corp.unity3d.com`, `kronus`, WIF, `@unity/*`) and can't be meaningfully de-Unity'd. It stays in the toolkit.
+- **Internal-reference scrub (2026-07-02)** — the synced generic skills were passed to strip Unity-internal specifics not appropriate for a public repo: dropped the `## Unity Internal References` sections from the 9 `best-practices-enforcement/references/rules/*/index.md` files (internal Confluence/Jira/corp links); removed `harness-bench/BURN_RESULTS.md` (internal benchmark output) and pointed its `example_tasks/*.yaml` at a placeholder repo; rewrote `ui-uplift`'s context-awareness from WORK(Unity)/PERSONAL to generic DESIGN-SYSTEM/GREENFIELD; and generalized one-line `@unity/cloud-ui` / `ironSource` mentions in `design-ops` and `tech-debt-audit`. Public `Unity-Technologies` GitHub-org references (a public org) were left as-is.
+  - Note: `code-structure-analysis`, `service-breakdown`, `service-migration`, `service-refactoring` were already present (pulled 2026-05-12 as generic methodology) and were refreshed in place; they still reference Memgraph/Trino in their bodies.
+- **NOT auto-updated — review manually**: `hooks/` (executes code, may have repo-specific paths/creds). Use `diff -r ~/Personal/ai-coding-rules/hooks ~/Repos/manage/mobile-agent-toolkit/.agents/hooks` to review.
 
 ## Custom (not synced from upstream)
 

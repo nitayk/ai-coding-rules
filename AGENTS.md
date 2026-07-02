@@ -21,9 +21,9 @@
 ai-coding-rules/
 ├── ROUTER.mdc            <- Always loaded, keyword-based routing
 ├── index.mdc             <- Complete catalog (load on demand)
-├── skills/               <- 57 multi-step workflow skills
-├── agents/               <- 9 specialized subagents
-├── commands/             <- 12 slash commands
+├── skills/               <- 107 multi-step workflow skills
+├── agents/               <- 20 specialized subagents
+├── commands/             <- 14 slash commands
 ├── hooks/                <- Quality, security, observability, ECC hooks
 ├── generic/              <- Universal best practices (all languages)
 ├── backend/              <- Scala, Python, Go, Java, PHP rules

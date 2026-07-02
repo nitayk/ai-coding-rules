@@ -1,6 +1,7 @@
 ---
 name: gh-search
 description: "Search for code, repositories, issues, PRs, commits, and users across GitHub using the gh CLI. Use when the user asks to find code, search GitHub, look up a repository, find issues or PRs, search commits by author, or locate files across the organization. Also use when the user says 'search GitHub for', 'find code that', 'who contributed to', or 'what repos have'. Do NOT use for local file search or grep — this is for GitHub's remote search API only."
+last-reviewed: 2026-05-20
 ---
 
 # Search GitHub Code & Resources
@@ -173,3 +174,5 @@ Then switch to local tools (Read, Grep, Glob) for all subsequent file reads and 
 - `/fix-issue` — Fetch a GitHub issue and implement a fix
 - `/create-pr` — Create a pull request for your changes
 - `/gh-manage-project` — Manage GitHub Projects V2 boards and sprints
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

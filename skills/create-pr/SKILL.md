@@ -2,6 +2,7 @@
 name: create-pr
 description: Creates a pull request with the correct template, base branch, and title convention for the repository. Use whenever the user asks to open, create, submit, or file a pull request, even if they don't explicitly say "PR". Also use this when the user mentions opening a merge request, reviewing code changes, or getting their work reviewed on GitHub. Do NOT use when the user only needs ongoing PR monitoring, bot triage, or merge coordination—use `/pr-workflow` instead.
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 
 # Create PR

@@ -27,3 +27,4 @@ skills/e2e-workspace/
 .cursor/skills/*-workspace/
 .claude/skills/*-workspace/
 # --- end ai-coding-rules managed ---
+.claude/sessions/

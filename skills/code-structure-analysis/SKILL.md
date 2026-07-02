@@ -1,30 +1,32 @@
 ---
 name: code-structure-analysis
 description: "Use when analyzing code structure, investigating services, tracing execution flows, mapping dependencies, or understanding complex codebases. Do NOT use when simple single-file changes, Memgraph MCP not available, or quick code understanding. Requires Memgraph MCP for graph queries."
+last-reviewed: 2026-05-20
 ---
 
 # Code Structure Analysis
 
-**Context**: **iAds** — Memgraph MCP + Atlas MCP. **UADS** — Code Graph MCP (Neo4j backend); no Atlas.
+**Context**: iAds-side analysis using **Memgraph MCP + Atlas MCP**. **Scope: LP (LevelPlay), ISX, IDP, and Ad Quality only** — iAds core delivery/DS/SDK is sunsetting April 2026, so do not invest in deep analysis there beyond bug-fix scope. For UADS use `/code-graph-architect` (Code Graph MCP). For cross-repo network mapping use `/full-network-analysis`.
 
-**CRITICAL**: Always combine file reading, graph queries, and grep searches - Never rely on a single approach. Graphs don't model external systems; use grep to bridge them. **For full cross-repo network**: Add Atlas MCP for runtime topology (Kafka producers/consumers, Aerospike, service dependencies).
+**CRITICAL**: Always combine file reading, graph queries, and grep searches — never rely on a single approach. Graphs don't model external systems; use grep to bridge them.
 
 ## When to Use This Skill
 
-**APPLY WHEN:**
-- Analyzing code structure and architecture
-- Investigating services before migration or refactoring
-- Tracing execution flows and call chains
-- Mapping dependencies and relationships
-- Understanding complex codebases
-- Finding external system integrations (Kafka, HTTP, gRPC, databases)
-- Mapping cross-repo runtime connectivity
-- **MANDATORY** before service breakdown, migration, or refactoring
+**APPLY WHEN** (iAds-side, active repos only — LP / ISX / IDP / Ad Quality):
+- Investigating an LP, ISX, IDP, or Ad Quality service before migration or refactoring
+- Tracing execution flows and call chains within those repos
+- Mapping dependencies inside a single repo (combining code + runtime)
+- Finding external system integrations (Kafka, HTTP, gRPC, databases) for an active iAds service
+- **MANDATORY** before service-breakdown / migration / refactoring on an active iAds service
 
 **DO NOT USE WHEN:**
-- Simple single-file changes that do not require comprehensive analysis
-- Memgraph MCP not available (use file reading + grep only)
-- Quick code understanding (file reading may be sufficient)
+- Working in iAds core delivery/DS/SDK (sunsetting Apr 2026 — bug fixes only, no deep analysis)
+- Working in UADS repos — use `/code-graph-architect` (Code Graph MCP, Neo4j) instead
+- Cross-repo / cross-product network mapping — use `/full-network-analysis`
+- Pure graph traversal with no Read/grep — use `/memgraph-analysis` directly
+- Pure runtime topology (Kafka producers/consumers, Aerospike) with no code reading — use `/atlas-analysis`
+- Simple single-file changes or quick code understanding (Read alone suffices)
+- Memgraph MCP not available
 
 ## Core Directive
 
@@ -52,17 +54,17 @@ Code graphs (Memgraph) **DO NOT** model external system links:
 
 **If Memgraph unavailable**: Use file reading + grep only (graph queries will be skipped)
 
-**If Atlas available**: Use for runtime connectivity - `get_service_topology`, `get_resource_usage` (Kafka topics, Aerospike clusters). See `technologies/atlas-reference-guide.mdc`
+**If Atlas available**: Use for runtime connectivity - `get_service_topology`, `get_resource_usage` (Kafka topics, Aerospike clusters). See `the /atlas-analysis skill`
 
 ## Tool Selection
 
 | Task | Tool | Reference |
 |------|------|-----------|
-| Code structure, callers, dead code | Memgraph / git grep | `technologies/memgraph-reference-guide.mdc`, `tools/git.mdc` |
-| Production metrics, dashboards | Grafana | `technologies/grafana-reference-guide.mdc` |
-| Data schemas, SQL validation | Trino | `technologies/trino-reference-guide.mdc` |
-| Kubernetes deployments | ArgoCD | `technologies/argocd-reference-guide.mdc` |
-| Kafka topics, consumers | kcat | `tools/kcat.mdc` |
+| Code structure, callers, dead code | Memgraph / git grep | `the /memgraph-analysis skill`, `references/git.md` |
+| Production metrics, dashboards | Grafana | `the /grafana-monitoring skill` |
+| Data schemas, SQL validation | Trino | `the /trino-validation skill` |
+| Kubernetes deployments | ArgoCD | `the /argocd-deployment skill` |
+| Kafka topics, consumers | kcat | `references/kcat.md` |
 
 ## Process
 
@@ -96,37 +98,16 @@ def buildStream(...) {
 
 ### Phase 2: Graph Queries → Finalize Scope
 
-**Purpose**: Find all code relationships for specific functions/files/classes
+**Purpose**: Find all code relationships for specific functions/files/classes.
 
-**Reference**: For complete Memgraph schema, indexes, and optimization rules, see `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc`
+**Delegate query patterns to `/memgraph-analysis`** — that skill owns the Cypher patterns (callers/callees, 10-level recursion, dead-code detection, indexed-filter ordering) plus the full schema reference at `the /memgraph-analysis skill (references/memgraph-reference-guide.md)`. Do not restate them here.
 
-**Steps**:
-1. **Find classes** - Query for all classes in service/package
-2. **Find methods** - Query for methods in key classes
-3. **Trace call chains** - Use 10-level recursive queries (not 5!)
-4. **Find callers** - Who calls this method/class?
-5. **Find dependencies** - What does this code depend on?
-6. **Detect dead code** - Methods/classes with no callers
+**What this phase contributes** (on top of `/memgraph-analysis`):
+- Drives queries from the entry points discovered in Phase 1, not from a blank slate
+- Feeds results back into Phase 3 grep (e.g. method names found here become grep seeds for external-system identifiers)
+- Holds the scope question: "have we queried until finding nothing new?" (50–200+ queries expected for complex services)
 
-**Example**:
-```cypher
-// OPTIMIZED: Find all methods called by buildStream
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-  AND m.name = 'buildStream'                // Indexed: name lookup
-  AND m.qualified_name CONTAINS '{ClassName}'     // Additional filter
-MATCH (m)-[:CALLS*1..10]->(called:Method)
-RETURN called.name, called.qualified_name, called.path
-```
-
-**What you learn**:
-- Complete call chains (10 levels deep)
-- All callers and callees
-- Dead code detection
-- Inheritance chains
-- Implementation relationships
-
-**Verification**: Have you queried until finding NOTHING NEW? (50-200+ queries expected for complex services)
+**Verification**: Have you traced callers, callees, and dead code for every entry point identified in Phase 1?
 
 ### Phase 3: Grep → Connect External Systems
 
@@ -142,27 +123,11 @@ RETURN called.name, called.qualified_name, called.path
 
 **Prefer `git grep` over `grep -r` for large codebases** — avoids timeouts.
 
-**Example**:
+**Pattern**: grep for a bare identifier (topic, endpoint, key), then ask `/memgraph-analysis` to find `Method` nodes whose `source_code CONTAINS` that identifier (always filter `repo_name` first for the index). Example:
+
 ```bash
-# Step 1: Grep for Kafka topic names (git grep preferred for large repos)
-git grep "{topic-name}" -- {service-path}/
-
-# Step 2: Graph query for each topic name found (non-indexed filter after indexed)
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-WITH m
-WHERE m.source_code CONTAINS '{topic-name}'       // Non-indexed: after WITH
-RETURN m.name, m.qualified_name, m.path
-
-# Step 3: Grep for HTTP endpoints
-git grep 'path(".*")' -- {service-path}/
-
-# Step 4: Graph query for route handlers (non-indexed filter after indexed)
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-WITH m
-WHERE m.source_code CONTAINS '{endpoint-path}'    // Non-indexed: after WITH
-RETURN m.name, m.qualified_name, m.path
+git grep "{topic-name}" -- {service-path}/         # then graph-query for usage
+git grep 'path(".*")' -- {service-path}/           # then graph-query for handlers
 ```
 
 **What you learn**:
@@ -184,7 +149,7 @@ RETURN m.name, m.qualified_name, m.path
 
 **Example**: `get_service_topology("my-service")` → gateway → downstream, Kafka topics
 
-**Reference**: `.cursor/rules/shared/technologies/atlas-reference-guide.mdc`
+**Reference**: `the /atlas-analysis skill`
 
 ### Phase 5: Combine Findings → Unified Understanding
 
@@ -213,44 +178,21 @@ def buildStream(...) {
 }
 ```
 
-**Step 2: Graph query for internal calls**
-```cypher
-// OPTIMIZED: Find all methods called by buildStream
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-  AND m.name = 'buildStream'                 // Indexed: name lookup
-  AND m.qualified_name CONTAINS '{ClassName}'     // Additional filter
-MATCH (m)-[:CALLS*1..10]->(called:Method)
-RETURN DISTINCT called.name, called.qualified_name
-```
+**Step 2: Graph query for internal calls** — delegate to `/memgraph-analysis` (10-level recursive `CALLS` from `buildStream` in `{ClassName}` within `{repo-name}`).
 
 **Step 3: Grep for Kafka topics**
 ```bash
-# Find Kafka topic references
-grep -r "{topic-name}" {service-path}/
+git grep "{topic-name}" -- {service-path}/
 ```
 
-**Step 4: Graph query for Kafka usage**
-```cypher
-// Find all code that uses budgetOnlineThresholdsTopic
-MATCH (m:Method)
-WHERE m.source_code CONTAINS '{topic-name}'
-RETURN m.name, m.qualified_name, m.path
-```
+**Step 4: Graph query for Kafka usage** — `/memgraph-analysis` query: `Method` nodes where `source_code CONTAINS '{topic-name}'` (filter `repo_name` first for index).
 
 **Step 5: Grep for HTTP endpoints**
 ```bash
-# Find HTTP route definitions
-grep -r 'path(".*")' {service-path}/
+git grep 'path(".*")' -- {service-path}/
 ```
 
-**Step 6: Graph query for route handlers**
-```cypher
-// Find handlers for endpoint
-MATCH (m:Method)
-WHERE m.source_code CONTAINS '{endpoint-path}'
-RETURN m.name, m.qualified_name, m.path
-```
+**Step 6: Graph query for route handlers** — `/memgraph-analysis` query: `Method` nodes where `source_code CONTAINS '{endpoint-path}'`.
 
 **Step 7: Combine all findings**
 - Internal call chain: `buildStream` → `buildCountersStream` → ...
@@ -335,19 +277,18 @@ RETURN m.name, m.qualified_name, m.path
 
 ## Related Skills
 
-- **Full Network Analysis** - Combines Memgraph + Atlas + Grep + Semantic search for complete cross-repo mapping
-- **Atlas Analysis** - Runtime topology patterns (Kafka, Aerospike, service deps)
-- **Service Breakdown** - Uses code structure analysis methodology extensively
-- **Service Migration** - Uses code structure analysis to understand source service
-- **Service Refactoring** - Uses code structure analysis to identify dead code and dependencies
-- **Memgraph Analysis** - Provides graph query patterns and optimization
+- **`/full-network-analysis`** — **use this instead** when the question crosses repo boundaries (Memgraph + Atlas + grep + semantic across multiple iAds repos). This skill is single-service scope.
+- **`/memgraph-analysis`** — owns the Cypher patterns and schema reference; this skill orchestrates around it.
+- **`/atlas-analysis`** — owns runtime topology (Kafka producers/consumers, Aerospike, HTTP service deps); use directly when code reading isn't needed.
+- **`/code-graph-architect`** — UADS equivalent (Code Graph MCP / Neo4j). Use it for any `uads/**` work; this skill is iAds-only.
+- **`/service-breakdown`** / **`/service-migration`** / **`/service-refactoring`** — downstream consumers of this skill's output.
 
 ## Related References
 
-- **Memgraph Reference Guide** - `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc` - Complete schema, indexes, optimization
-- **Atlas Reference Guide** - `.cursor/rules/shared/technologies/atlas-reference-guide.mdc` - Runtime topology (Kafka, Aerospike, service deps)
-- **Service Breakdown Skill** - `.cursor/rules/shared/skills/service-breakdown/SKILL.md` - Complete service analysis methodology
-- **Memgraph Analysis Skill** - `.cursor/rules/shared/skills/memgraph-analysis/SKILL.md` - Graph query patterns
+- **Memgraph Reference Guide** - `the /memgraph-analysis skill (references/memgraph-reference-guide.md)` - Complete schema, indexes, optimization
+- **Atlas Reference Guide** - `the /atlas-analysis skill` - Runtime topology (Kafka, Aerospike, service deps)
+- **Service Breakdown Skill** - the `/service-breakdown` skill - Complete service analysis methodology
+- **Memgraph Analysis Skill** - the `/memgraph-analysis` skill - Graph query patterns
 
 ## Remember
 

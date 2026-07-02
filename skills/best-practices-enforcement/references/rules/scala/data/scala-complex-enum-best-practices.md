@@ -1,0 +1,90 @@
+- **Prefer sealed enums for exhaustive pattern matching**: Use sealed traits to ensure compile-time completeness checking.  
+  ```scala
+  // Good: Sealed enum with exhaustive matching
+  sealed trait ProcessingStatus
+  case object Pending extends ProcessingStatus
+  case object Running extends ProcessingStatus
+  case object Completed extends ProcessingStatus
+  case object Failed extends ProcessingStatus
+
+  def handleStatus(status: ProcessingStatus): String = status match {
+    case Pending => "Waiting to start"
+    case Running => "Processing data"
+    case Completed => "Successfully finished"
+    case Failed => "Error occurred"
+  } // Compiler ensures all cases are handled
+  ```
+
+- **Document complex enum parameters clearly**: For enums with parameters, provide clear documentation and examples.  
+  ```scala
+  // Good: Well-documented parameterized enum
+  sealed trait TransformationResult
+  case class Success(recordsProcessed: Int, duration: Duration) extends TransformationResult
+  case class PartialFailure(processed: Int, failed: Int, errors: List[String]) extends TransformationResult
+  case class CompleteFailure(error: Throwable) extends TransformationResult
+  ```
+
+- **Use discriminator fields for JSON serialization**: When serializing complex enums, use libraries like circe with explicit discriminator configuration.  
+  ```scala
+  // Good: Explicit discriminator for JSON
+  import io.circe.generic.extras.Configuration
+  import io.circe.generic.extras.semiauto._
+
+  implicit val config: Configuration = Configuration.default.withDiscriminator("type")
+  implicit val encoder: Encoder[TransformationResult] = deriveConfiguredEncoder
+  implicit val decoder: Decoder[TransformationResult] = deriveConfiguredDecoder
+  ```
+
+- **Avoid default serialization for complex enums**: Always implement custom codecs and test serialization thoroughly.  
+  ```scala
+  // Bad: Default serialization (unreliable)
+  implicit val encoder = Encoder.derivedFor[MyEnum]
+
+  // Good: Custom codec with testing
+  implicit val myEnumCodec: Codec[MyEnum] = deriveConfiguredCodec[MyEnum]
+  
+  // Always test both directions
+  val original = Success(100, 5.seconds)
+  val json = original.asJson
+  val decoded = json.as[TransformationResult]
+  assert(decoded == Right(original))
+  ```
+
+- **Use exhaustive pattern matching**: Avoid catch-all matches to ensure future-proofing as new cases are added.  
+  ```scala
+  // Good: Exhaustive matching
+  result match {
+    case Success(count, duration) => logSuccess(count, duration)
+    case PartialFailure(ok, failed, errors) => handlePartialFailure(ok, failed, errors)
+    case CompleteFailure(error) => handleError(error)
+  }
+
+  // Bad: Catch-all hides missing cases
+  result match {
+    case Success(count, _) => logSuccess(count)
+    case _ => handleFailure() // Loses type information
+  }
+  ```
+
+- **Use meaningful names for state enums**: For enums representing roles or states, use descriptive names and consider unique identifiers for serialization stability.  
+  ```scala
+  // Good: Clear state names with optional IDs
+  sealed trait DataPipelineState { def id: String }
+  case object Initializing extends DataPipelineState { val id = "init" }
+  case object ProcessingData extends DataPipelineState { val id = "processing" }
+  case object ValidatingResults extends DataPipelineState { val id = "validating" }
+  case object Completed extends DataPipelineState { val id = "completed" }
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.md) - Universal principles (make illegal states unrepresentable, type safety, exhaustive pattern matching)
+
+**Scala-Specific:**
+- [Enumeratum Enum Best Practices](enumeratum-enum-best-practices.md) - Type-safe enum patterns with enumeratum
+- [Make Illegal States Unrepresentable](../../language/make-illegal-states-unrepresentable.md) - Comprehensive guide on sealed traits
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

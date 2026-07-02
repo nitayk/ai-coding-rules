@@ -1,6 +1,7 @@
 ---
 name: service-refactoring
 description: "Use when refactoring services to improve structure, removing dead code, or consolidating scattered code. Do NOT use when moving code to another repo (use /service-migration), when just documenting (use /service-breakdown), when service breakdown is not completed, or when tests do not exist or pass. REQUIRES /service-breakdown first."
+last-reviewed: 2026-06-02
 ---
 # Service Refactoring
 
@@ -38,11 +39,6 @@ Systematic process for refactoring services safely with validation and testing.
 
 **IMPROVE structure, don't change behavior. Tests are your safety net - run them after every change.**
 
-## Key Difference: Refactoring vs Migration
-
-- **Migration** = MOVING code between repos (minimize diff!)
-- **Refactoring** = IMPROVING structure within a repo
-
 ## The Five Rules
 
 1. **Understand before changing** - Complete breakdown first
@@ -65,17 +61,10 @@ Systematic process for refactoring services safely with validation and testing.
 
 | Tool | Use For | Reference |
 |-----|---------|-----------|
-| **Memgraph** | Finding TRUE dependencies (grep lies). Dead code detection. | `technologies/memgraph-reference-guide.mdc` |
+| **Memgraph** | Finding TRUE dependencies (grep lies). Dead code detection. | `technologies/memgraph-reference-guide.md` |
 | **Tests** | Verifying behavior is preserved. | — |
 
-**Find Unused Methods (Safe to delete):**
-```cypher
-MATCH (m:Method)
-WHERE m.path CONTAINS 'service-name'
-  AND NOT (m)<-[:CALLS]-()
-  AND NOT m.name =~ '(?i)main|test'
-RETURN m.name, m.path
-```
+**Find Unused Methods (safe to delete):** see the dead-code query in the [Memgraph Query Patterns](#memgraph-query-patterns) section below.
 
 ## The Core Principle: Tests Are Your Safety Net
 
@@ -101,7 +90,7 @@ sbt test  # Must have SAME pass count
 3. Identify refactoring candidates via Memgraph:
 
 **For complete schema, indexes, and optimization rules, see:**
-`.cursor/rules/shared/technologies/memgraph-reference-guide.mdc`
+`the /memgraph-analysis skill`
 
 **Quick Reference:**
 - **Schema**: Unified - all nodes use `path` (not `file_path`), `qualified_name` is PK
@@ -117,13 +106,7 @@ WITH c.name as className, collect(DISTINCT m.path) as files
 WHERE size(files) > 1
 RETURN className, files
 
-// OPTIMIZED: Find dead code to remove (use size() for performance)
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-  AND m.qualified_name CONTAINS '{module}'  // Additional filter
-WITH m, size([()-[:CALLS]->(m) | 1]) as incoming_calls
-WHERE incoming_calls = 0
-RETURN m.name, m.qualified_name, m.path
+// Find dead code to remove → see the dead-code query in "Memgraph Query Patterns" below
 
 // OPTIMIZED: Find high-complexity methods to simplify
 MATCH (m:Method)
@@ -140,18 +123,7 @@ ORDER BY complexity DESC
 
 ### Phase 1: Remove Dead Code (Easiest First!)
 
-**Safest refactoring = deletion:**
-
-```cypher
-// OPTIMIZED: Find methods with no callers (use size() for performance)
-MATCH (m:Method)
-WHERE m.repo_name = '{repo-name}'           // Indexed: reduces dataset
-  AND m.qualified_name CONTAINS '{module}'  // Additional filter
-WITH m, size([()-[:CALLS]->(m) | 1]) as incoming_calls
-WHERE incoming_calls = 0
-  AND NOT m.name = 'main'
-RETURN m.name, m.qualified_name, m.path
-```
+**Safest refactoring = deletion.** Find methods with no callers using the dead-code query in [Memgraph Query Patterns](#memgraph-query-patterns) (exclude `main`).
 
 **Process:**
 1. Identify dead code
@@ -226,48 +198,6 @@ private def buildResponse(processed: ProcessedData): Response = { ... }
 # Before EVERY commit
 sbt compile && sbt test
 git commit -m "refactor(module): <completed task>"
-```
-
-## Refactoring Patterns
-
-### Pattern 1: Dead Code Removal
-
-```markdown
-1. Query Memgraph for unused methods
-2. Remove one method/class at a time
-3. Compile and test
-4. Commit
-5. Repeat
-```
-
-### Pattern 2: Extract Method
-
-```markdown
-1. Identify code block to extract
-2. Create new method with extracted code
-3. Replace call site with method call
-4. Test
-5. Commit
-```
-
-### Pattern 3: Move File
-
-```markdown
-1. Move file to new location
-2. Update package declaration
-3. Update imports in calling files
-4. Compile and test
-5. Commit
-```
-
-### Pattern 4: Consolidate Classes
-
-```markdown
-1. Identify scattered classes
-2. Move related classes to same package
-3. Update all imports
-4. Compile and test
-5. Commit
 ```
 
 ## Common Pitfalls
@@ -349,34 +279,7 @@ ORDER BY complexity DESC
 
 ## Output (REFACTORED CODE)
 
-**This skill produces refactored code in the same repository.**
-
-### Files Modified
-
-**In Same Repository:**
-- Dead code removed (methods/classes with no callers)
-- Methods extracted (complex methods simplified)
-- Files reorganized (scattered code consolidated)
-- Imports updated (after file moves)
-- Tests updated (if structure changes affect test setup)
-
-**Git Output:**
-- Multiple commits (one per stable state)
-- Each commit: Compiles + Tests pass + Logical task complete
-- Clean commit history showing progression
-
-### What This Output Enables
-
-- **Better structure** - Code organized logically
-- **Reduced complexity** - Complex methods simplified
-- **Dead code removed** - Cleaner codebase
-- **Same behavior** - Tests prove no behavior changes
-- **Improved maintainability** - Easier to understand and modify
-
-### Key Difference from Migration
-
-- **Refactoring**: Improves code in same repo, changes structure
-- **Migration**: Moves code between repos, minimizes diff
+Produces refactored code in the **same repository**: dead code removed, complex methods extracted/simplified, scattered files consolidated, imports/tests updated to match. Delivered as multiple commits (one per stable state; each compiles + passes tests + completes a logical task) with a clean history. Result: better-organized, lower-complexity, more maintainable code with provably unchanged behavior. (Refactoring improves code in the same repo; migration moves it between repos — see the comparison table above.)
 
 ## Related Skills
 

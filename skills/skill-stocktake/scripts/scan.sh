@@ -80,27 +80,18 @@ scan_dir_to_json() {
   _scan_cleanup() { rm -rf "$_scan_tmpdir"; }
   trap _scan_cleanup RETURN
 
-  # Pre-aggregate observation counts once per window (one jq pass each) into
-  # newline-bounded lookup strings of the form "\t<path>\t<count>\n". Per-file
-  # lookup uses a bash regex match (no subprocess) — Bash 3.2-compatible.
-  local obs_7d_lookup obs_30d_lookup
-  obs_7d_lookup=$'\n'
-  obs_30d_lookup=$'\n'
+  # Pre-aggregate observation counts in two passes (one per window) instead of
+  # calling jq per-file — reduces from O(n*m) to O(n+m) jq invocations.
+  local obs_7d_counts obs_30d_counts
+  obs_7d_counts=""
+  obs_30d_counts=""
   if [[ -f "$OBSERVATIONS" ]]; then
-    # `uniq -c` emits "  N path"; reformat via awk to "\t<path>\t<N>\n" so we
-    # can match `\t<file>\t([0-9]+)\n` exactly without false positives.
-    obs_7d_lookup+=$(jq -r --arg c "$c7" \
+    obs_7d_counts=$(jq -r --arg c "$c7" \
       'select(.tool=="Read" and .timestamp>=$c) | .path' \
-      "$OBSERVATIONS" 2>/dev/null \
-      | sort | uniq -c \
-      | awk '{cnt=$1; $1=""; sub(/^ +/,""); printf "\t%s\t%d\n", $0, cnt}')
-    obs_7d_lookup+=$'\n'
-    obs_30d_lookup+=$(jq -r --arg c "$c30" \
+      "$OBSERVATIONS" 2>/dev/null | sort | uniq -c)
+    obs_30d_counts=$(jq -r --arg c "$c30" \
       'select(.tool=="Read" and .timestamp>=$c) | .path' \
-      "$OBSERVATIONS" 2>/dev/null \
-      | sort | uniq -c \
-      | awk '{cnt=$1; $1=""; sub(/^ +/,""); printf "\t%s\t%d\n", $0, cnt}')
-    obs_30d_lookup+=$'\n'
+      "$OBSERVATIONS" 2>/dev/null | sort | uniq -c)
   fi
 
   local i=0
@@ -109,16 +100,12 @@ scan_dir_to_json() {
     name=$(extract_field "$file" "name")
     desc=$(extract_field "$file" "description")
     mtime=$(date -u -r "$file" +%Y-%m-%dT%H:%M:%SZ)
-    # In-process bash regex lookup keyed by exact file path. Uses a tab-delimited
-    # frame to avoid path-substring false matches. Counts default to 0 on miss.
-    u7=0
-    if [[ $'\n'"$obs_7d_lookup" =~ $'\t'"${file}"$'\t'([0-9]+) ]]; then
-      u7="${BASH_REMATCH[1]}"
-    fi
-    u30=0
-    if [[ $'\n'"$obs_30d_lookup" =~ $'\t'"${file}"$'\t'([0-9]+) ]]; then
-      u30="${BASH_REMATCH[1]}"
-    fi
+    # Use awk exact field match to avoid substring false-positives from grep -F.
+    # uniq -c output format: "   N /path/to/file" — path is always field 2.
+    u7=$(echo "$obs_7d_counts" | awk -v f="$file" '$2 == f {print $1}' | head -1)
+    u7="${u7:-0}"
+    u30=$(echo "$obs_30d_counts" | awk -v f="$file" '$2 == f {print $1}' | head -1)
+    u30="${u30:-0}"
     dp="${file/#$HOME/~}"
 
     jq -n \
@@ -142,21 +129,11 @@ scan_dir_to_json() {
 
 # --- Main ---
 
-# Canonicalize both dirs so we don't scan the same path twice when the user
-# invokes the script from $HOME (CWD_SKILLS_DIR == GLOBAL_DIR after resolution).
-_canon() {
-  command -v realpath >/dev/null 2>&1 && realpath "$1" 2>/dev/null || echo "$1"
-}
-_global_canon=""
-_cwd_canon=""
-[[ -d "$GLOBAL_DIR" ]] && _global_canon=$(_canon "$GLOBAL_DIR")
-[[ -n "$CWD_SKILLS_DIR" && -d "$CWD_SKILLS_DIR" ]] && _cwd_canon=$(_canon "$CWD_SKILLS_DIR")
-
 global_found="false"
 global_count=0
 global_skills="[]"
 
-if [[ -n "$_global_canon" ]]; then
+if [[ -d "$GLOBAL_DIR" ]]; then
   global_found="true"
   global_skills=$(scan_dir_to_json "$GLOBAL_DIR")
   global_count=$(echo "$global_skills" | jq 'length')
@@ -167,10 +144,7 @@ project_path=""
 project_count=0
 project_skills="[]"
 
-# Skip the project scan entirely when it canonicalizes to the same path as
-# GLOBAL_DIR — otherwise every skill is reported twice (and a per-file dedupe
-# would still waste a full directory walk).
-if [[ -n "$_cwd_canon" && "$_cwd_canon" != "$_global_canon" ]]; then
+if [[ -n "$CWD_SKILLS_DIR" && -d "$CWD_SKILLS_DIR" ]]; then
   project_found="true"
   project_path="$CWD_SKILLS_DIR"
   project_skills=$(scan_dir_to_json "$CWD_SKILLS_DIR")

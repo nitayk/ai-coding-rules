@@ -2,6 +2,7 @@
 name: test-until-pass
 description: "Use when failing tests need a bounded fix-and-retry loop with explicit guardrails (flake detection, no-progress halt, anti-weakening rule). Targets the specific test(s) that failed, not the whole suite. Triggers: 'fix the tests', 'test until pass', '/test-until-pass'. Do NOT use to run tests once (use the test runner directly), to fix tests known to be flaky (fix flakiness first), or for tests where the failure is genuinely a spec change (re-spec first)."
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 
 # Test Until Pass

@@ -1,6 +1,7 @@
 ---
 name: service-breakdown
 description: "Use when creating service breakdowns, before migrating code between repositories, before refactoring services, or understanding complex service architecture. Do NOT use when you need to modify code (use /service-migration or /service-refactoring), when you already have complete breakdown documentation, or for simple tasks that do not require deep analysis. Requires Memgraph MCP for code graph analysis and Trino MCP for data validation. Prerequisite for service-migration and service-refactoring skills."
+last-reviewed: 2026-05-20
 ---
 # Service Breakdown Analysis
 
@@ -70,7 +71,7 @@ Follow the Combined Methodology from `/code-structure-analysis` skill: Read file
 
 #### Step 0: Memgraph Validation (Mandatory First)
 
-Verify Memgraph has data before starting. See `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc` for schema and optimization rules.
+Verify Memgraph has data before starting. See `the /memgraph-analysis skill` for schema and optimization rules.
 
 **Quick validation:**
 ```cypher
@@ -100,7 +101,7 @@ Use code structure analysis (see `/code-structure-analysis` skill): Read files, 
 
 **Verification gate:** Run queries until you find NOTHING NEW. Expected: 30-200+ queries depending on complexity.
 
-**Cypher query catalog:** See `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc` for full query patterns.
+**Cypher query catalog:** See `the /memgraph-analysis skill` for full query patterns.
 
 #### Step 0.5: Dynamic Configuration Analysis
 
@@ -167,7 +168,7 @@ Create Service Breakdown Document with: Build Overview, Entry Point, Execution M
 
 ## Quick Reference (Cypher Snippets)
 
-Schema/optimization: `technologies/memgraph-reference-guide.mdc`
+Schema/optimization: `technologies/memgraph-reference-guide.md`
 
 - **Entry Points**: `MATCH (c:Class) WHERE c.path CONTAINS 'service-name' AND (c.name CONTAINS 'Main' OR c.name CONTAINS 'App') RETURN c.name, c.path`
 - **Call Graph**: `MATCH path=(entry:Method)-[:CALLS*1..7]->(called:Method) WHERE entry.qualified_name CONTAINS 'Main' RETURN path LIMIT 100`
@@ -180,6 +181,6 @@ Schema/optimization: `technologies/memgraph-reference-guide.mdc`
 - **Service Migration** - Uses breakdown output (produces code)
 - **Service Refactoring** - Uses breakdown output (produces code)
 - **Memgraph Analysis** - Full Cypher query reference
-- **Cypher Queries** - See `.cursor/rules/shared/technologies/memgraph-reference-guide.mdc`
+- **Cypher Queries** - See `the /memgraph-analysis skill`
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -1,6 +1,7 @@
 ---
 name: terminal-chart
 description: Render colored ASCII charts in the terminal. MUST use when the user asks to visualize, chart, graph, or plot data — including compound requests like "query and visualize X" or "show me spend by country". Trigger on any mention of visualize, chart, graph, plot, or "show me ... by".
+last-reviewed: 2026-05-20
 ---
 
 # Terminal Chart

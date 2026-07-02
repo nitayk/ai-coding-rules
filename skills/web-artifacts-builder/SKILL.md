@@ -2,6 +2,7 @@
 name: web-artifacts-builder
 description: Suite of tools for creating elaborate, multi-component interactive HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts. Use whenever the user needs a rich downloadable HTML artifact in AI coding assistants or chat sessions that support attachments (including Claude, Cursor, Copilot, and similar).
 license: Complete terms in LICENSE.txt
+last-reviewed: 2026-05-20
 ---
 
 # Web Artifacts Builder
@@ -13,7 +14,7 @@ To build powerful frontend interactive HTML artifacts, follow these steps:
 4. Display artifact to user
 5. (Optional) Test the artifact
 
-**Stack**: React 18 + TypeScript + Vite + Parcel (bundling) + Tailwind CSS + shadcn/ui
+**Stack**: React 19 + TypeScript + Vite + Parcel (bundling) + Tailwind CSS 4 + shadcn/ui
 
 ## Design & Style Guidelines
 
@@ -30,8 +31,8 @@ cd <project-name>
 ```
 
 This creates a fully configured project with:
-- ✅ React + TypeScript (via Vite)
-- ✅ Tailwind CSS 3.4.1 with shadcn/ui theming system
+- ✅ React 19 + TypeScript (via Vite)
+- ✅ Tailwind CSS 4 with shadcn/ui theming system
 - ✅ Path aliases (`@/`) configured
 - ✅ 40+ shadcn/ui components pre-installed
 - ✅ All Radix UI dependencies included

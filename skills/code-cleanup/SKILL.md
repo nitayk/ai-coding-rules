@@ -1,6 +1,7 @@
 ---
 name: code-cleanup
 description: "Use when cleaning up code before commit or PR, after AI-generated code, removing debug artifacts, or reducing code noise. Do NOT use for feature implementation, code review (use code-reviewer agent), or refactoring logic (separate task)."
+last-reviewed: 2026-05-20
 ---
 
 # Code Cleanup

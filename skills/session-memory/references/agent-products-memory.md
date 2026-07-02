@@ -1,14 +1,18 @@
-# Cursor, Claude Code, and GitHub Copilot: file memory vs hook automation
+# Session memory and hook automation (Claude Code)
 
-This repo supports **`install.sh --target`** combinations of **cursor**, **claude**, and **copilot**. Session memory is a **local file** the agent reads/writes; hooks and automation differ by product. See [PRODUCT_COMPARISON.md](../../../targets/copilot/PRODUCT_COMPARISON.md) for full product mapping.
+This toolkit ships as a Claude-Code-only plugin (the Cursor and Copilot install
+targets were removed in v2.0 — [ADR-009](../../../docs/decisions/ADR-009-plugin-v2-self-contained.md)).
+Session memory is a **local file** the agent reads/writes; hook-driven automation
+runs via the plugin's Claude hooks.
 
-| Concern | Cursor | Claude Code | GitHub Copilot |
-|---------|--------|---------------|----------------|
-| **Scratchpad file** | `.cursor/memory/active_context.md` (`cursor` target) | `.claude/memory/active_context.md` (`claude` target) | Same path as Cursor for this package: **`.cursor/memory/active_context.md`** — `sync-rules.sh` uses `MEMORY_DIR=.cursor/memory` for the **`copilot`** target too (VS Code / repo workspace). |
-| **Which path in chat** | **`/session-memory`** — resolve by runtime and existing files | Same; **do not** hardcode `.cursor/` if Claude isolation blocks it | Use **`.cursor/memory/`** when present; Copilot repo instructions (`.github/copilot-instructions.md`) do not replace this file — they point at submodule **rules**, not the scratchpad path. |
-| **Hooks** | `.cursor/hooks.json` — see [hooks/README.md](../../../hooks/README.md) | `.claude/hooks/` + `hooks.json` | No parity with this repo’s hook packs on **Copilot-only** install; use **`cursor,copilot`** or **`claude,copilot`** if you need Copilot instructions **and** hooks. |
-| **“Learn from session” automation** | No default ECC Stop-hook parity | [`/continuous-learning-v2`](../../continuous-learning-v2/SKILL.md) + Claude hooks | Same as Cursor for hook availability — typically need a **multi-target** install. |
+| Concern | Claude Code |
+|---------|-------------|
+| **Scratchpad file** | `.claude/memory/active_context.md` — resolve via **`/session-memory`**; work from the repo root (or set `REPO_ROOT`). |
+| **Which path in chat** | **`/session-memory`** resolves the path; store it in `MEMORY_FILE` rather than hardcoding. |
+| **Hooks** | `.claude/hooks/` + `hooks.json`, wired by the plugin — see [hooks/README.md](../../../hooks/README.md). |
+| **"Learn from session" automation** | Claude `Stop`-hook nudges only. The `/continuous-learning-v2` skill was removed per AppSec review (see [SOURCES.md](../../../SOURCES.md#removed-skills-appsec)); consume upstream ECC directly if you need the instinct pipeline. |
 
-**Takeaway:** Use **`/session-memory`** and resolve **Cursor vs Claude vs Copilot** using the skill’s decision order. For **hook-driven** persistence, read **`/agent-token-optimization`** and **`/continuous-learning-v2`** (opt-in per [hooks/README.md](../../../hooks/README.md)).
+**Takeaway:** Use **`/session-memory`** for the scratchpad and **`/agent-token-optimization`**
+for hook-driven persistence (opt-in per [hooks/README.md](../../../hooks/README.md)).
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

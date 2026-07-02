@@ -1,0 +1,67 @@
+# Implicit Extension Methods
+
+- **Use implicit classes for type-safe extension methods**:  
+  ```scala
+  object StringUtil {
+    implicit class StringOps(s: String) {
+      def toDoubleOption: Option[Double] = Try(s.toDouble).toOption
+      def toLongOption: Option[Long] = Try(s.toLong).toOption
+      def toIntOption: Option[Int] = Try(s.toInt).toOption
+    }
+  }
+  
+  // Usage: "123".toIntOption
+  ```
+
+- **Prefer extension methods over utility functions** for domain-specific operations:  
+  ```scala
+  // Good: Extension method pattern
+  implicit class DatasetOps[T](val dataset: Dataset[T]) {
+    def columnExists(columnName: String): Boolean = ???
+    def withField(fieldName: String, column: Column): DataFrame = ???
+  }
+  
+  // Bad: Static utility methods
+  object DataFrameUtils {
+    def columnExists(df: DataFrame, columnName: String): Boolean = ???
+    def withField(df: DataFrame, fieldName: String, column: Column): DataFrame = ???
+  }
+  ```
+
+- **Name extension classes with `Ops` suffix** for consistency:  
+  ```scala
+  implicit class StringOps(s: String) { ... }
+  implicit class DatasetOps[T](dataset: Dataset[T]) { ... }
+  implicit class PathOps(path: Path) { ... }
+  ```
+
+- **Wrap value classes with `AnyVal`** for zero-overhead extensions:  
+  ```scala
+  implicit class PathExtension(val p: Path) extends AnyVal {
+    def toPathParts: List[String] = ???
+  }
+  ```
+
+- **Group related extension methods** in the same utility object:  
+  ```scala
+  object DataSetUtil {
+    implicit class DatasetOps[T](val dataset: Dataset[T]) {
+      def dropFields(fieldNames: String*): DataFrame = ???
+      def withField(fieldName: String, column: Column): DataFrame = ???
+      def columnExists(columnName: String): Boolean = ???
+    }
+  }
+  ```
+
+---
+
+## Related Rules
+
+**Universal Principles:**
+- [Generic Code Quality Principles](../../../../generic/code-quality/core-principles.md) - Universal principles (interface-centric design, dependency injection)
+
+**Scala-Specific:**
+- [Avoid Overloading](avoid-overloading.md) - Prefer explicit naming and type classes over method overloading
+- [Compiler-Friendly Types](compiler-friendly-types.md) - Type safety principles
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

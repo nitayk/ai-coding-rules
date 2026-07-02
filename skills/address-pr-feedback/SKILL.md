@@ -1,6 +1,7 @@
 ---
 name: address-pr-feedback
 description: Address PR feedback and comments. Fetch comments from an open PR on the current branch, evaluate the suggested changes, make clear and reasonable modifications to the codebase, skip unclear or uncertain items, and ask the user for confirmation before committing. Use this skill whenever the user asks to address, handle, or respond to PR feedback or review comments.
+last-reviewed: 2026-05-20
 ---
 
 # Address PR Feedback

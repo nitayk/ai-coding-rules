@@ -1,7 +1,8 @@
 ---
 name: mass-repo-orchestration
-description: "Use when applying the same mechanical change across many repositories (dozens+), tracking bulk PRs, or resuming migration work across sessions—e.g. config/tooling updates, explicit hooks replacing implicit platform behavior, org-wide renovate patterns. Use with /writing-plans, /executing-plans, /git-workflow, /agent-token-optimization. Do NOT use for moving one service between two repos (/service-migration, /code-migration) or a single-repo feature build."
+description: "Use when applying the same mechanical change across many repositories (dozens+), tracking bulk PRs, or resuming migration work across sessions—e.g. config/tooling updates, explicit hooks replacing implicit platform behavior, org-wide renovate patterns. Use with /writing-plans, /executing-plans, /git-workflow, /agent-token-optimization. Do NOT use for moving one service between two repos (/service-migration) or a single-repo feature build."
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 
 # Mass repository orchestration
@@ -20,7 +21,7 @@ Orchestrate **one playbook** across **many client repositories**: version-contro
 
 **DO NOT USE WHEN:**
 
-- **One service**, repo A → repo B, with graph-driven analysis → `/service-migration` + `/service-breakdown` (and `/code-migration` where that skill applies).
+- **One service**, repo A → repo B, with graph-driven analysis → `/service-migration` + `/service-breakdown`.
 - **Single-repo** implementation from a spec → `/writing-plans` + `/executing-plans` only.
 
 ## Principles (field-tested patterns)

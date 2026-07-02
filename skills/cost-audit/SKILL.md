@@ -1,6 +1,7 @@
 ---
 name: cost-audit
 description: "Use when auditing LLM token spend across coding-agent sessions, building a cost baseline, or hunting for waste (unused MCPs, oversized CLAUDE.md files, low cache hit rates). Reads local session data via codeburn — no API keys, no cloud upload. Do NOT use for runtime app performance (use /code-optimization) or for token-output compression (use /agent-token-optimization with RTK)."
+last-reviewed: 2026-05-20
 ---
 
 # Cost Audit
@@ -120,3 +121,5 @@ Per audit, produce a short report:
 | **Cursor** | Reads `~/Library/Application Support/Cursor/User/globalStorage/state.vscdb` (SQLite). Cursor "Auto" mode hides actual model — costs are estimated at Sonnet rates (labeled `Auto (Sonnet est.)`) |
 
 CodeBurn auto-detects which agents you use; press `p` in the dashboard TUI to toggle providers, or use `--provider <name>` to scope.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

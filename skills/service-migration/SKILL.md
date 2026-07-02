@@ -1,6 +1,7 @@
 ---
 name: service-migration
 description: "Use when migrating services between repos, moving code while preserving behavior, or minimizing diffs for code review. Do NOT use when improving code structure (use /service-refactoring), when just documenting a service (use /service-breakdown), or when service breakdown is not completed. REQUIRES /service-breakdown first."
+last-reviewed: 2026-06-02
 ---
 # Service Migration
 
@@ -94,10 +95,18 @@ Complete guide for migrating services between repositories with minimal diff.
 2. **Run DEEP Memgraph queries** (10+ levels) on both source and target
 3. **Identify dead code** in source - DO NOT migrate it. Use Memgraph to find methods/classes with no callers.
 4. **Create type compatibility matrix** - Compare source types vs target types. Document adapters needed.
+
+   Example matrix format:
+
+   | Source Type | Source Fields | Target Type | Target Fields | Compatible? | Notes |
+   |-------------|---------------|-------------|---------------|-------------|-------|
+   | `Request` | 70 fields | `Request` | 2 fields | No | Need adapter |
+   | `Response` | 10 fields | `Response` | 10 fields | Yes | Direct map |
+
 5. **Search target repo** for existing implementations:
 
 **For complete schema, indexes, and optimization rules, see:**
-`.cursor/rules/shared/technologies/memgraph-reference-guide.mdc`
+`the /memgraph-analysis skill`
 
 **Quick Reference:**
 - **Schema**: Unified - all nodes use `path` (not `file_path`), `qualified_name` is PK
@@ -108,21 +117,7 @@ Complete guide for migrating services between repositories with minimal diff.
 - **Find Dead Code**: `MATCH (c:Class {name: "LegacyClass"})<-[:CALLS|USES]-(caller) RETURN count(caller)` — If 0, do not migrate
 - **Find External Calls**: `MATCH (m:Method)-[:CALLS]->(ext:Method) WHERE m.path CONTAINS 'my-service' AND (ext.qualified_name CONTAINS 'Kafka' OR ext.qualified_name CONTAINS 'Aerospike') RETURN DISTINCT ext.qualified_name, m.path`
 
-```cypher
-// Check if class already exists in target
-MATCH (c:Class {name: 'ClassName'})
-WHERE c.qualified_name STARTS WITH 'target-repo'
-RETURN c.qualified_name, c.path, c.source_code
-
-// Check shared libraries
-MATCH (c:Class)
-WHERE c.repo_name = '{repo-name}'           // Indexed: reduces dataset
-  AND (c.qualified_name CONTAINS 'shared-logic'  // Additional filter
-    OR c.qualified_name CONTAINS 'atomic-types')
-  OR c.path CONTAINS 'shared-logic'
-  OR c.path CONTAINS 'atomic-types'
-RETURN c.name, c.path, c.qualified_name
-```
+   Use the queries in the **[Memgraph Query Patterns](#memgraph-query-patterns)** section below to check whether each class already exists in the target and to spot shared-library implementations.
 
 3. **Create migration plan**:
    - What needs to be copied
@@ -243,34 +238,9 @@ RETURN m.name, m.qualified_name, m.path
 
 ## Output (MIGRATED CODE)
 
-**This skill produces migrated code in target repository.**
+Produces migrated code in the **target repository**: copied service files (updated package declarations + imports), infrastructure wired from embedded → remote patterns, updated tests/docs as needed. Delivered as a clean, minimal git diff (mostly package/import changes) across multiple commits per `/git-workflow` (each: compiles + tests pass + logical task complete). Result: the service runs in the target with the same behavior as the source, no dead code copied, easy to review.
 
-### Files Created/Modified
-
-**In Target Repository:**
-- Copied service files (with updated package declarations)
-- Updated imports (using target's infrastructure patterns)
-- Wired infrastructure (embedded → remote patterns)
-- Updated tests (if needed for target repo structure)
-- Updated documentation (if service-specific docs exist)
-
-**Git Output:**
-- Clean git diff (minimal changes - mostly imports/packages)
-- Multiple commits (following `/git-workflow` skill)
-- Each commit: Compiles + Tests pass + Logical task complete
-
-### What This Output Enables
-
-- **Service running in target repo** - Same behavior as source
-- **Minimal diff** - Easy code review (mostly package/import changes)
-- **No dead code** - Only active code migrated
-- **Using target patterns** - Infrastructure wired correctly
-- **Tests passing** - Validated migration
-
-### Key Difference from Refactoring
-
-- **Migration**: Moves code between repos, minimizes diff
-- **Refactoring**: Improves code in same repo, changes structure
+**Key difference from refactoring:** migration *moves* code between repos and minimizes the diff; refactoring *improves* code in the same repo and changes structure.
 
 ## Related Skills
 

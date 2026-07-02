@@ -2,6 +2,7 @@
 name: generate-changelog
 description: "Use when generating changelog from git commits. Creates Keep a Changelog format from conventional commits. Make sure to use when user says: generate changelog, /changelog, create changelog, or needs release notes from commits."
 disable-model-invocation: true
+last-reviewed: 2026-06-08
 ---
 # Generate Changelog
 
@@ -17,6 +18,7 @@ Generate a changelog from recent commits following Keep a Changelog format.
 **SKIP WHEN:**
 - No conventional commits (feat:, fix:, etc.)
 - No git tags for version ranges
+- Working in the mobile-agent-toolkit repo itself — its release model is bump-on-PR with **no** CHANGELOG automation (ADR-011). This skill targets *consumer* repos that maintain a `CHANGELOG.md`.
 
 ## Core Directive
 

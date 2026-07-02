@@ -1,6 +1,7 @@
 ---
 name: agent-system-design
 description: "Use when designing a new agentic system or evaluating whether to add agents to an existing system. Covers the full lifecycle: what to agentify, agent decomposition, tool boundaries, orchestration approach, human checkpoints, observability, and evaluation. Do NOT use for routine task execution within an already-running agentic system."
+last-reviewed: 2026-05-20
 ---
 
 # Agent System Design
@@ -252,3 +253,5 @@ Do not deploy until:
 - `/session-memory` — Persistent context across agent sessions
 - `/multi-agent-branching` — Branch isolation for concurrent agents
 - `/writing-plans` — Phase-ready planning before implementation
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

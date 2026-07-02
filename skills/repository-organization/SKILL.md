@@ -11,6 +11,7 @@ description: >
   single approach. Triggers: "organize this folder", "repo cleanup", "scripts everywhere",
   "merge duplicate plans", "single source of truth", "same thing two ways", "unify testing layout",
   "README index", "archive old docs", "untracked files", "flatten", "misc folder", "lost its way".
+last-reviewed: 2026-05-20
 ---
 
 # Repository organization

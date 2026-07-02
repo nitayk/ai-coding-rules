@@ -2,6 +2,7 @@
 name: fix-issue
 description: "Use when implementing a fix for a GitHub issue. Fetch issue by number, analyze, implement fix with tests. Make sure to use when user says: fix issue #123, implement fix for #456, /fix-issue, or provides a GitHub issue number to fix."
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 # Fix GitHub Issue
 

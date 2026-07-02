@@ -38,7 +38,7 @@ See [`cli/README.md`](cli/README.md) for full command docs.
 acr link ~/projects/my-app
 cd ~/projects/my-app && acr sync          # add --copy to copy instead of symlink
 
-# Restart Cursor -- done! 57 skills + 200+ rules in that project.
+# Restart Cursor -- done! 107 skills + 200+ rules in that project.
 ```
 
 To update a project later:
@@ -227,7 +227,7 @@ Built on the shoulders of giants:
 
 - [obra/superpowers](https://github.com/obra/superpowers) by Jesse Vincent - The autonomous dev workflow
 - [anthropics/skills](https://github.com/anthropics/skills) by Anthropic - Official Claude skills
-- [ironsource-mobile/mobile-cursor-rules](https://github.com/ironsource-mobile/mobile-cursor-rules) - Generic rules, agents, hooks
+- [ironsource-mobile/mobile-agent-toolkit](https://github.com/ironsource-mobile/mobile-agent-toolkit) (formerly mobile-cursor-rules) - Generic rules, agents, hooks
 - [Agent Skills Standard](https://agentskills.io) - The open SKILL.md specification
 
 ## License

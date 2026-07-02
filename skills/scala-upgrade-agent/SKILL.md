@@ -1,6 +1,7 @@
 ---
 name: scala-upgrade-agent
 description: "Use when upgrading Scala (e.g., 2.13.12 to 2.13.18), fixing compilation errors, resolving dependency conflicts, or addressing test failures after upgrades. Do NOT use for simple dependency version bumps without Scala upgrade or when upgrade scope is already complete."
+last-reviewed: 2026-05-20
 ---
 # Scala Upgrade Agent
 
@@ -16,6 +17,8 @@ Expert agent for upgrading Scala versions (e.g., 2.13.12 to 2.13.18) and depende
 **DO NOT USE WHEN:**
 - Simple dependency version bumps without Scala upgrade
 - Upgrade scope already complete
+
+**ACTIVE SCOPE:** For ISX, LP, and IDP repos that remain active beyond the iAds delivery/DS sunset (see workspace AGENTS.md iAds sunset scope correction). Do not invest in upgrades targeting iAds core delivery/DS/SDK repos (sunset Apr 2026).
 
 ## Critical Learnings
 
@@ -79,7 +82,7 @@ Update this skill with new findings.
 
 ## Detailed Reference
 
-For phases, code snippets, Play JSON migration, assembly merge strategy, and common issues: **Read `references/upgrade-guide.mdc`** (bundled with this skill).
+For phases, code snippets, Play JSON migration, assembly merge strategy, and common issues: **Read `references/upgrade-guide.md`** (bundled with this skill).
 
 ## Last Resort
 
