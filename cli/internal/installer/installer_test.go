@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 )
 
 func quietLogger() *ui.Logger {

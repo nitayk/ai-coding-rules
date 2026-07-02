@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 )
 
 // defaultCacheDir returns a user-owned location for upstream clones. The shell
@@ -18,14 +18,14 @@ import (
 // world-writable /tmp path (symlink-swap hardening) and is cross-platform.
 func defaultCacheDir() string {
 	if dir, err := os.UserCacheDir(); err == nil {
-		return filepath.Join(dir, "ai-coding-rules-upstream")
+		return filepath.Join(dir, "nitays-agent-toolkit-upstream")
 	}
-	return filepath.Join(os.TempDir(), "ai-coding-rules-upstream")
+	return filepath.Join(os.TempDir(), "nitays-agent-toolkit-upstream")
 }
 
 // Options configures an update run.
 type Options struct {
-	Repo     string // local ai-coding-rules checkout to update (default: cwd)
+	Repo     string // local nitays-agent-toolkit checkout to update (default: cwd)
 	CacheDir string // upstream clone cache (default: defaultCacheDir())
 	DryRun   bool
 	ShowDiff bool
@@ -90,7 +90,7 @@ func Run(o Options) error {
 
 	o.Log.Plain("")
 	o.Log.Plain("==========================================")
-	o.Log.Plain("  ai-coding-rules: Update Community Sources")
+	o.Log.Plain("  nitays-agent-toolkit: Update Community Sources")
 	o.Log.Plain("==========================================")
 	o.Log.Plain("")
 	if o.DryRun {

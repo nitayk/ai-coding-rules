@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/hooksjson"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/hooksjson"
 )
 
 // syncHooks copies hook scripts and reconciles hooks.json for a target.

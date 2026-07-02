@@ -1,5 +1,5 @@
 // Package syncer ports sync-rules.sh: it deploys skills, agents, commands, and
-// hooks from an ai-coding-rules checkout into a consumer repo's Claude Code
+// hooks from an nitays-agent-toolkit checkout into a consumer repo's Claude Code
 // directories, with skill-group filtering, symlink-or-copy modes, hooks.json
 // merging, and Claude isolation.
 //
@@ -15,16 +15,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/hooksjson"
-	"github.com/nitayk/ai-coding-rules/cli/internal/skillgroups"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/hooksjson"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/skillgroups"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 )
 
 // Options configures a sync run.
 type Options struct {
 	RepoRoot       string   // consumer repo to sync into
-	ScriptDir      string   // ai-coding-rules content dir (holds skills/agents/commands/hooks/config)
+	ScriptDir      string   // nitays-agent-toolkit content dir (holds skills/agents/commands/hooks/config)
 	Targets        []string // always ["claude"] — Claude Code is the only deploy target
 	SkillsFilter   string   // "defaults" | "all" | csv of groups
 	NoSkillsFilter string   // csv of groups to exclude
@@ -61,7 +61,7 @@ func Run(o Options) error {
 		r.log.Info("DRY RUN MODE - No changes will be made")
 		r.log.Plain("")
 	}
-	r.log.Info("Setting up ai-coding-rules...")
+	r.log.Info("Setting up nitays-agent-toolkit...")
 	r.log.Verbosef("Repo root: %s", o.RepoRoot)
 	r.log.Verbosef("Script dir: %s", o.ScriptDir)
 
@@ -319,7 +319,7 @@ func (r *runner) ensureManagedGitignore() {
 		return
 	}
 	if fsx.Exists(gi) && fsx.FileContains(gi, gitignoreMarkerBegin) {
-		r.log.Verbosef(".gitignore already contains ai-coding-rules managed block")
+		r.log.Verbosef(".gitignore already contains nitays-agent-toolkit managed block")
 		return
 	}
 	if !fsx.Exists(gi) {

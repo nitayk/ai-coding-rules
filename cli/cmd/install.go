@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/nitayk/ai-coding-rules/cli/internal/installer"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/installer"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ func newInstallCmd() *cobra.Command {
 .cursor/rules/shared submodule, runs a Claude Code sync, and installs a
 post-merge git hook so syncs happen automatically after 'git pull'.
 
-Run from inside the ai-coding-rules checkout itself, it skips the submodule and
+Run from inside the nitays-agent-toolkit checkout itself, it skips the submodule and
 hook steps and just runs a sync.
 
 Note: the submodule always lives at .cursor/rules/shared — a Claude-safe

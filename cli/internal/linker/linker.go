@@ -1,4 +1,4 @@
-// Package linker symlinks an ai-coding-rules checkout into a consumer project,
+// Package linker symlinks an nitays-agent-toolkit checkout into a consumer project,
 // porting link-to-project.sh. One clone, many projects.
 package linker
 
@@ -7,13 +7,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 )
 
 // Options configures a link run.
 type Options struct {
-	// Source is the absolute path to the ai-coding-rules checkout to link from
+	// Source is the absolute path to the nitays-agent-toolkit checkout to link from
 	// (the shell script used its own location, SCRIPT_DIR).
 	Source string
 	// ProjectDir is the consumer project to link into ("." allowed).
@@ -42,7 +42,7 @@ func Run(o Options) error {
 		return err
 	}
 
-	o.Log.Plain("Linking ai-coding-rules into: %s", projAbs)
+	o.Log.Plain("Linking nitays-agent-toolkit into: %s", projAbs)
 	o.Log.Plain("Source: %s", src)
 	o.Log.Plain("")
 
@@ -53,7 +53,7 @@ func Run(o Options) error {
 
 	o.Log.Plain("")
 	o.Log.Plain("Done! Remember to add to .gitignore if needed:")
-	o.Log.Plain("  .cursor/rules/shared  # symlink to global ai-coding-rules")
+	o.Log.Plain("  .cursor/rules/shared  # symlink to global nitays-agent-toolkit")
 	return nil
 }
 

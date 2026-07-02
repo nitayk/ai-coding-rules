@@ -1,4 +1,4 @@
-# Agent Guidance: ai-coding-rules
+# Agent Guidance: nitays-agent-toolkit
 
 **Purpose**: Help LLM/AI agents navigate and use this toolkit.
 
@@ -23,7 +23,7 @@ hooks. (Cursor `.mdc` rules were removed — Claude Code doesn't load them.)
 ## Structure Overview
 
 ```
-ai-coding-rules/
+nitays-agent-toolkit/
 ├── CLAUDE.md             <- Project instructions (entry point)
 ├── skills/               <- 103 multi-step workflow skills
 ├── agents/               <- 20 specialized subagents

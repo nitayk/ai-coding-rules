@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install git pre-commit hook for ai-coding-rules
+# Install git pre-commit hook for nitays-agent-toolkit
 #
 # Usage: ./scripts/install-hooks.sh
 #
@@ -15,7 +15,7 @@ mkdir -p "$HOOKS_DIR"
 
 PRE_COMMIT="$HOOKS_DIR/pre-commit"
 
-if [ -f "$PRE_COMMIT" ] && grep -q "ai-coding-rules" "$PRE_COMMIT" 2>/dev/null; then
+if [ -f "$PRE_COMMIT" ] && grep -q "nitays-agent-toolkit" "$PRE_COMMIT" 2>/dev/null; then
   echo "Pre-commit hook already installed."
   exit 0
 fi
