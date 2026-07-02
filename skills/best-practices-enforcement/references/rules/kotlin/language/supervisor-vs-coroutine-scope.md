@@ -105,4 +105,4 @@ Nesting `supervisorScope { coroutineScope { ... } }` is legitimate (an inner all
 - [kotlinx.coroutines: exception handling](https://github.com/Kotlin/kotlinx.coroutines/blob/master/docs/topics/exception-handling.md) — SupervisorJob / supervisorScope semantics
 - [Coroutines overview](https://kotlinlang.org/docs/coroutines-overview.html) — Structured-concurrency primer
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -67,4 +67,4 @@ the /handoff precedent). 2026-06-27 (AQ-64): added Step 0 — check for a Claude
 (DesignSync / /design-sync) as the source of truth before falling back to mockups-in-the-dir.
 Promoted to mobile-agent-toolkit on 2026-06-28 via AQ-64. -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

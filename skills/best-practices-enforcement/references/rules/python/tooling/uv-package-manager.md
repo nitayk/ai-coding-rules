@@ -139,4 +139,4 @@ Keep `pyproject.toml` as the single source of truth. See `packaging/pyproject-to
 - [PEP 735 — Dependency Groups](https://peps.python.org/pep-0735/)
 - [PEP 723 — Inline script metadata](https://peps.python.org/pep-0723/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

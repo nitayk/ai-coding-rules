@@ -306,4 +306,4 @@ imageView.load(imageUrl)  // No cache - reloads every time
 - [LeakCanary](https://square.github.io/leakcanary/)
 - [Jetpack Compose performance](https://developer.android.com/develop/ui/compose/performance) — Baseline Profiles + R8 + stability are the official jank-free recipe (2026-05-15). See companion rule [compose-stability-baseline-profiles](compose-stability-baseline-profiles.md) for the release-mode checklist.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

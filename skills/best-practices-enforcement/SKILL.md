@@ -117,4 +117,4 @@ Best Practices Audit Report (in chat):
 - `/code-simplification` skill - Apply during refactoring
 - `/code-cleanup` skill - Remove debug artifacts and noise before commit
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

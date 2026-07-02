@@ -13,4 +13,4 @@ Read the skill and answer these questions based SOLELY on what the skill says:
 
 Return your answers with direct quotes from the skill where applicable.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -86,4 +86,4 @@ If a consumer is on an old runtime version, pin its codegen toolchain (see `vali
 - [Protobuf Editions Overview](https://protobuf.dev/editions/overview/)
 - [Proto3 Language Guide](https://protobuf.dev/programming-guides/proto3/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

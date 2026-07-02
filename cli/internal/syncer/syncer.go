@@ -1,7 +1,7 @@
 // Package syncer ports sync-rules.sh: it deploys skills, agents, commands, and
-// hooks from an ai-coding-rules checkout into a consumer repo's Cursor and/or
-// Claude Code directories, with skill-group filtering, symlink-or-copy modes,
-// hooks.json merging, and Claude isolation.
+// hooks from an ai-coding-rules checkout into a consumer repo's Claude Code
+// directories, with skill-group filtering, symlink-or-copy modes, hooks.json
+// merging, and Claude isolation.
 //
 // Parity contract: identical filesystem effects (paths, symlink targets, file
 // contents, JSON semantics, .gitignore patterns). Log wording may differ.
@@ -25,7 +25,7 @@ import (
 type Options struct {
 	RepoRoot       string   // consumer repo to sync into
 	ScriptDir      string   // ai-coding-rules content dir (holds skills/agents/commands/hooks/config)
-	Targets        []string // ordered subset of {"cursor","claude"}
+	Targets        []string // always ["claude"] — Claude Code is the only deploy target
 	SkillsFilter   string   // "defaults" | "all" | csv of groups
 	NoSkillsFilter string   // csv of groups to exclude
 	UseSymlinks    bool
@@ -35,16 +35,14 @@ type Options struct {
 	Log            *ui.Logger
 }
 
-// targetPaths holds the per-target destination layout (resolve_target_paths).
+// targetPaths holds the Claude Code destination layout (resolve_target_paths).
 type targetPaths struct {
-	skillsDest    string
-	userSkillsDir string
-	migrateCursor bool
-	agentsDest    string
-	commandsDest  string
-	memoryDir     string
-	hooksDir      string
-	hooksJSON     string
+	skillsDest   string
+	agentsDest   string
+	commandsDest string
+	memoryDir    string
+	hooksDir     string
+	hooksJSON    string
 }
 
 type runner struct {
@@ -74,7 +72,7 @@ func Run(o Options) error {
 		return err
 	}
 
-	r.backupDir = filepath.Join(o.RepoRoot, ".cursor", ".setup-backup-"+timestamp())
+	r.backupDir = filepath.Join(o.RepoRoot, ".claude", ".setup-backup-"+timestamp())
 	if o.Backup && !o.DryRun {
 		_ = fsx.EnsureDir(r.backupDir)
 	}
@@ -89,32 +87,28 @@ func Run(o Options) error {
 		r.log.Info("=== Syncing for target: %s ===", target)
 
 		if !o.DryRun {
-			for _, d := range []string{".cursor", ".claude", ".agents"} {
-				_ = fsx.EnsureDir(filepath.Join(o.RepoRoot, d))
-			}
+			_ = fsx.EnsureDir(filepath.Join(o.RepoRoot, ".claude"))
 			for _, d := range []string{tp.skillsDest, tp.agentsDest, tp.commandsDest} {
 				_ = fsx.EnsureDir(filepath.Join(o.RepoRoot, d))
 			}
 		}
 
 		r.syncSkills(tp)
-		r.migrateCursorSkills(tp)
 		r.syncMarkdownDir(filepath.Join(o.ScriptDir, "agents"), filepath.Join(o.RepoRoot, tp.agentsDest), "agent")
 		r.syncMarkdownDir(filepath.Join(o.ScriptDir, "commands"), filepath.Join(o.RepoRoot, tp.commandsDest), "command")
 		r.setupMemory(target, tp)
 		r.syncHooks(target, tp)
-		if target == "claude" {
-			r.ensureClaudeIsolation()
-		}
+		r.ensureClaudeIsolation()
 	}
 
 	r.summary()
 	return nil
 }
 
-// ParseTargets validates and splits a --target value into ordered targets.
-// It is the single authoritative parser used by the cobra layer and the
-// installer so validation cannot diverge across entry points.
+// ParseTargets validates a --target value. Claude Code is the only supported
+// deploy target; anything else (including the retired "cursor" target) is
+// rejected. It is the single authoritative parser used by the cobra layer and
+// the installer so validation cannot diverge across entry points.
 func ParseTargets(target string) ([]string, error) {
 	var out []string
 	for _, p := range strings.Split(target, ",") {
@@ -122,20 +116,23 @@ func ParseTargets(target string) ([]string, error) {
 		if p == "" {
 			continue
 		}
-		if p != "cursor" && p != "claude" {
-			return nil, fmt.Errorf("invalid --target %q (each segment must be cursor or claude)", p)
+		if p != "claude" {
+			return nil, fmt.Errorf("invalid --target %q (only claude is supported)", p)
 		}
 		out = append(out, p)
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("--target requires cursor, claude, or comma-separated combinations")
+		return nil, fmt.Errorf("invalid --target: only claude is supported")
 	}
 	return out, nil
 }
 
 func (r *runner) validateSubmodule() error {
 	sd := filepath.ToSlash(r.o.ScriptDir)
-	if !(strings.HasSuffix(sd, "/.cursor/rules/shared") || strings.HasSuffix(sd, "/.claude/rules/shared")) {
+	// The submodule always lives at .cursor/rules/shared — a Claude-safe
+	// location (Claude Code ignores .cursor/), which avoids the context
+	// explosion that would happen under .claude/.
+	if !strings.HasSuffix(sd, "/.cursor/rules/shared") {
 		return nil
 	}
 	if !fsx.IsDir(filepath.Join(sd, "skills")) &&
@@ -148,11 +145,11 @@ func (r *runner) validateSubmodule() error {
 
 func (r *runner) validateTargets() error {
 	if len(r.o.Targets) == 0 {
-		return fmt.Errorf("invalid --target: each segment must be cursor or claude")
+		return fmt.Errorf("invalid --target: only claude is supported")
 	}
 	for _, t := range r.o.Targets {
-		if t != "cursor" && t != "claude" {
-			return fmt.Errorf("invalid --target: %q (each segment must be cursor or claude)", t)
+		if t != "claude" {
+			return fmt.Errorf("invalid --target: %q (only claude is supported)", t)
 		}
 	}
 	return nil
@@ -285,28 +282,6 @@ func (r *runner) syncMarkdownDir(source, dest, itemType string) {
 	}
 }
 
-func (r *runner) migrateCursorSkills(tp targetPaths) {
-	if !tp.migrateCursor || tp.userSkillsDir == "" {
-		return
-	}
-	userDir := filepath.Join(r.o.RepoRoot, tp.userSkillsDir)
-	source := filepath.Join(r.o.ScriptDir, "skills")
-	if !fsx.IsDir(userDir) || !fsx.IsDir(source) {
-		return
-	}
-	for _, name := range sortedSkillDirs(source) {
-		managed := filepath.Join(userDir, name)
-		if fsx.IsDir(managed) {
-			if r.o.DryRun {
-				r.log.Info("Would remove managed skill from %s: %s (now in %s)", tp.userSkillsDir, name, tp.skillsDest)
-			} else {
-				_ = os.RemoveAll(managed)
-				r.log.Verbosef("Removed managed skill from %s: %s", tp.userSkillsDir, name)
-			}
-		}
-	}
-}
-
 func (r *runner) setupMemory(target string, tp targetPaths) {
 	r.log.Plain("")
 	r.log.Info("Setting up local memory for %s...", target)
@@ -366,13 +341,6 @@ func (r *runner) migrateDeprecatedPaths() {
 		if fsx.IsSymlink(full) {
 			r.log.Info("Removing deprecated %s symlink (skills must be copied directories)", p)
 			_ = os.Remove(full)
-		}
-	}
-	cur := filepath.Join(root, ".cursor/skills")
-	if fsx.IsSymlink(cur) {
-		if t, _ := os.Readlink(cur); t == "../.agents/skills" || t == ".agents/skills" {
-			r.log.Info("Removing deprecated .cursor/skills → .agents/skills symlink")
-			_ = os.Remove(cur)
 		}
 	}
 }
@@ -456,19 +424,7 @@ func (r *runner) summary() {
 }
 
 func resolveTargetPaths(t string) targetPaths {
-	switch t {
-	case "cursor":
-		return targetPaths{
-			skillsDest:    ".agents/skills",
-			userSkillsDir: ".cursor/skills",
-			migrateCursor: true,
-			agentsDest:    ".cursor/agents",
-			commandsDest:  ".cursor/commands",
-			memoryDir:     ".cursor/memory",
-			hooksDir:      ".cursor/hooks",
-			hooksJSON:     ".cursor/hooks.json",
-		}
-	case "claude":
+	if t == "claude" {
 		return targetPaths{
 			skillsDest:   ".claude/skills",
 			agentsDest:   ".claude/agents",

@@ -115,4 +115,4 @@
 - [Apache Iceberg — Spark Procedures](https://iceberg.apache.org/docs/latest/spark-procedures/) - relevant for Iceberg/Redshift pipelines
 - [Delta Lake — Best Practices](https://docs.delta.io/latest/best-practices.html) - alternative table format used in some pipelines
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

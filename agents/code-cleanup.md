@@ -50,4 +50,4 @@ Skip findings you're <80% sure about. Mass deletions of "looks unused" code with
 
 Under 250 words for the findings report unless the dispatcher requests detail. Group findings by file. Lead with HIGH, end with LOW.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

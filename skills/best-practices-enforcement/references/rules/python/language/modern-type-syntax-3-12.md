@@ -197,4 +197,4 @@ For everything else on 3.12+, prefer the new syntax.
 - [Static Typing with Python](https://typing.python.org/en/latest/) — PSF-hosted type system hub
 - [Python typing module docs](https://docs.python.org/3/library/typing.html) — stdlib reference
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

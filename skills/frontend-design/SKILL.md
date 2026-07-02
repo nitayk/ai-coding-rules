@@ -145,4 +145,4 @@ Before delivering:
 - the result does not read like generic AI UI
 - the implementation is production-grade, not just visually interesting
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

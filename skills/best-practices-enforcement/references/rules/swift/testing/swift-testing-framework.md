@@ -210,4 +210,4 @@ Common XCTest → Swift Testing mappings:
 - [WWDC24 "Meet Swift Testing" (10179)](https://developer.apple.com/videos/play/wwdc2024/10179/)
 - [swiftlang/swift-testing](https://github.com/swiftlang/swift-testing) — source repo, full API docs
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -579,4 +579,4 @@ def method3(): Future[Either[AppError, User]] = ???
 
 - [Random Scala Tip #534: Adopt an Error Handling Convention for Future](https://blog.daniel-beskin.com/2025-09-08-random-scala-tip-534-future-error-handling) - Daniel Beskin's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

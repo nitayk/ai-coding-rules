@@ -192,4 +192,4 @@ safety check
 - [Snyk Python Security Cheat Sheet](https://snyk.io/blog/python-security-best-practices-cheat-sheet)
 - [Semgrep: Python Code Injection](https://semgrep.dev/docs/cheat-sheets/python-code-injection)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

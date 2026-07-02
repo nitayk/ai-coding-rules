@@ -468,4 +468,4 @@ val list2 = Arrays.asList("a", "b", "c")
 
 - [ANY Overloading Considered Evil](https://blog.daniel-beskin.com/2024-06-19-overloading) - Daniel Beskin's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

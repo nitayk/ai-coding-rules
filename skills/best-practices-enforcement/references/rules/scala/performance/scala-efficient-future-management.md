@@ -123,4 +123,4 @@ This rule ensures your `Future` usage aligns with the "money path" requirements 
 - [Future Error Handling Conventions](../language/future-error-handling-conventions.md) - **Adopt explicit error handling conventions for Future** - Distinguish business errors from defects, use Future[Either[E, A]] or EitherT
 - [Error Handling Patterns](../language/error-handling-patterns.md) - Foundation for error handling with Option, Either, Try
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

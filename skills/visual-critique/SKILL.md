@@ -52,4 +52,4 @@ Pick the lenses that match the concern; run all five for a full design review.
   Wrapper authored locally to make the bundle one routable skill for the ui-uplift router.
   Promoted to mobile-agent-toolkit (AQ-3 ui-uplift suite). -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

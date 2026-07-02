@@ -357,4 +357,4 @@ Quick rules of thumb under Swift 6:
 - [WWDC25 "Embracing Swift concurrency" (268)](https://developer.apple.com/videos/play/wwdc2025/268/) — approachable concurrency in Swift 6.2
 - [Swift 6 Concurrency Migration Guide](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

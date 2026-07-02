@@ -93,4 +93,4 @@ step the rest of the pipeline (and `/e2e`) expects after a spec exists.
 - tdd-workflow - Write tests based on PRD requirements
 - pr-workflow - Reference PRD in PR description
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -15,11 +15,6 @@
       "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
       "disabled": true
     },
-    "cursor-ide-browser": {
-      "command": "npx",
-      "args": ["-y", "@angheljf/cursor-ide-browser"],
-      "disabled": true
-    },
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem"],

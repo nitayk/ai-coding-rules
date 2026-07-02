@@ -27,14 +27,9 @@ func (r *runner) syncHooks(target string, tp targetPaths) {
 		r.log.Error("walk hooks: %v", err)
 	}
 	sort.Strings(rels)
-	sep := string(filepath.Separator)
 	for _, rel := range rels {
 		hookFile := filepath.Join(hooksSrc, rel)
 		dest := filepath.Join(r.o.RepoRoot, tp.hooksDir, rel)
-		// Cursor flattens subdirectories into the hooks root.
-		if target == "cursor" && strings.Contains(rel, sep) {
-			dest = filepath.Join(r.o.RepoRoot, tp.hooksDir, filepath.Base(rel))
-		}
 		r.copyOrLink(hookFile, dest, "hook: "+rel, true)
 	}
 

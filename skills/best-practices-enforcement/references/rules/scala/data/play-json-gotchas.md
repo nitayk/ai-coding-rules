@@ -234,4 +234,4 @@ expectedJson.zip(actualJson).zipWithIndex.foreach { case ((e, a), i) =>
 
 - `json-serialization-patterns.md` - Correct patterns for JSON serialization
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

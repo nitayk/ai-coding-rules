@@ -118,4 +118,4 @@
 - [What's new in Kotlin 2.2](https://kotlinlang.org/docs/whatsnew22.html) — Stable guards/break-continue/multi-$; `kotlinOptions{}` is now an error
 - [Detekt](https://detekt.dev/) — De-facto static analyzer; pin 1.23.x (2.0 is alpha-only)
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

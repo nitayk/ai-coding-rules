@@ -199,4 +199,4 @@ Pods using `serviceAccountName: my-app-ksa` get short-lived GCP credentials for 
 - [google-github-actions/auth](https://github.com/google-github-actions/auth)
 - [GKE — Workload Identity](https://docs.cloud.google.com/kubernetes-engine/docs/concepts/workload-identity)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

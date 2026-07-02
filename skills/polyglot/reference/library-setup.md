@@ -443,4 +443,4 @@ declare module 'next-intl' {
 | react-intl (FormatJS) | ICU-heavy, strong standards | ICU-centric projects |
 | vue-i18n | Composition API, SFC i18n blocks | Vue 3 projects |
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

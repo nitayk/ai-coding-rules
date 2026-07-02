@@ -337,4 +337,4 @@ export ANTHROPIC_MODEL="claude-sonnet-4-6"
 
 Never hardcode API keys. Always use environment variables.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

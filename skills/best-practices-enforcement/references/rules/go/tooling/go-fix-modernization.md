@@ -117,4 +117,4 @@ A reasonable team policy:
 - [The Go Blog](https://go.dev/blog/)
 - [`go fix` documentation](https://pkg.go.dev/cmd/go#hdr-Update_packages_to_use_new_APIs)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

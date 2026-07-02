@@ -177,4 +177,4 @@ module "gke" {
 - [SemVer 2.0.0](https://semver.org/)
 - [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

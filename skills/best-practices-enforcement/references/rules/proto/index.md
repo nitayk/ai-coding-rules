@@ -105,4 +105,4 @@
 - [gRPC Deadlines Guide](https://grpc.io/docs/guides/deadlines/) — deadline propagation across services
 - [protovalidate](https://github.com/bufbuild/protovalidate) — explicit successor to `protoc-gen-validate`; CEL-based validation
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

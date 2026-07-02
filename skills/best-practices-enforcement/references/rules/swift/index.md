@@ -83,4 +83,4 @@ This index provides comprehensive guidance for Swift development.
 - [SwiftLee — Antoine van der Lee](https://www.avanderlee.com/) — weekly cadence (active 2026)
 - [Hacking with Swift — Paul Hudson](https://www.hackingwithswift.com/) — tutorials + reference (still authoritative)
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

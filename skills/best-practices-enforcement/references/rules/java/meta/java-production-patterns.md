@@ -228,4 +228,4 @@ public List<Item> getItems() {
 - [Try-with-resources (Oracle)](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html)
 - [JDK Flight Recorder programming guide](https://docs.oracle.com/en/java/javase/21/jfapi/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

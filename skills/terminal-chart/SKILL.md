@@ -213,4 +213,4 @@ When the user asks for a terminal visualization:
 
 **Important:** The chart MUST be rendered by running the script — do not attempt to print ANSI codes directly from tool output, as they will not render. Always pipe through the Python script via Bash.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

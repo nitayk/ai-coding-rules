@@ -345,4 +345,4 @@ v2.1 is fully compatible with v2.0 and v1:
 
 *Instinct-based learning: teaching Claude your patterns, one project at a time.*
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

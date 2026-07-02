@@ -77,4 +77,4 @@ You deeply analyze codebases to understand how existing features work before new
 - Avoid [...]
 ```
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

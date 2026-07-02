@@ -175,4 +175,4 @@ Under Fusion, `dbt parse` includes column-level static checks; under Core, it on
 - [dbt Incremental models](https://docs.getdbt.com/docs/build/incremental-models)
 - [dbt Testing](https://docs.getdbt.com/docs/build/data-tests)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

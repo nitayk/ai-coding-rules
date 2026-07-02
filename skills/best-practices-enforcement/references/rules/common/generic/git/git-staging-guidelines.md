@@ -184,4 +184,4 @@ When updating the React UI:
 2. Stage related tests: `git add {ui}/src/**/*.test.*`
 3. Stage updated dependencies: `git add {ui}/package*.json`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -57,4 +57,4 @@ You remember that last week, another service had timeout issues and adding a ret
 
 Which do you choose? Be honest about what you would actually do.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -158,4 +158,4 @@ For long-lived streams, configure gRPC keepalive (`KEEPALIVE_TIME_MS`, `KEEPALIV
 - [gRPC Official Documentation](https://grpc.io/docs/)
 - [AIP-154 — Resource freshness validation](https://google.aip.dev/154)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

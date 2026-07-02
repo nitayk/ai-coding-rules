@@ -44,4 +44,4 @@
 - [Kotlin coding conventions (kotlinlang.org)](https://kotlinlang.org/docs/coding-conventions.html) — JetBrains canonical style guide (last updated 2025-06-11); pair with the Android-specific one below.
 - [Android Kotlin style guide](https://developer.android.com/kotlin/style-guide) — Google Android-flavoured rules, leans on hard rules and Java-interop concerns.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

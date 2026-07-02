@@ -115,4 +115,4 @@
 - [Referential Transparency](../language/referential-transparency.md) - Pure functions and testing
 - [Compiler-Friendly Types](../language/compiler-friendly-types.md) - Type safety in tests
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

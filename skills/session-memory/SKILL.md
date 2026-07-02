@@ -82,4 +82,4 @@ EOF
 
 <!-- Cross-platform note: Cursor/Copilot install targets were removed in v2.0 (ADR-009); this skill is Claude Code only. See AGENTS.md in the repository root. -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

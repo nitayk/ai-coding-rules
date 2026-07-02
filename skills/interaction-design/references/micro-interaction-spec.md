@@ -32,4 +32,4 @@ For each micro-interaction: name, trigger, rules (sequence), feedback (visual/au
 - Respect reduced-motion preferences
 - Test on target devices for performance
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

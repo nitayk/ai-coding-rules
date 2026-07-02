@@ -121,4 +121,4 @@ All four layers were necessary. During testing, each layer caught bugs the other
 
 **Don't stop at one validation point.** Add checks at every layer.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

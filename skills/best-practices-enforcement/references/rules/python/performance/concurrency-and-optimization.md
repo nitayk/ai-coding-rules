@@ -181,4 +181,4 @@ stats.print_stats(10)
 - [Python Speed - Performance Tips](https://wiki.python.org/moin/PythonSpeed/PerformanceTips)
 - [Asyncio Documentation](https://docs.python.org/3/library/asyncio.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

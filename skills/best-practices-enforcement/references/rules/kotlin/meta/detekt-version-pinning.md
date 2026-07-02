@@ -79,4 +79,4 @@ Until then, **1.23.x is the production answer.**
 - [Detekt](https://detekt.dev/) — Project home; 1.23.8 stable, 2.0.0-alpha.3 latest 2.x
 - [github.com/detekt/detekt/releases](https://github.com/detekt/detekt/releases) — Release feed (track for 2.0 GA signal)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

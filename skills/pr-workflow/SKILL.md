@@ -160,4 +160,4 @@ Full pitfalls + handling table: [references/pr-workflow.md § Common pitfalls](r
 
 > Poll continuously — don't let the PR wait on you.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

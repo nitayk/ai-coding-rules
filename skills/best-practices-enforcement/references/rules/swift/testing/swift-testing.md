@@ -190,4 +190,4 @@ For the full Swift Testing surface — `@Suite`, parameterized tests, traits, ta
 - [swiftlang/swift-testing](https://github.com/swiftlang/swift-testing)
 - [ViewInspector - SwiftUI view testing](https://github.com/nalexn/ViewInspector)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

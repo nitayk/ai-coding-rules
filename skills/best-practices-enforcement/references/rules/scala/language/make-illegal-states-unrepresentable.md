@@ -549,4 +549,4 @@ case class UnrestrictedPolicy() extends Policy
 
 - [Make Illegal AI Edits Unrepresentable](https://blog.daniel-beskin.com/2025-08-24-illegal-ai-edits) - Daniel Beskin's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

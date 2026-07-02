@@ -114,4 +114,4 @@ Honest "stopped" reports are infinitely more useful than a forced "passed" via a
 - `/systematic-debugging` — for root-cause investigation when the failure cause is unclear
 - `/tdd-workflow` — when working in red→green→refactor mode and a test stays red
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

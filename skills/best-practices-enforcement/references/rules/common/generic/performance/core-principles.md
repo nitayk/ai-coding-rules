@@ -187,4 +187,4 @@ After optimizing:
 
 **Remember**: "Make it work, make it right, make it fast" - in that order.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -64,4 +64,4 @@
 - Assuming 1:1 producer/consumer ratio.
 - Confusing Message Key with Partition Key.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -187,4 +187,4 @@ struct Config: Copyable {
 - [Protocol-Oriented Programming in Swift - Apple](https://developer.apple.com/videos/play/wwdc2015/408/)
 - [Protocols - Swift Documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

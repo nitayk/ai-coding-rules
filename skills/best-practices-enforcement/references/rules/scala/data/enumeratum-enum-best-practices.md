@@ -62,4 +62,4 @@
 - This file provides Scala-specific enumeratum enum patterns (type-safe enums, pattern matching, JSON serialization)
 - [Scala Complex Enum Best Practices](scala-complex-enum-best-practices.md) - Complex enum patterns with sealed traits
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

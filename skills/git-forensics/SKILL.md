@@ -159,4 +159,4 @@ Ranked list of files/areas to review first, with reason (churn + bug density com
 | Reporting raw counts without correlation | Cross-reference churn and bug density to find real danger zones |
 | Skipping contribution style when docs exist | CONTRIBUTING.md reveals declared intent; comparing to actual practice is the key insight |
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

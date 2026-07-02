@@ -424,4 +424,4 @@ def findUser(id: UserId): UserLookupResult
 - [Random Scala Tip #624: The Pitfalls of Option Blindness](https://blog.daniel-beskin.com/2025-05-01-random-scala-tip-624-option-blindness) - Daniel Beskin's Blog
 - [When Option is not good enough](https://danielwestheide.com/blog/when-option-is-not-good-enough/) - Daniel Westheide's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

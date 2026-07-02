@@ -223,4 +223,4 @@ image-generation capability this environment lacks; harvest those only if an ima
 AND a greenfield visual-reference need appears. ui-ux-pro-max + this router already cover
 improve-existing. -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

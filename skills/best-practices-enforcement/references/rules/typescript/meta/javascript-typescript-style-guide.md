@@ -227,4 +227,4 @@ Include an issue link or username. A `TODO` with no owner has a half-life of for
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Prettier Docs](https://prettier.io/docs/en/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -62,4 +62,4 @@ NSDictionary *map = [NSDictionary dictionaryWithObject:@"value" forKey:@"key"];
 - [ARC Memory Management](arc-memory-management.md) - Weak self in blocks
 - [Categories](categories.md) - Category design and method prefixes
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

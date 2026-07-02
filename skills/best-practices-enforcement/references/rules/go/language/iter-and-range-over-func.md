@@ -174,4 +174,4 @@ instead.
 - [Package `iter`](https://pkg.go.dev/iter)
 - [Package `slices` — iterator helpers](https://pkg.go.dev/slices)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

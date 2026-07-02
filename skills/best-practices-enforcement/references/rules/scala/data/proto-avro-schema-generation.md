@@ -282,4 +282,4 @@ sbt generateProtocols
 - [JSON Serialization Patterns](json-serialization-patterns.md) - For Play JSON serialization
 - [Kafka Patterns](../../kafka/kafka-patterns.md) - For Kafka message production/consumption (if exists)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

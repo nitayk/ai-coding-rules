@@ -178,4 +178,4 @@ Avoid hourly drift detection unless you have a specific compliance requirement. 
 - [Terraform — `plan -refresh-only`](https://developer.hashicorp.com/terraform/cli/commands/plan#planning-modes)
 - [driftctl (maintenance)](https://github.com/snyk/driftctl)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

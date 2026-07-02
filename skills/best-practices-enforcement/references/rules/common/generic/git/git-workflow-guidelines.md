@@ -56,4 +56,4 @@ After rebase: resolve conflicts, stage resolved files, `git rebase --continue`. 
 - Do not commit build artifacts, IDE files, or large files (use Git LFS)
 - Do not rewrite commits others have pulled
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

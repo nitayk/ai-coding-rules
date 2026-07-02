@@ -89,4 +89,4 @@ Failures:
 - Report file:line for failures
 - Distinguish test failures from build failures
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

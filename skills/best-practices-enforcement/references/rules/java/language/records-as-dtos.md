@@ -147,4 +147,4 @@ public record Order(@JsonProperty("order_id") String id, BigDecimal total) {}
 - [JEP 395: Records (Final, JDK 16)](https://openjdk.org/jeps/395) — normative spec
 - [dev.java/learn — Records](https://dev.java/learn/records/) — Oracle tutorial
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

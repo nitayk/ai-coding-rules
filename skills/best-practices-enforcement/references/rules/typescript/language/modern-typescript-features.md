@@ -192,4 +192,4 @@ Microsoft is porting the TS compiler to Go (`tsgo`) for ~7–10x faster type-che
 - [Progress on TypeScript 7 — Dec 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/)
 - [Total TypeScript: 5 Ways to Use Satisfies](https://www.totaltypescript.com/how-to-use-satisfies-operator)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

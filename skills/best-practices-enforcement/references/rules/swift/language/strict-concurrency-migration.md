@@ -203,4 +203,4 @@ Both tools shift the safety obligation from compiler to programmer. Comment **wh
 - [Updating an app to use strict concurrency — Apple](https://developer.apple.com/documentation/swift/updating-an-app-to-use-strict-concurrency)
 - [WWDC24 "Migrate your app to Swift 6"](https://developer.apple.com/videos/play/wwdc2024/10169/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

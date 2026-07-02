@@ -44,4 +44,4 @@ Rate each dimension: `pass` / `minor issue` / `major issue`.
 - Hardcoded font-size values in components because the token was not found or not updated
 - Over-use of bold — more than two weight levels active on a single screen dilutes contrast
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

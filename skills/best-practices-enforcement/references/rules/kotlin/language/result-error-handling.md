@@ -121,4 +121,4 @@ viewModelScope.launch {
 - [Kotlin Result](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-result/)
 - [Functional Error Handling in Kotlin](https://www.baeldung.com/kotlin/functional-error-handling)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -67,4 +67,4 @@ gcloud auth login --enable-gdrive-access
 
 After that, any doc shared with your Google account works automatically.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -18,8 +18,6 @@ type Options struct {
 	Source string
 	// ProjectDir is the consumer project to link into ("." allowed).
 	ProjectDir string
-	Cursor     bool // create .cursor/rules/shared
-	Claude     bool // create .claude/rules/shared
 	DryRun     bool
 	Log        *ui.Logger
 }
@@ -48,17 +46,14 @@ func Run(o Options) error {
 	o.Log.Plain("Source: %s", src)
 	o.Log.Plain("")
 
-	if o.Cursor {
-		o.linkOne(projAbs, src, ".cursor/rules/shared", "install via: acr sync --target cursor")
-	}
-	if o.Claude {
-		o.linkOne(projAbs, src, ".claude/rules/shared", "install via: acr sync --target claude")
-	}
+	// The submodule/checkout always lives at .cursor/rules/shared — a
+	// Claude-safe location (Claude Code ignores .cursor/), which avoids
+	// exploding Claude Code's context under .claude/.
+	o.linkOne(projAbs, src, ".cursor/rules/shared", "install via: acr sync")
 
 	o.Log.Plain("")
 	o.Log.Plain("Done! Remember to add to .gitignore if needed:")
 	o.Log.Plain("  .cursor/rules/shared  # symlink to global ai-coding-rules")
-	o.Log.Plain("  .claude/rules/shared  # symlink to global ai-coding-rules")
 	return nil
 }
 

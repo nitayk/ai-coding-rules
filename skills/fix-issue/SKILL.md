@@ -66,4 +66,4 @@ Fetch a GitHub issue, analyze it, and implement the fix.
 - `/create-pr` - Create PR after fix is complete
 - `/tdd-workflow` - Test-driven development patterns
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

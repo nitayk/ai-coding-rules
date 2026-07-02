@@ -99,4 +99,4 @@
 - [JUnit 5 User Guide](https://docs.junit.org/current/user-guide/) — canonical test framework (URL updated from `junit.org/junit5/...` 301)
 - [Testcontainers for Java](https://java.testcontainers.org/) — integration-test standard
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

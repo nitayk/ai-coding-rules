@@ -347,4 +347,4 @@ Before marking work complete, verify:
 - [Architecture Principles](../architecture/core-principles.md) - Clean architecture, separation of concerns
 - [Error Handling](../error-handling/universal-patterns.md) - Explicit error types, fail fast
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

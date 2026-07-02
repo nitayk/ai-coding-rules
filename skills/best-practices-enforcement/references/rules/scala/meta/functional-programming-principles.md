@@ -256,4 +256,4 @@ def registerUser(emailStr: String, ageInt: Int): User = {
 - [Error Handling Patterns](../language/error-handling-patterns.md) - Option, Either, Try patterns
 - [Make Illegal States Unrepresentable](../language/make-illegal-states-unrepresentable.md) - Type-safe invariants
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

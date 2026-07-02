@@ -117,4 +117,4 @@ Move the write into a `LaunchedEffect`, a click handler, or `SideEffect { }`.
 - [Jetpack Compose performance](https://developer.android.com/develop/ui/compose/performance) — Baseline Profiles, R8, stability, `derivedStateOf`, backwards-writes (2026-05-15)
 - [Jetpack Compose docs hub](https://developer.android.com/develop/ui/compose) — Canonical Compose entry point
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

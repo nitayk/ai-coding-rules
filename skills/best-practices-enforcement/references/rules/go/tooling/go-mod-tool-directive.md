@@ -153,4 +153,4 @@ No `go install`, no `$GOBIN` in `PATH`, no version drift between dev and CI.
 - [Go 1.24 release notes](https://go.dev/doc/go1.24)
 - [Managing dependencies](https://go.dev/doc/modules/managing-dependencies)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

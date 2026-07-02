@@ -193,4 +193,4 @@
 - [Make Illegal States Unrepresentable](make-illegal-states-unrepresentable.md) - Using sealed traits for error types
 - [Compiler-Friendly Types](compiler-friendly-types.md) - Foundation for type-safe error handling
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

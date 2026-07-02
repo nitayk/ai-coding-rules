@@ -422,4 +422,4 @@ This skill includes:
   and internal `name:` aligned to match, so the ui-uplift router's microcopy route resolves
   cleanly. Promoted to mobile-agent-toolkit (AQ-3 ui-uplift suite). -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

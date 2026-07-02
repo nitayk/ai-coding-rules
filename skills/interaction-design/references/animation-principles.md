@@ -41,4 +41,4 @@ You apply animation principles to make interfaces feel natural, guide attention,
 - Keep animations under 400ms for responsive feel
 - Use will-change or transform for performance
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

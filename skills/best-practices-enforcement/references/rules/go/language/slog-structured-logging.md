@@ -170,4 +170,4 @@ zero imports — partial migrations create two log streams with different schema
 - [Structured Logging with slog (Go Blog)](https://go.dev/blog/slog)
 - [Package `log/slog`](https://pkg.go.dev/log/slog)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

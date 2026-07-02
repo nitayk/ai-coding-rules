@@ -43,4 +43,4 @@ project has them (or pull them from a Claude Design project per `design-ops` Ste
 - When a Claude Design project exists, derive values from its `_ds_manifest.json` and cite the
   token names directly rather than re-measuring a screenshot.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

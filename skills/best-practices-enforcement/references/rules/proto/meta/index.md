@@ -29,4 +29,4 @@
 - **Adjacent: Go**: `../../go/index.md` — must exclude generated paths from its linters
 - **Validation**: `../validation/codegen-toolchain.md` — where generated code comes from
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

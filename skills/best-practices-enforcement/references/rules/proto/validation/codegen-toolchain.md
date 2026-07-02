@@ -203,4 +203,4 @@ Each new plugin adds toolchain weight (install step, CI step, version-pin mainte
 - [gRPC Go Quickstart](https://grpc.io/docs/languages/go/quickstart/)
 - [google.golang.org/protobuf](https://pkg.go.dev/google.golang.org/protobuf)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

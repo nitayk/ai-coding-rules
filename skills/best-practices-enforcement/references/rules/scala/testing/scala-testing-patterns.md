@@ -46,4 +46,4 @@ Use `TableDrivenPropertyChecks` for multiple similar cases. Use ScalaCheck for p
 - Focus on meaningful tests, not coverage numbers
 - Test edge cases and error conditions
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

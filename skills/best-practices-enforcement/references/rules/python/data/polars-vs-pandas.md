@@ -161,4 +161,4 @@ Convert as late as possible. If sklearn expects pandas, do filtering and aggrega
 - [Polars Python API Reference](https://docs.pola.rs/api/python/stable/reference/) — canonical Python surface
 - [Polars Lazy API](https://docs.pola.rs/user-guide/concepts/lazy-vs-eager/) — when and why
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

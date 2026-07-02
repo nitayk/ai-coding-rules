@@ -45,4 +45,4 @@ from memory, and check exact values with browser dev tools.
 3. File issues with side-by-side design-vs-build screenshots; rank by severity.
 4. Verify each fix; log recurring misses so they become spec defaults next time.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

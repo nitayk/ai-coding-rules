@@ -404,4 +404,4 @@ function App() {
 - [Dan Abramov's Blog](https://overreacted.io/)
 - [Kent C. Dodds - Epic React](https://epicreact.dev/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

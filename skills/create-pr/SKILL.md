@@ -97,4 +97,4 @@ gh pr create --base <base-branch> --title "<title>" --body-file <path-to-filled-
 - Always derive the PR body from the correct template so the format matches the repo's expectations.
 - Do not run commands to verify the PR was created on GitHub after `gh pr create` succeeds.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

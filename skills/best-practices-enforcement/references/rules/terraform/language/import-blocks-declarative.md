@@ -144,4 +144,4 @@ Treat `import {}` as a one-shot migration tool: add it, apply it, remove it in t
 - [Terraform — `import` block](https://developer.hashicorp.com/terraform/language/import)
 - [Scalr — Terraform import block learning center](https://scalr.com/learning-center/terraform-import-block/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

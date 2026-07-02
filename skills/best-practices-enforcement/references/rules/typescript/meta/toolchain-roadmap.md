@@ -106,4 +106,4 @@ When someone opens a PR or ticket proposing a toolchain swap:
 - [Progress on TypeScript 7 — Dec 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/)
 - [microsoft/typescript-go](https://github.com/microsoft/typescript-go)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

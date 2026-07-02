@@ -307,4 +307,4 @@ class ServiceTest extends AnyWordSpec with Matchers {
 **Scala-Specific:**
 - This file provides Scala-specific monitoring patterns (implicit parameters, structured metrics)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

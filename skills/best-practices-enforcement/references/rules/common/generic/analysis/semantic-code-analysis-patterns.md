@@ -66,4 +66,4 @@ Identifying where the code "lies" to future readers is critical for maintenance 
 
 **Reference**: Every investigation should result in an enriched understanding that combines code structure with these semantic insights.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

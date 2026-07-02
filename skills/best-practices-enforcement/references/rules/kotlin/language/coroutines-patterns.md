@@ -371,4 +371,4 @@ fun observeUsers(): Flow<List<User>> = flow {
 - [kotlinx.coroutines: exception handling](https://github.com/Kotlin/kotlinx.coroutines/blob/master/docs/topics/exception-handling.md) — SupervisorJob, supervisorScope, CoroutineExceptionHandler
 - [Android coroutines best practices](https://developer.android.com/kotlin/coroutines/coroutines-best-practices) — Inject dispatchers, no GlobalScope, ViewModel scope, cancellability (2026-03-06)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -55,4 +55,4 @@ You simplify code while preserving functionality.
 3. apply only functionally equivalent changes
 4. verify no behavioral change was introduced
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

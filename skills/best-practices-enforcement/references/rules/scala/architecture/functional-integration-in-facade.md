@@ -318,4 +318,4 @@ This facade design ensures clean separation of concerns, proper error handling, 
 - [Trait Composition Patterns](../architecture/trait-composition-patterns.md) - For modular trait composition
 - [Scala Testing Best Practices](../testing/scala-testing-best-practices.md) - For testing integration patterns
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

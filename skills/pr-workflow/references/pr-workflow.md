@@ -131,4 +131,4 @@ gh pr merge <pr> --squash --delete-branch
 - **Skipping local pre-PR checks** — CI will catch it slower and more expensively.
 - **Auto-rerunning failed checks** — only rerun if you've confirmed flakiness; otherwise fix.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -162,4 +162,4 @@ Document for every server which codes it can return, and which of those are retr
 - [gRPC Official Documentation](https://grpc.io/docs/)
 - [AIP-193 — Errors](https://google.aip.dev/193)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

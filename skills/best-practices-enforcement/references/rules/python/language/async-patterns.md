@@ -283,4 +283,4 @@ async def fetch_users(user_ids: list[int]) -> list[User]:
 - [Python asyncio Documentation](https://docs.python.org/3/library/asyncio.html)
 - [Real Python: Async IO in Python](https://realpython.com/async-io-python/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

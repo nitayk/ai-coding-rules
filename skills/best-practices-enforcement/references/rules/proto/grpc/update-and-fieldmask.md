@@ -193,4 +193,4 @@ Or accept `update_mask = ["*"]` on `UpdateAd` and document the convention; eithe
 - [AIP-154 — Resource freshness validation (etag)](https://google.aip.dev/154)
 - [AIP-180 — Backwards Compatibility](https://google.aip.dev/180)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

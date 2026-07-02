@@ -200,4 +200,4 @@ class BadActor extends Actor {
 - [Akka BSL License FAQ](https://akka.io/bsl-license-faq) — license terms and 3-year reversion mechanic
 - [Akka → Pekko Migration](akka-to-pekko-migration.md) — when and how to move
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -273,4 +273,4 @@ except Exception:
 - [PEP 3134 – Exception Chaining](https://peps.python.org/pep-3134/)
 - [Built-in Exceptions](https://docs.python.org/3/library/exceptions.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

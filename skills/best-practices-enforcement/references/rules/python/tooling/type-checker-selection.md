@@ -155,4 +155,4 @@ When a third-party library has no stubs and no inline types, add a `[[tool.mypy.
 - [basedpyright documentation](https://docs.basedpyright.com/latest/) — community fork with stricter defaults + baseline
 - [PEP 561 — distributing type information](https://peps.python.org/pep-0561/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

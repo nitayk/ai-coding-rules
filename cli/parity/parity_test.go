@@ -310,13 +310,10 @@ func TestSyncParity(t *testing.T) {
 		name string
 		args []string
 	}{
-		{"cursor_symlink", []string{"--target", "cursor", "--force"}},
-		{"cursor_copy", []string{"--target", "cursor", "--force", "--copy"}},
 		{"claude_symlink", []string{"--target", "claude", "--force"}},
 		{"claude_copy", []string{"--target", "claude", "--force", "--copy"}},
-		{"both", []string{"--target", "cursor,claude", "--force"}},
-		{"skills_all", []string{"--target", "cursor", "--force", "--skills", "all"}},
-		{"skills_core", []string{"--target", "cursor", "--force", "--skills", "core"}},
+		{"skills_all", []string{"--target", "claude", "--force", "--skills", "all"}},
+		{"skills_core", []string{"--target", "claude", "--force", "--skills", "core"}},
 	}
 	for _, sc := range scenarios {
 		sc := sc
@@ -347,17 +344,17 @@ func TestLinkParity(t *testing.T) {
 	bashProj := t.TempDir()
 	goProj := t.TempDir()
 
-	bash := exec.Command("bash", filepath.Join(src, "link-to-project.sh"), bashProj, "--both")
+	bash := exec.Command("bash", filepath.Join(src, "link-to-project.sh"), bashProj)
 	bash.Env = append(os.Environ(), "NO_COLOR=1")
 	if out, err := bash.CombinedOutput(); err != nil {
 		t.Fatalf("bash link failed: %v\n%s", err, out)
 	}
-	acr := exec.Command(acrBin, "link", goProj, "--both", "--source", src)
+	acr := exec.Command(acrBin, "link", goProj, "--source", src)
 	acr.Env = append(os.Environ(), "NO_COLOR=1")
 	if out, err := acr.CombinedOutput(); err != nil {
 		t.Fatalf("acr link failed: %v\n%s", err, out)
 	}
-	// Both create .cursor/rules/shared and .claude/rules/shared symlinks to src.
+	// Both create the .cursor/rules/shared symlink to src.
 	compareTrees(t, bashProj, goProj)
 }
 
@@ -369,13 +366,13 @@ func TestInstallFromRepoParity(t *testing.T) {
 	bashRepo := buildRepoFixture(t)
 	goRepo := buildRepoFixture(t)
 
-	bash := exec.Command("bash", filepath.Join(bashRepo, "install.sh"), "--target", "cursor")
+	bash := exec.Command("bash", filepath.Join(bashRepo, "install.sh"), "--target", "claude")
 	bash.Dir = bashRepo
 	bash.Env = append(os.Environ(), "NO_COLOR=1")
 	if out, err := bash.CombinedOutput(); err != nil {
 		t.Fatalf("bash install failed: %v\n%s", err, out)
 	}
-	acr := exec.Command(acrBin, "install", "--target", "cursor")
+	acr := exec.Command(acrBin, "install", "--target", "claude")
 	acr.Dir = goRepo
 	acr.Env = append(os.Environ(), "NO_COLOR=1")
 	if out, err := acr.CombinedOutput(); err != nil {
@@ -386,7 +383,7 @@ func TestInstallFromRepoParity(t *testing.T) {
 	// on the raw target string.
 	keep := func(rel string) bool {
 		top := strings.SplitN(rel, string(filepath.Separator), 2)[0]
-		return top == ".cursor" || top == ".claude" || top == ".agents" || rel == ".gitignore"
+		return top == ".claude" || rel == ".gitignore"
 	}
 	compareGenerated(t, bashRepo, goRepo, keep)
 }
@@ -484,8 +481,8 @@ func TestSyncDryRunMakesNoChanges(t *testing.T) {
 	src := buildSource(t)
 	bashRepo := t.TempDir()
 	goRepo := t.TempDir()
-	runBashSync(t, src, bashRepo, "--target", "cursor", "--force", "--dry-run")
-	runAcrSync(t, src, goRepo, "--target", "cursor", "--force", "--dry-run")
+	runBashSync(t, src, bashRepo, "--target", "claude", "--force", "--dry-run")
+	runAcrSync(t, src, goRepo, "--target", "claude", "--force", "--dry-run")
 	if e := scanTree(t, bashRepo); len(e) != 0 {
 		t.Errorf("bash dry-run created entries: %v", e)
 	}
