@@ -216,7 +216,7 @@ Built on the shoulders of giants:
 
 - [obra/superpowers](https://github.com/obra/superpowers) by Jesse Vincent - The autonomous dev workflow
 - [anthropics/skills](https://github.com/anthropics/skills) by Anthropic - Official Claude skills
-- [ironsource-mobile/mobile-agent-toolkit](https://github.com/ironsource-mobile/mobile-agent-toolkit) (formerly mobile-cursor-rules) - Generic rules, agents, hooks
+- A private internal work toolkit - some generic skills, agents, and hooks (internal-specific content excluded; see [SOURCES.md](SOURCES.md))
 - [Agent Skills Standard](https://agentskills.io) - The open SKILL.md specification
 
 ## License

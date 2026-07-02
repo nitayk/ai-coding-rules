@@ -1,7 +1,7 @@
 # Plan: Replace shell install/sync tooling with a Go CLI (`acr`)
 
 **Classification:** refactor (bash→Go reimplementation at filesystem-behavior parity)
-**Stack:** backend-go · cobra · single static binary · style-focused (pilot for `cgctl`)
+**Stack:** backend-go · cobra · single static binary · style-focused (pilot for future Go CLIs)
 
 ## Goal
 
@@ -42,7 +42,7 @@ Self-contained module under `cli/` keeps the Go toolchain isolated from the
 rules-repo root (matches the "keep self-contained for now" constraint). Build:
 `go build -o acr ./cli` (or `cd cli && go build -o ../acr .`).
 
-## Cobra patterns (to transfer to cgctl)
+## Cobra patterns (to transfer to a downstream Go CLI)
 
 - `cmd/` holds **only** cobra wiring: flag binding into a typed `Options` struct,
   `Args` validators, `--help` text. No business logic.
@@ -93,7 +93,7 @@ rules-repo root (matches the "keep self-contained for now" constraint). Build:
 
 - Merging with `ccpm` install/context domain. `acr install`/`acr sync` overlap ccpm's
   "set up a repo's agent assets" domain, but this pilot stays standalone to prove the
-  Go-CLI pattern cleanly. Wrapper-vs-reimplement decision for `cgctl` is observed, not
+  Go-CLI pattern cleanly. Wrapper-vs-reimplement decision for a downstream Go CLI is observed, not
   decided here.
 - Publishing/release packaging beyond `go build` + a short README.
 

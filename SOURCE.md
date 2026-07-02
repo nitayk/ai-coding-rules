@@ -14,4 +14,4 @@ The submodule lives at `.cursor/rules/shared` on purpose — **never** under `.c
 
 Skills are always **copied** (not symlinked) because Claude Code does not discover symlinked skill directories. Agents and commands use symlinks for automatic updates; use `--copy` to fall back to full copying.
 
-See also [UPSTREAM_SCOPE.md](./UPSTREAM_SCOPE.md) for how this pack relates to ironsource **mobile-agent-toolkit** and Unity **ai-agent-skills**.
+See [SOURCES.md](./SOURCES.md) for upstream provenance.
