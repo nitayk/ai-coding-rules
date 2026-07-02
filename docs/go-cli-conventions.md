@@ -1,7 +1,7 @@
-# Go CLI conventions (pilot notes for `cgctl`)
+# Go CLI conventions (pilot notes for a downstream Go CLI)
 
 This `acr` CLI was built as a pilot to prove a clean, transferable Go-CLI pattern
-for the agentic-evolution `cgctl` effort. These are the conventions worth
+for future Go CLI efforts. These are the conventions worth
 carrying over, the things to fix first, and what the pilot taught about
 wrapper-vs-reimplement.
 
@@ -24,7 +24,7 @@ cli/
 ```
 
 Keeping the module under `cli/` (not the repo root) keeps the Go toolchain out
-of a repo that is mostly Markdown/config. For `cgctl`, do the same if it lives in
+of a repo that is mostly Markdown/config. For a downstream Go CLI, do the same if it lives in
 a mixed repo.
 
 ## Cobra patterns
@@ -43,7 +43,7 @@ a mixed repo.
 - **Parse-and-validate at the entry, once.** `syncer.ParseTargets` is the single
   authoritative `--target` parser, shared by the cobra layer and the installer.
   The first pilot draft duplicated this in three places with divergent behavior —
-  don't. For `cgctl`: one parser per flag, called at the boundary.
+  don't. For a downstream Go CLI: one parser per flag, called at the boundary.
 
 ## Pure-core / imperative-shell split
 
@@ -51,13 +51,13 @@ The high-leverage decision was pushing all *policy-free* logic into pure package
 (`fsx`, `hooksjson`, `skillgroups`) that take values and return values/errors,
 and keeping *policy* (dry-run, force, logging, skip-if-identical) in the engines.
 This is why the unit tests are fast and the parity tests are small. Carry this to
-`cgctl`: filesystem and serialization primitives should not know about flags or
+a downstream Go CLI: filesystem and serialization primitives should not know about flags or
 print anything.
 
 ## Logging
 
 `ui.Logger` is a concrete struct with a `Stats` counter. **Recommended change
-before `cgctl` grows a second engine:** make engines depend on a small `Logger`
+before a downstream Go CLI grows a second engine:** make engines depend on a small `Logger`
 *interface* instead of the concrete type, so output can be captured/stubbed in
 tests and the `Stats` surface is explicit. The pilot left it concrete to stay
 close to the shell scripts' inline logging; it is the first thing to refactor.
@@ -80,7 +80,7 @@ Two layers, both worth copying:
    - `TestMain` builds the binary once; `requireTools` skips when
      `bash/jq/python3/git` or the baseline are absent.
 
-For `cgctl`, if it wraps or replaces an existing tool, write the effect-diff
+For a downstream Go CLI, if it wraps or replaces an existing tool, write the effect-diff
 parity harness *first* — it caught every behavioral mismatch here and gave the
 confidence to delete 2200 lines of shell.
 
@@ -105,7 +105,7 @@ matrix build is the obvious next step (not done in the pilot).
 
 ## Wrapper vs reimplement — pilot observation (decision deferred)
 
-The task deferred the wrapper-vs-reimplement call for `cgctl`. What this pilot
+The task deferred the wrapper-vs-reimplement call for a downstream Go CLI. What this pilot
 suggests: **reimplementing** these scripts in Go was clearly right *because the
 logic was non-trivial but self-contained* (string/JSON/path manipulation), and
 the reimplementation shed the `jq`/`python3` deps and added type safety and
@@ -114,4 +114,4 @@ untestability. The signal for "reimplement": the original's complexity lives in
 *data transformation* you can port and test, not in orchestrating external tools
 you don't control. Where the work is mostly orchestrating an external binary
 (e.g. `git` here), `acr` *wraps* (`os/exec`) rather than reimplements — so the
-real answer is per-concern, not per-tool. Apply that lens to `cgctl`.
+real answer is per-concern, not per-tool. Apply that lens to a downstream Go CLI.

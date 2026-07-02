@@ -115,5 +115,5 @@ go vet ./... && gofmt -l .
 `acr install` / `acr sync` overlap `ccpm`'s "set up a repo's agent assets"
 domain. This pilot intentionally stays **standalone** — no merge with `ccpm` —
 to prove the Go-CLI pattern cleanly. The wrapper-vs-reimplement question for the
-`cgctl` effort is deferred; see [`docs/go-cli-conventions.md`](../docs/go-cli-conventions.md)
+a downstream Go CLI effort is deferred; see [`docs/go-cli-conventions.md`](../docs/go-cli-conventions.md)
 for the structure/conventions meant to transfer there.
