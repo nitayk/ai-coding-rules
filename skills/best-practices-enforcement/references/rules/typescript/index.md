@@ -165,7 +165,7 @@ async function goodAsync(): Promise<Response> {
 - **Error Handling**: See `language/error-handling-patterns.md` and `generic/error-handling/universal-patterns.md`
 - **Testing**: See `@testing/vitest-best-practices.md`
 - **Git Workflow**: Use the `/git-workflow` skill
-- **Refactoring**: Use the `/service-refactoring` skill
+- **Refactoring**: Use the `/code-simplification` skill
 
 ---
 

@@ -17,7 +17,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/unity-ads/unityapis/gen/go
+      value: github.com/example-org/apis/gen/go
 plugins:
   - local: protoc-gen-go
     out: gen/go
@@ -69,7 +69,7 @@ generate: tools
 protoc \
   --go_out=. --go_opt=paths=source_relative \
   --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-  -I. unityads/ads/sdk/v1/ad_request.proto
+  -I. example/ads/sdk/v1/ad_request.proto
 ```
 
 Every flag is a place to drift. `protoc` versions differ across machines; `--go_opt=paths=source_relative` is a thing one developer remembers and another forgets; the `-I` flag has to be reconstructed for every multi-module setup. `buf generate` reads `buf.gen.yaml`, runs the plugins with the same options every time, and resolves dependencies automatically.
@@ -109,12 +109,12 @@ Standard convention: all generated code goes under a top-level `gen/` directory,
 - Distinguish it from hand-written code at a glance.
 
 ```
-unityapis/
+apis/
 ├── proto/
-│   └── unityads/ads/sdk/v1/*.proto    ← hand-written
+│   └── example/ads/sdk/v1/*.proto    ← hand-written
 ├── gen/
 │   └── go/
-│       └── unityads/ads/sdk/v1/
+│       └── example/ads/sdk/v1/
 │           ├── ad_request.pb.go         ← generated
 │           └── ad_service_grpc.pb.go    ← generated
 └── buf.gen.yaml
@@ -166,10 +166,10 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/unity-ads/unityapis/gen/go
+      value: github.com/example-org/apis/gen/go
 ```
 
-Now every generated file gets `option go_package = "github.com/unity-ads/unityapis/gen/go/<package-path>"` derived from the proto package — no per-file maintenance.
+Now every generated file gets `option go_package = "github.com/example-org/apis/gen/go/<package-path>"` derived from the proto package — no per-file maintenance.
 
 ---
 

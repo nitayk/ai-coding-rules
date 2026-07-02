@@ -9,7 +9,7 @@
 
 **Key Principle**: This directory contains ONLY proto/gRPC-specific patterns. Universal principles live in `generic/` and load automatically.
 
-**UADS Context**: `unityapis` is consumed by every Go backend (`ads-sdk-gateway`, `ads-valuation-composer`, etc.). Cross-repo blast radius is much larger than the file count. The single highest-leverage rule in this directory is `governance/buf-breaking-against-main.md` — wire it into CI on the schema repo first.
+**Schema-repo context**: A shared schema repo (referred to as `apis` in these examples) is consumed by every Go backend across the org. Cross-repo blast radius is much larger than the file count. The single highest-leverage rule in this directory is `governance/buf-breaking-against-main.md` — wire it into CI on the schema repo first.
 
 **Graph Structure**: This is a Layer 2 node that routes directly to Layer 0 leaves (rule files) based on keywords. Flattened for efficiency.
 
@@ -60,7 +60,7 @@
 - **[Pagination](grpc/pagination-aip.md)** — AIP-158 `page_token` / `page_size`
 - **[Long-Running Operations](grpc/long-running-operations.md)** — AIP-151 `Operation` pattern
 
-### Governance (`governance/`) — highest-leverage subdir for UADS
+### Governance (`governance/`) — highest-leverage subdir
 - **[buf lint in CI](governance/buf-lint-in-ci.md)** — STANDARD category on every PR
 - **[buf breaking against main](governance/buf-breaking-against-main.md)** — FILE tier default; prevents accidental wire breakage
 - **[buf format pre-commit](governance/buf-format-precommit.md)** — canonical formatter

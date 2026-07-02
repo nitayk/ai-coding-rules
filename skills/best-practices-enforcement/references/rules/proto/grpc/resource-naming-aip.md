@@ -50,7 +50,7 @@ message GamerProfile {
 }
 ```
 
-`buf lint` does not enforce the collection-ID casing on its own — the AIP linter (`api-linter`) does. Run both in CI on `unityapis`.
+`buf lint` does not enforce the collection-ID casing on its own — the AIP linter (`api-linter`) does. Run both in CI on `apis`.
 
 ---
 

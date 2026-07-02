@@ -59,9 +59,9 @@ Identifying where the code "lies" to future readers is critical for maintenance 
 
 ---
 
-## 5. Practical Tooling (The "Memgraph + Grep" Synergy)
+## 5. Practical Tooling (The "Code Graph + Grep" Synergy)
 
-*   **Memgraph**: Use to find the **Explicit Call Graph** (the physical truth).
+*   **A code-graph database (e.g. an in-house code graph)**: Use to find the **Explicit Call Graph** (the physical truth).
 *   **Grep**: Use to find the **Semantic Collisions** (e.g., search for the same variable name being used in different stages to find where the "Truth" changes).
 
 **Reference**: Every investigation should result in an enriched understanding that combines code structure with these semantic insights.

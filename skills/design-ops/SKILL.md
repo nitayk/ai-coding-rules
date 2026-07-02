@@ -58,7 +58,7 @@ PNG + prose PRD — is the source of truth, and it's structured + buildable:
 [github.com/Owl-Listener/designer-skills](https://github.com/Owl-Listener/designer-skills)). This
 skill and its two reference files (`handoff-spec`, `design-qa-checklist`) are an original rewrite —
 the handoff/QA dimensions are common design-engineering practice; the wording, the Claude Design
-Step 0, and the Unity-context guardrails are ours.*
+Step 0, and the context-awareness guardrails are ours.*
 
 <!-- PROVENANCE: originated as a user-level local pilot (2026-06-08); the wrapper + reference
 content were authored/rewritten in original wording (NOT a verbatim vendor of the upstream — so

@@ -38,7 +38,7 @@ See [`cli/README.md`](cli/README.md) for full command docs.
 acr link ~/projects/my-app
 cd ~/projects/my-app && acr sync          # add --copy to copy instead of symlink
 
-# Restart Cursor -- done! 107 skills + 200+ rules in that project.
+# Restart Cursor -- done! 103 skills + 200+ rules in that project.
 ```
 
 To update a project later:

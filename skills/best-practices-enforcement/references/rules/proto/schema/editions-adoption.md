@@ -21,7 +21,7 @@ Source: [Protobuf Editions Overview](https://protobuf.dev/editions/overview/).
 // ✅ Good: Edition 2024, presence default carried forward explicitly
 edition = "2024";
 
-package unityads.ads.valuation.v1;
+package example.ads.valuation.v1;
 
 option features.field_presence = EXPLICIT;
 
@@ -35,10 +35,10 @@ message Valuation {
 // ❌ Bad: mixing syntaxes inside one package
 // File a.proto
 syntax = "proto3";
-package unityads.ads.valuation.v1;
+package example.ads.valuation.v1;
 // File b.proto in the same dir
 edition = "2024";
-package unityads.ads.valuation.v1;
+package example.ads.valuation.v1;
 ```
 
 ---

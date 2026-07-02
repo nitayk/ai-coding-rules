@@ -71,7 +71,7 @@ This is the same model `rules/go/`, `rules/python/`, etc. use. Don't break it by
 
 ## Interaction with `rules/go/`
 
-A `.proto` file change usually accompanies a `.go` change — either in `unityapis`'s generated output or in a consumer regenerating its stubs. Both rulesets auto-load when both file types are in scope. The `meta/` rules in this directory specifically address that interaction (notably the generated-code exclusion).
+A `.proto` file change usually accompanies a `.go` change — either in `apis`'s generated output or in a consumer regenerating its stubs. Both rulesets auto-load when both file types are in scope. The `meta/` rules in this directory specifically address that interaction (notably the generated-code exclusion).
 
 If you find yourself needing a rule that spans both directories, write it in the directory that owns the **source**, and reference it from the other. Example: "exclude generated `.pb.go` from Go linters" is a `proto/meta/` rule because the convention is driven by proto codegen, even though the configuration lives in `golangci-lint`.
 

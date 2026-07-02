@@ -43,7 +43,7 @@ In wire-format terms, switching from `google.protobuf.Empty` to `PingRequest` is
 2. Update call sites that reference the old type.
 3. Re-deploy in lockstep.
 
-For `unityapis` — consumed by every Go backend in UADS — that's the same blast radius as a real breaking change. Starting with a concrete type costs nothing today and avoids the migration entirely.
+For `apis` — consumed by every Go backend in the org — that's the same blast radius as a real breaking change. Starting with a concrete type costs nothing today and avoids the migration entirely.
 
 ---
 

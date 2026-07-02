@@ -86,7 +86,7 @@ The mechanics:
 2. The schema repo's CI loads every published pact and verifies that the new schema still satisfies each one.
 3. A consumer that doesn't publish is assumed to depend on everything (the `buf breaking` default).
 
-This is heavyweight to set up but invaluable when you have ~10+ consumers and want to know **which specific consumer** a breaking change will affect. For UADS today (one schema repo, in-org consumers), it's overkill — `buf breaking` at the FILE tier already gives you most of the benefit. Revisit if cross-org consumers appear.
+This is heavyweight to set up but invaluable when you have ~10+ consumers and want to know **which specific consumer** a breaking change will affect. For a single-schema-repo setup with in-org consumers, it's overkill — `buf breaking` at the FILE tier already gives you most of the benefit. Revisit if cross-org consumers appear.
 
 ---
 

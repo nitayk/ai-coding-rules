@@ -3,13 +3,13 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I need to create 3 tasks for my sprint on this board: https://github.com/orgs/Unity-Technologies/projects/101/views/44 -- oncall next week, then a design doc, then implementation. Assign them all to me.",
+      "prompt": "I need to create 3 tasks for my sprint on this board: https://github.com/orgs/your-org/projects/101/views/44 -- oncall next week, then a design doc, then implementation. Assign them all to me.",
       "expected_output": "Agent discovers project metadata via GraphQL, asks which repo to create issues in, creates 3 issues with assignee, adds them to the project board, and sets sprint/status/dates",
       "files": []
     },
     {
       "id": 2,
-      "prompt": "can you check what's currently in sprint 2 on our project board? https://github.com/orgs/Unity-Technologies/projects/101",
+      "prompt": "can you check what's currently in sprint 2 on our project board? https://github.com/orgs/your-org/projects/101",
       "expected_output": "Agent queries the project board items filtered by the current sprint iteration and presents the results",
       "files": []
     },

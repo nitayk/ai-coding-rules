@@ -14,10 +14,9 @@ Ask the questions **one at a time**, waiting for feedback on each before
 continuing. Asking multiple questions at once is bewildering.
 
 **If a question can be answered by exploring the codebase, explore the codebase
-instead of asking.** In this toolkit that means: grep, read the files, and for
-cross-file or cross-service questions reach for `/code-graph-architect` (UADS +
-active iAds-side repos) or `/memgraph-analysis` (iAds-core) before spending a
-question on the user. Only ask the user what the code genuinely cannot answer.
+instead of asking.** That means: grep, read the files, and for cross-file or
+cross-service questions reach for your code-search / code-graph tools before
+spending a question on the user. Only ask the user what the code genuinely cannot answer.
 
 ## Why this is sharper than a flat question list
 

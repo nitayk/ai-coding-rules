@@ -148,9 +148,9 @@ Common culprits: older Play 2.x, older Alpakka modules (use Pekko Connectors ins
 
 You **cannot** run Akka and Pekko actor systems side-by-side in the same JVM and have them interoperate as one cluster. They are distinct packages, distinct serialization namespaces, distinct config trees. If you must bridge, use a network boundary (HTTP/gRPC/Kafka), not in-process actors.
 
-### LevelPlay / IDP Specifics (this workspace)
+### Prioritizing migration
 
-Per the iAds context: LP and IDP remain active post-Apr-2026. Any actor-based code in those subsystems should plan Pekko migration this year — staying on BSL Akka indefinitely is a compliance and bus-factor risk. The delivery/DS/SDK repos sunset in Apr 2026 and can stay on whatever Akka version they ship with.
+For long-lived, actively-maintained subsystems, plan the Pekko migration proactively — staying on BSL Akka indefinitely is a compliance and bus-factor risk. Modules already slated for deprecation can stay on whatever Akka version they ship with.
 
 ---
 

@@ -20,7 +20,7 @@ Pick exactly one static type checker per repository and pin it in `pyproject.tom
 
 ## Pick by repo profile
 
-- **Existing UADS service using SQLAlchemy/Pydantic/Django** → `mypy`. Plugins close gaps the other two can't.
+- **Existing service using SQLAlchemy/Pydantic/Django** → `mypy`. Plugins close gaps the other two can't.
 - **New service, team uses VSCode, want fast editor feedback** → `pyright` (Pylance covers editor; CI runs `pyright` for parity).
 - **New service, want maximum strictness + baseline + cross-editor** → `basedpyright`.
 - **Library you publish** → `mypy` for compatibility; users expect it.

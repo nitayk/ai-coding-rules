@@ -131,7 +131,7 @@ Bundle-level optimisations on this page (tree-shaking, code splitting, lazy load
 ## References
 
 - [Vite: Build Optimizations](https://vite.dev/guide/build.html) (replaces broken vitejs.dev URL)
-- [webpack: Code Splitting](https://webpack.js.org/guides/code-splitting/) — secondary; most UADS-Web uses Vite
+- [webpack: Code Splitting](https://webpack.js.org/guides/code-splitting/) — secondary; most modern web builds use Vite
 - [React Compiler](https://react.dev/learn/react-compiler) — auto-memoisation in React 19+
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

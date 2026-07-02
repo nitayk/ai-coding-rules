@@ -57,7 +57,7 @@ role's responsibility brief in the prompt.
 | **Code Reviewer** | `code-reviewer` | sonnet → override to opus | Requirements coverage, readability, edge cases. Never writes code |
 | **QA / Sentinel** | `verifier` | sonnet (haiku-only for nested test-runner) | Skeptical validator: acceptance criteria, empirical-not-static checks, restore-semantics, smoke-test substitution decisions. Sonnet because every Phase 8 rule requires judgment haiku will fumble (PR #106 burned the team on exactly this). |
 | **Test Runner** | `test-runner` | haiku | Execute test suites, parse failures. Pure mechanical — dispatched *inside* QA/Sentinel's flow when iterating |
-| **Code Explorer** | `code-explorer` | sonnet → opus on cross-service stack | Trace execution paths, map dependencies (Phase 1 / Phase 3). Tier up when scan invokes /code-graph-architect / /memgraph-analysis / /atlas-analysis / /full-network-analysis — sonnet routinely misses transitive call paths there. |
+| **Code Explorer** | `code-explorer` | sonnet → opus on cross-service stack | Trace execution paths, map dependencies (Phase 1 / Phase 3). Tier up when the scan spans a cross-service call graph — sonnet routinely misses transitive call paths there. |
 | **Git Workflow** | `git-workflow-specialist` | haiku for Phase 4 (mechanical setup); sonnet for Phase 9 (delivery decisions) | Phase 4 = `git worktree add` + file moves + tracker write (zero design judgment). Phase 9 = commit-message hard rule + delivery-hook decisions (judgment work — haiku will write `Co-Authored-By` lines) |
 | **Skeptic** | `general-purpose` | opus | Challenge premises, find failure modes. Only when ambiguity detected |
 
@@ -69,12 +69,12 @@ role's responsibility brief in the prompt.
 - Engineers get focused context per task — not the full session history
 - Escalate when stuck, don't guess
 - **Never invent a `subagent_type` from a skill name.** Skills (e.g.
-  `/code-graph-architect`, `/memgraph-analysis`, `/atlas-analysis`) are
+  `/deep-research`, `/security-review`, `/tech-debt-audit`) are
   invoked with the Skill tool / slash command in the current session —
   they are NOT sub-agents. Do not construct a namespaced agent type like
-  `<plugin>:code-graph-architect` (plugin name + skill name) and dispatch
+  `<plugin>:some-skill` (plugin name + skill name) and dispatch
   it via the Task (Agent) tool: no agent is registered under that name, so
-  it fails with `Agent type '<plugin>:code-graph-architect' not found`.
+  it fails with `Agent type '<plugin>:some-skill' not found`.
   When a phase needs a skill's capability inside an isolated sub-agent,
   dispatch a generic agent (`general-purpose`) and instruct it to invoke
   the skill.
@@ -92,7 +92,7 @@ the user's choice before proceeding.
 | **spike** | Research, Design, Quality Gates, Review. Delivery simplified (keep/discard only) | Exploratory — no PR expected, code is throwaway |
 | **hotfix** | Research, Design | Emergency — minimal pre-work, but quality gates + review still run (hotfix code SHIPS to prod under pressure — the gates matter MORE not less). Use the Hard Gate Contract override only for true seconds-count emergencies. |
 | **docs-only** | Research, Design, Quality Gates, Security | No code — Verification checks docs build/links |
-| **migration** | Research (use `/codebase-onboarding` instead), Design (replaced by `/service-breakdown` + `/service-migration`) | Repo-to-repo or service-to-service moves where preserving behavior + minimal diff matter more than design exploration |
+| **migration** | Research (use `/codebase-onboarding` instead), Design (replaced by a codebase-onboarding + migration-planning pass) | Repo-to-repo or service-to-service moves where preserving behavior + minimal diff matter more than design exploration |
 
 User confirms or overrides. Choice saved as default for future runs.
 
@@ -178,22 +178,18 @@ the conditional skills downstream:
 | `langchain` | `langchain` import, `LangChain` in plan | `/framework-selection`, `/langchain-fundamentals`, `/langchain-middleware`, `/langchain-rag`, `/langchain-dependencies` |
 | `langgraph` | `langgraph` import, `StateGraph`/`Send`/`interrupt()` in plan | `/framework-selection`, `/langgraph-fundamentals`, `/langgraph-persistence`, `/langgraph-human-in-the-loop` |
 | `deep-agents` | `deepagents` import, `create_deep_agent()` in plan | `/framework-selection`, `/deep-agents-core`, `/deep-agents-memory`, `/deep-agents-orchestration` |
-| `code-graph` | `code-graph/` path, Memgraph/Neo4j edits | `/code-graph-architect`, `/code-graph-fix-cycle`, `/code-graph-qa` |
 | `web-frontend` | `*.tsx`, `package.json` with React/Vite, `chat-ui/` path | `/frontend-design`, `/web-artifacts-builder`, `/webapp-testing` |
-| `infra` | `Dockerfile`, K8s manifests, ArgoCD, GitHub Actions | `/docker-patterns`, `/argocd-onboarding`, `/github-actions-workflows-helper`, `/kronus-onboarding` |
-| `data` | Trino, BigQuery, Aerospike paths | `/trino-validation`, `/aerospike-best-practices` |
+| `infra` | `Dockerfile`, K8s manifests, CI pipelines | `/docker-patterns` |
 | `backend-go` | `go.mod`, `*.go` files | `/golang-testing` |
 | `backend-scala` | `build.sbt`, `*.scala` files | `/scala-testing`, `/scala-dependency-hell`, `/scala-upgrade-agent` |
 | `claude-api` | `import anthropic`, `@anthropic-ai/sdk`, Claude Messages API patterns | `/claude-api` |
 | `rest-api` | new HTTP endpoints, `*Controller.scala`, `routes.go`, OpenAPI specs | `/api-design` |
-| `service-architecture` | cross-service tracing, code-graph/Atlas analysis, dependency mapping | `/code-graph-architect` (default front door), `/code-structure-analysis`, `/atlas-analysis`, `/full-network-analysis`; `/memgraph-analysis` (legacy iAds-only, deprecating) |
 | `generic` | None of the above | (no extra skills enabled) |
 
 > **Skill availability footnote:** Stack-conditional skills are invoked
 > *when available*. Some (e.g. `framework-selection`, `langchain-*`,
-> `langgraph-*`, `deep-agents-*`, `code-graph-fix-cycle`,
-> `code-graph-qa`) live in **consumer project repos** (e.g.
-> `agentic-evolution/.claude/skills/`) rather than this submodule. If
+> `langgraph-*`, `deep-agents-*`) may live in **consumer project repos**
+> (`.claude/skills/`) rather than this submodule. If
 > the stack tag matches but the skill isn't installed in the active
 > environment, follow the existing **Missing sub-skills** rule
 > (announce, run intent inline, log in Phase 10) — do NOT block.
@@ -265,9 +261,9 @@ Run brainstorming's clarifying-questions step (item 3) with the
 `/grilling` discipline: walk the design tree in **dependency order**
 (resolve the decision other decisions hinge on first, not an arbitrary
 list), give your **recommended answer with every question**, and when a
-question can be answered by reading the code or the code graph, **explore
-instead of asking** (use the Phase 1 `code-explorer` findings and
-`/code-graph-architect` / `/memgraph-analysis` — spend the user's
+question can be answered by reading the code or a code-graph tool, **explore
+instead of asking** (use the Phase 1 `code-explorer` findings and your
+code-search / code-graph tools — spend the user's
 attention only on genuine unknowns). This is what makes the gate catch
 under-specification rather than just collect preferences.
 
@@ -339,21 +335,10 @@ patterns related to the task:
   `/codebase-onboarding` instead of the grep/glob scan — generates a
   structured architecture map + conventions guide.
 - For cross-service work (touching ≥2 services or service boundaries),
-  default to `/code-graph-architect` (Code Graph MCP) — the
-  product-agnostic front door that routes to the right backend
-  automatically: the UADS code graph (Neo4j-backed `tfo-agentic-
-  evolution`) for UADS and the active repos it now indexes (ISX,
-  LevelPlay, Ad Quality, IDP), and Memgraph only for iAds-core repos
-  still exclusive to it. Use it for callers, blast radius, cross-repo
-  CALLS, Kafka/HTTP/gRPC/data-store flows, and semantic search.
-  Escalate to `/atlas-analysis` (Kafka/Aerospike runtime topology),
-  `/code-structure-analysis` (deeper structural mapping), or
-  `/full-network-analysis` (multi-repo end-to-end flows) only when the
-  code graph alone doesn't answer. `/memgraph-analysis` is the legacy
-  direct-Cypher path — iAds-only and deprecating as the UADS graph
-  absorbs the remaining active repos; reach for it directly only on
-  iAds-core repos not yet in the UADS graph.
-  <!-- Maintainer note: routing reoriented around the Memgraph→UADS-code-graph migration. Memgraph is the old iAds-only graph being phased out; the UADS Code Graph (tfo-agentic-evolution, Neo4j) is steadily indexing ISX/LP/Ad-Quality/IDP. /code-graph-architect picks the backend per product, so it's the default front door; /memgraph-analysis is the deprecating fallback. See workspace CLAUDE.md tool-routing note. -->
+  use a code-graph tool if the repo has one indexed — for callers, blast
+  radius, cross-repo calls, Kafka/HTTP/gRPC/data-store flows, and semantic
+  search. If no code graph is available, fall back to grep + reading across
+  the affected services to map callers and boundaries by hand.
 - **Read canonical sources for submodule-backed assets first.** If the
   change targets an asset that lives in a git submodule (e.g. skills
   from `mobile-agent-toolkit` synced into consumer repos), the FIRST
@@ -464,15 +449,14 @@ markdown files, single domain)").
   when the refactor includes folder restructuring — it handles path-safe
   moves, CI/doc updates, and avoids import regressions.
 - `migration` — Run the existing test suite before + after each file move;
-  behavioral diff must be zero. Invoke `/service-migration` for
+  behavioral diff must be zero. Follow a migrate-then-verify loop for
   repo-to-repo or service-to-service moves where minimal diff matters.
 - `hotfix`, `spike` — Skip TDD (speed and exploration first).
 
 **Stack-conditional skills (wired at Phase 5):**
 - `infra` stack — invoke `/mcp-builder` when the plan includes an MCP
-  server scaffold; invoke `/argocd-onboarding` or
-  `/github-actions-workflows-helper` when the plan touches deployment
-  manifests or CI pipeline files.
+  server scaffold; reach for your deployment / CI helper when the plan
+  touches deployment manifests or CI pipeline files.
 
 **Optional cost gate (post-P5, before P6):**
 Invoke `/cost-audit` when the change includes: DB writes in loops, per-request
@@ -835,8 +819,8 @@ explicit stop condition.
   an existing app — use `/agent-browser` on the real DOM instead.
   <!-- Maintainer note: agent-verifiable-frontend pattern harvested from Anthropic's "How We Claude Code" workshop (anthropics/cwc-workshops, how-we-claude-code/phase-3-verify, Apache-2.0) via AQ-76. Greenfield-only by design: the DOM contract must be built in, not retrofit. mozart's game-quality QA hook is the in-tree precedent. -->
 - **Production-traffic verification** (post-deploy or staging) —
-  `/grafana-monitoring` for metrics dashboards, `/victoria-traces-
-  analysis` for request-flow tracing across services. Use when the
+  your metrics/dashboards tooling for metrics, and distributed-tracing
+  tooling for request-flow tracing across services. Use when the
   change affects a service already in production and the test suite
   can't reproduce real traffic patterns.
 
@@ -1051,10 +1035,10 @@ hooks the user accepted vs declined.
 
 ## Phase 9.5: POST-DEPLOY — FOLLOW THE ROLLOUT & OBSERVE
 
-**Role:** QA / Sentinel — `verifier` subagent (sonnet) orchestrating
-`deployment-investigator` (ArgoCD rollout) and `monitoring-analyst`
-(Grafana / Loki). **Announce:** "Phase 9.5: Post-deploy — following the
-rollout and watching production signals."
+**Role:** QA / Sentinel — `verifier` subagent (sonnet) orchestrating a
+deploy-watching pass and a monitoring pass against whatever deploy /
+observability stack the repo uses. **Announce:** "Phase 9.5: Post-deploy —
+following the rollout and watching production signals."
 
 **Runs only after an actual merge** — the in-prompt "Merge now" path, or
 the user signaling they merged. A still-open PR has not deployed, so this
@@ -1085,8 +1069,9 @@ touching action (environment promotion, rollback) is an explicit
    git push origin "e2e/<session-slug>/deploy-$(git rev-parse --short HEAD)"
    ```
 
-3. **Follow the rollout.** Dispatch `deployment-investigator` to watch the
-   ArgoCD application reach `Synced` + `Healthy` on the **first**
+3. **Follow the rollout.** Dispatch a deploy-watching subagent to watch the
+   rollout (e.g. an ArgoCD app, a GitHub Actions run, or a Helm release)
+   reach a healthy state on the **first**
    environment (typically stg). For multi-env pipelines, report each
    environment's status as it progresses. **Prod promotion is never
    automatic** — surface `AskUserQuestion` `[Promote to prod] [Hold]`
@@ -1095,12 +1080,12 @@ touching action (environment promotion, rollback) is an explicit
    same gating.)
 
 4. **Post-deploy checks** (first env; repeat for prod once promoted):
-   - **Logs** — query Loki (`monitoring-analyst`) and/or
-     Kibana/Elasticsearch for error-rate spikes, panics, and new
+   - **Logs** — query your log store (Loki / Kibana / Elasticsearch)
+     for error-rate spikes, panics, and new
      `ERROR`/`FATAL` patterns in the deployed service since the deploy
      timestamp.
-   - **Signals** — open the service's golden signals via
-     `/grafana-monitoring` (request rate, error rate, latency P99,
+   - **Signals** — open the service's golden signals via your
+     metrics/dashboards tooling (request rate, error rate, latency P99,
      saturation). Watch **5 minutes** (hotfix: 10). Threshold: any
      counter that was stable before the deploy spikes/drops >5% within
      the window.
@@ -1389,9 +1374,8 @@ When changed files touch **≥2 modules** OR modify a **public API**
 (HTTP endpoint, gRPC service definition, Kafka message schema, exported
 function signature), run a callers scan before writing the plan:
 
-- Code Graph MCP available → `/code-graph-architect` — find all callers
-  of the changed symbol
-- No Code Graph → `grep -r "<changed-symbol>" --include="*.go" .` (or
+- Code-graph tool available → use it to find all callers of the changed symbol
+- No code graph → `grep -r "<changed-symbol>" --include="*.go" .` (or
   language equivalent) across the repo
 
 Document the caller count in the plan. If callers > 10, flag affected

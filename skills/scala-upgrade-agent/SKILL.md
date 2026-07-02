@@ -18,8 +18,6 @@ Expert agent for upgrading Scala versions (e.g., 2.13.12 to 2.13.18) and depende
 - Simple dependency version bumps without Scala upgrade
 - Upgrade scope already complete
 
-**ACTIVE SCOPE:** For ISX, LP, and IDP repos that remain active beyond the iAds delivery/DS sunset (see workspace AGENTS.md iAds sunset scope correction). Do not invest in upgrades targeting iAds core delivery/DS/SDK repos (sunset Apr 2026).
-
 ## Critical Learnings
 
 ### Silencer and WartRemover Incompatibility

@@ -85,8 +85,8 @@ ALL judges pass). Per-run errors are isolated so one failure never aborts the ma
 ## Tasks
 
 Tasks are YAML specs in `example_tasks/` with deterministic judges (`pytest` | `grep` |
-`build`). Three are shipped as illustrative-but-real-shaped examples (a code-graph
-detector fix, a typed-config bugfix, a build+grep refactor). Each pins a `base_commit`.
+`build`). Three are shipped as illustrative-but-real-shaped examples (a parser/detector
+fix, a typed-config bugfix, a build+grep refactor). Each pins a `base_commit`.
 A weak grader makes the whole plot meaningless — deterministic judges first.
 
 ## Files

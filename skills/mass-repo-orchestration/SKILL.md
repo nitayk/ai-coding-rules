@@ -1,6 +1,6 @@
 ---
 name: mass-repo-orchestration
-description: "Use when applying the same mechanical change across many repositories (dozens+), tracking bulk PRs, or resuming migration work across sessions—e.g. config/tooling updates, explicit hooks replacing implicit platform behavior, org-wide renovate patterns. Use with /writing-plans, /executing-plans, /git-workflow, /agent-token-optimization. Do NOT use for moving one service between two repos (/service-migration) or a single-repo feature build."
+description: "Use when applying the same mechanical change across many repositories (dozens+), tracking bulk PRs, or resuming migration work across sessions—e.g. config/tooling updates, explicit hooks replacing implicit platform behavior, org-wide renovate patterns. Use with /writing-plans, /executing-plans, /git-workflow, /agent-token-optimization. Do NOT use for moving one service between two repos (a single-service migration) or a single-repo feature build."
 disable-model-invocation: true
 last-reviewed: 2026-05-20
 ---
@@ -9,7 +9,7 @@ last-reviewed: 2026-05-20
 
 Orchestrate **one playbook** across **many client repositories**: version-controlled plans, resumable progress, human gates before publish, and fallbacks when you lack write access.
 
-*Credits: Inspired by the excellent talk and learnings from Théo Penavaire, Miro Brodlova, Justinas, and Harald at Unity. ([Watch the Zoom recording](https://unity3d.zoom.us/rec/play/6cvv-txtZzflo4uPWHWBVxAk6AjtYhkNwhA0m00R05XiyMjnTOk_Q0Zx3Q7K3sRYks0LaN4wHQQopdS1.AstNS71M0zSL2onE))*
+*Credits: Inspired by the excellent talk and learnings from Théo Penavaire, Miro Brodlova, Justinas, and Harald.*
 
 ## When to use
 
@@ -21,7 +21,7 @@ Orchestrate **one playbook** across **many client repositories**: version-contro
 
 **DO NOT USE WHEN:**
 
-- **One service**, repo A → repo B, with graph-driven analysis → `/service-migration` + `/service-breakdown`.
+- **One service**, repo A → repo B → a dedicated single-service migration workflow.
 - **Single-repo** implementation from a spec → `/writing-plans` + `/executing-plans` only.
 
 ## Principles (field-tested patterns)

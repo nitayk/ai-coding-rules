@@ -17,50 +17,46 @@ According to [guide-file.md], this tool [brief explanation].
 
 ## ✅ Good Examples
 
-### Example 1: Memgraph (Code Analysis) - MANDATORY for Service Breakdown
+### Example 1: A code-graph MCP (Code Analysis)
 ```
-To understand this service structure, I MUST use **Memgraph** (`mcp_memgraph_run_query`) 
-FIRST. According to `skills/service-breakdown/SKILL.md`, Memgraph is 
-MANDATORY before reading any code files - it shows relationships, call chains, and helps 
+To understand this service structure, I'll use a **code-graph MCP** (`mcp_<tool>_run_query`)
+FIRST, before reading individual code files — it shows relationships, call chains, and helps
 identify dead code.
 
-This is a HEAVY task requiring 30-50+ Memgraph queries across 4 phases:
-- Phase 1: Broad discovery (5-10 queries)
-- Phase 2: Deep recursive analysis (10-20 queries) 
-- Phase 3: Targeted deep dives (10-15 queries)
-- Phase 4: Verification (5-10 queries)
+This is a HEAVY task that may require dozens of queries across several phases:
+- Phase 1: Broad discovery
+- Phase 2: Deep recursive analysis
+- Phase 3: Targeted deep dives
+- Phase 4: Verification
 
 Let me start Phase 1 - finding all classes in this service:
 
-[Run query 1/30+]
+[Run query]
 MATCH (c:Class)
-WHERE c.qualified_name CONTAINS 'data-science-online'
+WHERE c.qualified_name CONTAINS 'my-service'
 RETURN c.name, c.path, c.qualified_name
 
 [Continue with remaining Phase 1 queries...]
 ```
 
-**🚨 CRITICAL**: 
-- For service breakdown tasks, Memgraph is NOT optional - it's Step 0!
-- Expect 30-50+ queries minimum (not 5-10!)
-- This takes 2-4 hours (not 10 minutes!)
-- Use DEEP RECURSIVE queries (10 levels, not 5!)
+**🚨 CRITICAL**:
+- For structural analysis, a code-graph tool (if available) is a strong Step 0
+- Expect many queries for a real service, not just a handful
+- Use DEEP RECURSIVE queries where the graph supports them
 
-### Example 2: Trino (Data Validation)
+### Example 2: A data-validation MCP (Data Validation)
 ```
-To validate data in the device_installs table, I'll use **Trino** 
-(`mcp_trino-analytics_execute_query`). According to 
-`technologies/trino-reference-guide.md`, Trino lets us query Iceberg/Hive 
-tables directly for data validation.
+To validate data in the `device_installs` table, I'll use a **data-validation MCP**
+(`mcp_<tool>_execute_query`), which lets us query Iceberg/Hive tables directly
+for data validation.
 
 Let me run some validation queries...
 ```
 
-### Example 3: Grafana (Monitoring)
+### Example 3: A metrics MCP (Monitoring)
 ```
-To check if metrics are being recorded correctly, I'll use **Grafana** MCP.
-According to `technologies/grafana-reference-guide.md`, Grafana 
-provides access to dashboards and PromQL queries for monitoring validation.
+To check if metrics are being recorded correctly, I'll use a **metrics MCP**,
+which provides access to dashboards and PromQL queries for monitoring validation.
 
 Let me search for the relevant dashboard...
 ```
@@ -69,15 +65,15 @@ Let me search for the relevant dashboard...
 
 ### Example 1: Silent Tool Usage
 ```
-❌ [Just runs Memgraph queries without mentioning the tool]
-❌ [Provides SQL results without explaining Trino]
+❌ [Just runs code-graph queries without mentioning the tool]
+❌ [Provides SQL results without explaining the data-validation tool]
 ```
 
 **Why bad?** User doesn't learn about available tools.
 
 ### Example 2: Over-explaining Every Call
 ```
-❌ "Using Memgraph tool again..." (for 10th query in same conversation)
+❌ "Using the code-graph tool again..." (for 10th query in same conversation)
 ```
 
 **Why bad?** Repetitive and annoying after the first explanation.
@@ -91,13 +87,13 @@ Let me search for the relevant dashboard...
 
 ## 🔗 Available Tools & Guides
 
-| Tool | MCP Name | Guide | Purpose |
-|------|----------|-------|---------|
-| Memgraph | `mcp_memgraph_run_query` | `technologies/memgraph-reference-guide.md` | Code structure analysis |
-| Atlas | `mcp_atlas_*` | `technologies/atlas-reference-guide.md` | Runtime topology (Kafka, Aerospike, service deps) |
-| Trino | `mcp_trino-analytics_execute_query` | `technologies/trino-reference-guide.md` | Query Iceberg/Hive tables |
-| Grafana | `mcp_grafana_*` | `technologies/grafana-reference-guide.md` | Monitoring & dashboards |
-| Context7 | `mcp_context7_*` | (see below) | Library/API documentation |
+| Tool | MCP Name | Purpose |
+|------|----------|---------|
+| Code-graph MCP | `mcp_<tool>_run_query` | Code structure analysis |
+| Topology MCP | `mcp_<tool>_*` | Runtime topology (Kafka, Aerospike, service deps) |
+| Data-validation MCP | `mcp_<tool>_execute_query` | Query Iceberg/Hive tables |
+| Metrics MCP | `mcp_<tool>_*` | Monitoring & dashboards |
+| Context7 | `mcp_context7_*` | Library/API documentation |
 
 ## Context7 Tool Usage
 

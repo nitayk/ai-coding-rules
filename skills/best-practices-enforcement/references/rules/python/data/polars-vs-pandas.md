@@ -16,7 +16,7 @@
 | Existing pandas codebase with no perf issue | **pandas** (don't churn) |
 | Need GroupBy-Apply with arbitrary Python UDFs | **pandas** (Polars UDFs work but defeat its perf model) |
 
-Rule of thumb: **Polars for the pipeline, pandas at the ML boundary.** Many UADS DS workflows look like `scan -> filter -> agg -> join -> to_pandas() -> sklearn`.
+Rule of thumb: **Polars for the pipeline, pandas at the ML boundary.** Many DS workflows look like `scan -> filter -> agg -> join -> to_pandas() -> sklearn`.
 
 ---
 

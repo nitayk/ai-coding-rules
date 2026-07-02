@@ -1,9 +1,0 @@
-# Subtree Source Information
-# This directory is maintained as a snapshot from an upstream repository.
-# DO NOT manually edit files in this directory.
-# Use the update script to pull in changes from upstream.
-
-SOURCE_REPO=https://github.com/Unity-Technologies/ai-agent-skills.git
-SOURCE_PATH=skills/github/gh-manage-project
-LAST_SYNC_COMMIT=2137b53a311a2af7984edf68d9ed33d9750c2353
-LAST_SYNC_DATE=2026-05-11 13:34:37 +0300

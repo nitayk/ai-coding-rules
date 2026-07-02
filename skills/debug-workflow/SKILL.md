@@ -38,7 +38,7 @@ last-reviewed: 2026-05-27
 3. **Confirm**: "I have reproduced the issue. The error is..."
 
 ### Phase 2: Hypothesis
-1. **Trace**: Use `grep` or code search to trace the flow. (Code graph / Memgraph if available.)
+1. **Trace**: Use `grep` or code search to trace the flow. (A code-graph tool if available.)
 2. **Theorize**: "I believe the root cause is..."
 3. **Verify Hypothesis**: Add log statements or breakpoints to confirm.
 

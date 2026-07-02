@@ -42,6 +42,5 @@ npm run build --silent  # If supported
 ## Related
 
 - See `tools/git.md` for git grep syntax
-- See `/code-structure-analysis` skill for grep usage in investigations
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

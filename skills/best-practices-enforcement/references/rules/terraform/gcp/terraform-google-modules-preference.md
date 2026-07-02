@@ -135,7 +135,7 @@ module "gke" {
 }
 ```
 
-This is the pattern UADS should standardise on for in-cluster GCP API access. See `gcp/workload-identity-federation.md` for the broader CI ↔ GCP federation pattern.
+This is the pattern to standardise on for in-cluster GCP API access. See `gcp/workload-identity-federation.md` for the broader CI ↔ GCP federation pattern.
 
 ---
 

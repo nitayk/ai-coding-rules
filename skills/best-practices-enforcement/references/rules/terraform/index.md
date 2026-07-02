@@ -11,7 +11,7 @@
 
 **Tool divergence**: Where Terraform and OpenTofu diverge (state encryption, Stacks, early variable evaluation), the relevant `meta/` rule calls it out explicitly. Treat the workspace as a single-tool estate; don't mix CLIs against the same state.
 
-**UADS context**: UADS lives on **GCP/GKE**. The `gcp/` subdir captures opinionated patterns (CFT modules, Workload Identity Federation, GKE conventions) that don't apply outside that estate.
+**Cloud context**: for **GCP/GKE** deployments, the `gcp/` subdir captures opinionated patterns (CFT modules, Workload Identity Federation, GKE conventions) that don't apply outside that estate.
 
 ---
 

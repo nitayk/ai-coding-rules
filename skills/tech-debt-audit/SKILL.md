@@ -233,8 +233,8 @@ what Open Questions is for.
 ## Tuning
 
 The 9 dimensions are a floor. Add domain dimensions per repo — e.g. for agent/LLM codebases:
-"prompt-injection surface", "tool-call cost per turn", "eval coverage"; for data/RTB repos
-(ISX, IDP): "schema/API backward-compatibility". A project-level
+"prompt-injection surface", "tool-call cost per turn", "eval coverage"; for data/RTB repos:
+"schema/API backward-compatibility". A project-level
 `.claude/skills/tech-debt-audit/SKILL.md` overrides this global one when a repo needs custom
 dimensions or different severity thresholds.
 

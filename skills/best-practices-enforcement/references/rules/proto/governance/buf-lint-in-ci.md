@@ -52,7 +52,7 @@ breaking:
 | `STANDARD` (default) | ~40 | **Recommended baseline for all new schemas** |
 | `COMMENTS` | comment-enforcement add-on | Public APIs where doc comments must exist on every type |
 
-For `unityapis`: STANDARD. For a brand-new repo, also add `COMMENTS` if the schema is intended for external consumers and you want every public message documented.
+For `apis`: STANDARD. For a brand-new repo, also add `COMMENTS` if the schema is intended for external consumers and you want every public message documented.
 
 ```yaml
 # buf.yaml — STANDARD + comment enforcement

@@ -19,7 +19,7 @@ Universal best practices that apply across **all languages and platforms** (back
 | **frontend/** | Implementation — HOW to apply generic in JS/TS | async/await, type narrowing, React patterns |
 | **mobile/** | Implementation — HOW to apply generic in Kotlin, Swift, Obj-C | Coroutines, null safety, MVVM |
 | **tools/** | CLI building blocks — commands used by technologies and skills | curl, jq, git, docker, kcat, kubectl, aws-cli, gcloud, ripgrep, yq, terraform, helm |
-| **technologies/** | MCP/API building blocks — reference guides for platforms | Memgraph, Kafka, Trino, Grafana, ArgoCD, VictoriaMetrics, Druid, AWS, Gotenberg, Schema Registry |
+| **technologies/** | MCP/API building blocks — reference guides for platforms | Kafka, Trino, Grafana, ArgoCD, VictoriaMetrics, Druid, AWS, Gotenberg, Schema Registry |
 
 **Avoid duplication**: Language-specific rules **reference** generic; they do **not** restate principles. Use `[Generic X](../../generic/...)` links. Technologies **reference** tools for CLI operations.
 
@@ -144,7 +144,7 @@ When adding language-specific rules (backend/, frontend/, mobile/):
 
 When adding tools or technologies:
 1. **tools/** — CLI building blocks (curl, jq, kubectl). Add to `tools/index.md` and ROUTER.
-2. **technologies/** — MCP/API reference guides (Memgraph, Kafka, Trino). Reference tools for CLI ops. Add to `technologies/index.md` and ROUTER.
+2. **technologies/** — MCP/API reference guides (Kafka, Trino, Grafana). Reference tools for CLI ops. Add to `technologies/index.md` and ROUTER.
 
 ---
 
@@ -152,8 +152,8 @@ When adding tools or technologies:
 
 - **Language-specific rules**: See `backend/`, `frontend/`, `mobile/` directories
 - **Tools** (`tools/`): CLI building blocks — curl, jq, git, docker, kcat, kubectl, aws-cli, gcloud, ripgrep, yq, terraform, helm
-- **Technologies** (`technologies/`): MCP/API guides — Memgraph, Neo4j, Atlas, Kafka, Trino, Grafana, ArgoCD, VictoriaTraces, VictoriaMetrics, Druid, AWS, Gotenberg, Schema Registry
-- **Investigation**: `/code-structure-analysis`, `/service-breakdown` skills (combine tools + technologies)
+- **Technologies** (`technologies/`): MCP/API guides — Kafka, Trino, Grafana, ArgoCD, VictoriaTraces, VictoriaMetrics, Druid, AWS, Gotenberg, Schema Registry
+- **Investigation**: combine tools + technologies for code-structure and service-breakdown analysis
 - **Skills & Workflows**: See `skills/` directory for procedural workflows
 - **Style guide**: See `meta/cursor-rules-style-guide.md`
 - **Router**: See `ROUTER.md` for intent-based rule loading

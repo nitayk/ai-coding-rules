@@ -15,7 +15,7 @@ Add the `buf.validate.field` option directly to the field. The constraints are C
 ```proto
 syntax = "proto3";
 
-package unityads.ads.sdk.v1;
+package example.ads.sdk.v1;
 
 import "buf/validate/validate.proto";
 

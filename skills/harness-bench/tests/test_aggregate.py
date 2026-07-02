@@ -86,7 +86,7 @@ def test_run_matrix_isolates_per_run_errors():
     runner = SeededRunner(records)
     out = aggregate.run_matrix(
         runner,
-        tasks=[type("T", (), {"name": "codegraph_detector_fix"})()],
+        tasks=[type("T", (), {"name": "kafka_detector_fix"})()],
         arms=["A", "B"],
         models=["claude-opus-4-8"],
         n_runs=5,

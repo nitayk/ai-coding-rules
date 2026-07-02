@@ -1,6 +1,6 @@
 ---
 name: code-review-excellence
-description: Master effective code review practices to provide constructive feedback, catch bugs early, and foster knowledge sharing while maintaining team morale. Use when reviewing pull requests, establishing review standards, or mentoring developers. Do NOT use when you only need the repo’s generic /review command with no methodology, or when the codebase skill is product-specific (e.g. Memgraph/Neo4j graph review).
+description: Master effective code review practices to provide constructive feedback, catch bugs early, and foster knowledge sharing while maintaining team morale. Use when reviewing pull requests, establishing review standards, or mentoring developers. Do NOT use when you only need the repo’s generic /review command with no methodology, or when the codebase skill is product-specific (e.g. a graph/database-specific review skill).
 last-reviewed: 2026-05-27
 ---
 
@@ -20,7 +20,7 @@ elsewhere (see Related skills & rules below).
 ## Do NOT Use
 
 - You just need the repo's `/review` slash command with no methodology
-- A product-specific code-review skill exists (e.g. Memgraph/Neo4j graph review) — use that
+- A product-specific code-review skill exists (e.g. a graph/database-specific review skill) — use that
 - Security-sensitive diff — invoke `/security-review` (it has the checklist)
 - Stack rule enforcement — `/best-practices-enforcement` runs the language rule files mechanically
 

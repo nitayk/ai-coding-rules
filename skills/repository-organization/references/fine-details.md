@@ -80,7 +80,7 @@ New contributors often **read folder names first** to build a mental model. That
 - Moves that **touch secrets** (`.env`, keys, credentials paths).
 - **Legal/PII** in filenames or paths (exports, HR, customer data).
 - **Vendor/third_party** subtrees—often forked; reorganize only with explicit OK.
-- **Mixed product lines** in one folder (e.g. iAds vs UADS)—use repo routing rules before blending.
+- **Mixed product lines** in one folder (e.g. two distinct product lines)—use repo routing rules before blending.
 
 ## Anti-patterns (negative patterns)
 

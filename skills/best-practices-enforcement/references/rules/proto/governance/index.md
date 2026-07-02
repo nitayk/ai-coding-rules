@@ -2,7 +2,7 @@
 
 **Purpose**: Routes to the CI-enforceable proto rules. Schema and gRPC rules tell you what good schemas look like; governance rules tell you how to keep them that way.
 
-**UADS Note**: `governance/buf-breaking-against-main.md` is the single highest-leverage rule in this entire directory. `unityapis` is consumed by every Go backend (`ads-sdk-gateway`, `ads-valuation-composer`, etc.) — one accidental field-number reuse has cross-repo blast radius. Wire it in first.
+**Note**: `governance/buf-breaking-against-main.md` is the single highest-leverage rule in this entire directory. When `apis` is consumed by every Go backend in the org, one accidental field-number reuse has cross-repo blast radius. Wire it in first.
 
 **Chaining**: Router → `rules/proto/index.md` → This Index → Files
 

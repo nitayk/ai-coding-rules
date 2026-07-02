@@ -21,7 +21,7 @@ trait ConfigurableComponent {
   }
 }
 
-// Good: IDP Example: Transformation validation
+// Good: Data-pipeline example: Transformation validation
 case class CastTransformation(targetType: DataType) extends ConfigurableComponent {
   def validateCastArguments(args: CastArguments): CastArguments = {
     require(args.targetType != null, "Target type cannot be null")

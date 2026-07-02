@@ -7,7 +7,7 @@ Kotlin's "context" feature shipped in two forms:
 
 **For new code, use context parameters.** Don't introduce new `context(...)` receiver code in modules that will outlive Kotlin 2.4 — the receivers syntax is the deprecation target, parameters are the stable form.
 
-(Lower urgency in modules already on the iAds Android sunset path — flag in review, don't enforce a rewrite.)
+(Lower urgency in legacy modules already slated for deprecation — flag in review, don't enforce a rewrite.)
 
 ---
 

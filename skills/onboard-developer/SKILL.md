@@ -19,8 +19,8 @@ Produce a personalized ramp-up plan for a human joining the codebase: a sequence
 | Goal | Use this instead |
 |------|------------------|
 | Generate the onboarding GUIDE or starter `CLAUDE.md` | `codebase-onboarding` (auto-analyzes repo, emits structured guide) |
-| Architecture deep-dive / system design questions | `/council` or `code-structure-analysis` |
-| Map service dependencies before a refactor | `memgraph-analysis` / `code-graph-architect` |
+| Architecture deep-dive / system design questions | `/council` |
+| Map service dependencies before a refactor | code search / your code-graph tool |
 | Set up dev server / local environment | `setup-local-dev` |
 
 If the user wants both a generated guide AND a personalized checklist, run `codebase-onboarding` first, then this skill consumes its output.

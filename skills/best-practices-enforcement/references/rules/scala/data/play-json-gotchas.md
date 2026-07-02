@@ -233,6 +233,5 @@ expectedJson.zip(actualJson).zipWithIndex.foreach { case ((e, a), i) =>
 ## See Also
 
 - `json-serialization-patterns.md` - Correct patterns for JSON serialization
-- `skills/service-migration/SKILL.md` - Migration guide that may encounter these issues
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

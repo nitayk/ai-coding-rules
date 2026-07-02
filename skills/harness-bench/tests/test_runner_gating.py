@@ -79,13 +79,13 @@ def test_seeded_runner_replays_fixture_deterministically():
     raw = json.loads((FIXTURES / "seeded_results.json").read_text())
     records = [RunRecord(**r) for r in raw]
     runner = SeededRunner(records)
-    task = TaskSpec(name="codegraph_detector_fix", repo="r", base_commit="c",
+    task = TaskSpec(name="kafka_detector_fix", repo="r", base_commit="c",
                     prompt="p", judges=[])
     r0 = runner.run(task, arm="A", model="claude-opus-4-8")
     assert isinstance(r0, RunRecord)
     assert r0.arm == "A"
     assert r0.model == "claude-opus-4-8"
-    assert r0.task == "codegraph_detector_fix"
+    assert r0.task == "kafka_detector_fix"
     # replay is deterministic: a second full pass returns identical records
     again = runner.run(task, arm="A", model="claude-opus-4-8")
     assert (again.arm, again.model, again.task) == (r0.arm, r0.model, r0.task)

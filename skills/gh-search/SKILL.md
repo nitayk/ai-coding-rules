@@ -56,13 +56,13 @@ gh search code "QUERY" --owner ORG --limit 10
 **Examples:**
 ```bash
 # Find all uses of a function
-gh search code "RowLevelComplianceProcessor" --owner Unity-Technologies --limit 10
+gh search code "MyProcessor" --owner your-org --limit 10
 
 # Find YAML configs with a specific key
-gh search code "enableGreatExpectationsDataQualityChecks" --owner Unity-Technologies --limit 10
+gh search code "enableDataQualityChecks" --owner your-org --limit 10
 
 # Find Java files implementing an interface
-gh search code "implements FluentMetrics language:java" --owner Unity-Technologies --limit 10
+gh search code "implements MetricsReporter language:java" --owner your-org --limit 10
 ```
 
 ### Repository Search
@@ -82,10 +82,10 @@ gh search repos "QUERY" --owner ORG --limit 10
 **Examples:**
 ```bash
 # Find repos related to a project
-gh search repos "flair" --owner Unity-Technologies --limit 10
+gh search repos "myproject" --owner your-org --limit 10
 
 # Find repos by topic
-gh search repos "topic:data-platform" --owner Unity-Technologies --limit 10
+gh search repos "topic:data-platform" --owner your-org --limit 10
 ```
 
 ### Issue Search

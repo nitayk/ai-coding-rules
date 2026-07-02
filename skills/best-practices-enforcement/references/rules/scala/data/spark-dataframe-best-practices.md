@@ -112,7 +112,7 @@
 
 - [Apache Spark — SQL, DataFrames and Datasets Guide](https://spark.apache.org/docs/latest/sql-programming-guide.html) - canonical DataFrame API reference
 - [Apache Spark — Performance Tuning](https://spark.apache.org/docs/latest/sql-performance-tuning.html) - caching, partitioning, broadcast joins, AQE
-- [Apache Iceberg — Spark Procedures](https://iceberg.apache.org/docs/latest/spark-procedures/) - relevant for IDP Iceberg/Redshift pipelines
-- [Delta Lake — Best Practices](https://docs.delta.io/latest/best-practices.html) - alternative table format used in some IDP paths
+- [Apache Iceberg — Spark Procedures](https://iceberg.apache.org/docs/latest/spark-procedures/) - relevant for Iceberg/Redshift pipelines
+- [Delta Lake — Best Practices](https://docs.delta.io/latest/best-practices.html) - alternative table format used in some pipelines
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

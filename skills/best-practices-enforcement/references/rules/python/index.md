@@ -114,7 +114,7 @@
 ### Testing
 - [pytest](https://docs.pytest.org/en/stable/) — de facto test framework (pytest 9.x)
 
-### UADS-relevant frameworks
+### Commonly used frameworks
 - [Pydantic v2](https://pydantic.dev/docs/validation/latest/get-started/) — current v2.13.x; [v1→v2 migration guide](https://pydantic.dev/docs/validation/latest/get-started/migration/)
 - [FastAPI](https://fastapi.tiangolo.com/) — async web framework, Pydantic v2 native
 - [Polars](https://docs.pola.rs/) — Rust-core dataframe library; pandas alternative for large workloads

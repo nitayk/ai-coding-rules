@@ -364,7 +364,6 @@ describe('PriceCalculator', () => {
 **Use with:**
 - `/git-workflow` - Commit after each green test
 - `/best-practices-enforcement` - Ensure test quality
-- `/service-refactoring` - Refactor with test safety net
 
 ## Common Pitfalls
 

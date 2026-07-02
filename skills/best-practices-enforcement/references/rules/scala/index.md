@@ -184,11 +184,11 @@
 - [Scalafix](https://scalacenter.github.io/scalafix/) — de-facto linter / refactor tool
 - [SIP-46 — Scala CLI as default `scala` runner](https://docs.scala-lang.org/sips/scala-cli.html)
 
-### Frameworks (active iAds subsystems: LP, IDP, Ad Quality)
+### Frameworks
 - [Apache Pekko](https://pekko.apache.org/docs/pekko/current/index.html) — Apache 2.0 fork of Akka 2.6.x; **use this, not Akka, for new code** ([why: Akka BSL FAQ](https://akka.io/bsl-license-faq))
 - [Cats Effect](https://typelevel.org/cats-effect/) — 3.6.x; Resource, IOApp, Async
 - [ZIO](https://zio.dev/) + [Coding Guidelines](https://zio.dev/coding-guidelines) — ZIO 2.1
-- [Apache Spark](https://spark.apache.org/docs/latest/) — IDP DataFrame / Iceberg pipelines
+- [Apache Spark](https://spark.apache.org/docs/latest/) — DataFrame / Iceberg pipelines
 
 ### Community (Strong)
 - [Scala Best Practices — Rinaudo](https://nrinaudo.github.io/scala-best-practices/)

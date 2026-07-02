@@ -57,7 +57,7 @@
 - **[JFR Observability](meta/jfr-observability.md)** - Java Flight Recorder for always-on prod JVM observability
 
 ## Core Principles
-- **Context**: Most new mobile-SDK development should be in Kotlin. Java is primarily for maintaining existing code (iAds Android SDK / delivery — **iAds core delivery sunsets end of April 2026**; LP, ISX, Ad Quality, IDP remain active) or library code that requires pure Java compatibility.
+- **Context**: Most new mobile-SDK development should be in Kotlin. Java is primarily for maintaining existing code (legacy Android SDK / delivery modules) or library code that requires pure Java compatibility.
 - **Style**: Follow Google Java Style Guide.
 - **Nullability**: Use compile-time null-safety checking via [Error Prone + NullAway](tooling/null-safety-errorprone-nullaway.md) on new code; `@Nullable` / `@NonNull` annotations support Kotlin interoperability either way.
 - **Modern Java**: Use Java 17+ features (records, sealed types, pattern matching, text blocks) and Java 21+ (virtual threads, pattern-matching switch GA) where the target JDK supports them.

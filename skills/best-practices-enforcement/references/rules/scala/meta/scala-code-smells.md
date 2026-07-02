@@ -546,7 +546,7 @@ sbt clean coverage test coverageReport
 # LOC per file
 find . -name "*.scala" -exec wc -l {} \; | sort -rn
 
-# Dead code detection (via Memgraph)
+# Dead code detection (via a code-graph tool, if available)
 # See your investigation workspace for graph-based analysis
 ```
 

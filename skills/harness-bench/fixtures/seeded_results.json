@@ -2,7 +2,7 @@
   {
     "arm": "A",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 0,
     "passed": false,
     "input_tokens": 24272,
@@ -13,7 +13,7 @@
   {
     "arm": "A",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 1,
     "passed": false,
     "input_tokens": 20368,
@@ -24,7 +24,7 @@
   {
     "arm": "A",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 2,
     "passed": true,
     "input_tokens": 25789,
@@ -35,7 +35,7 @@
   {
     "arm": "A",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 3,
     "passed": false,
     "input_tokens": 24243,
@@ -46,7 +46,7 @@
   {
     "arm": "A",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 4,
     "passed": true,
     "input_tokens": 18793,
@@ -167,7 +167,7 @@
   {
     "arm": "A",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 0,
     "passed": true,
     "input_tokens": 22823,
@@ -178,7 +178,7 @@
   {
     "arm": "A",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 1,
     "passed": false,
     "input_tokens": 25562,
@@ -189,7 +189,7 @@
   {
     "arm": "A",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 2,
     "passed": false,
     "input_tokens": 19634,
@@ -200,7 +200,7 @@
   {
     "arm": "A",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 3,
     "passed": true,
     "input_tokens": 18591,
@@ -211,7 +211,7 @@
   {
     "arm": "A",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 4,
     "passed": false,
     "input_tokens": 24037,
@@ -332,7 +332,7 @@
   {
     "arm": "B",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 0,
     "passed": true,
     "input_tokens": 13577,
@@ -343,7 +343,7 @@
   {
     "arm": "B",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 1,
     "passed": true,
     "input_tokens": 16879,
@@ -354,7 +354,7 @@
   {
     "arm": "B",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 2,
     "passed": true,
     "input_tokens": 16397,
@@ -365,7 +365,7 @@
   {
     "arm": "B",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 3,
     "passed": false,
     "input_tokens": 16455,
@@ -376,7 +376,7 @@
   {
     "arm": "B",
     "model": "claude-opus-4-8",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 4,
     "passed": true,
     "input_tokens": 14022,
@@ -497,7 +497,7 @@
   {
     "arm": "B",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 0,
     "passed": true,
     "input_tokens": 13200,
@@ -508,7 +508,7 @@
   {
     "arm": "B",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 1,
     "passed": false,
     "input_tokens": 13197,
@@ -519,7 +519,7 @@
   {
     "arm": "B",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 2,
     "passed": true,
     "input_tokens": 15908,
@@ -530,7 +530,7 @@
   {
     "arm": "B",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 3,
     "passed": true,
     "input_tokens": 16854,
@@ -541,7 +541,7 @@
   {
     "arm": "B",
     "model": "claude-sonnet-4-6",
-    "task": "codegraph_detector_fix",
+    "task": "kafka_detector_fix",
     "run_idx": 4,
     "passed": true,
     "input_tokens": 16458,

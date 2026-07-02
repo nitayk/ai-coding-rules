@@ -197,7 +197,7 @@ echo '{
 
 When the user asks for a terminal visualization:
 
-1. **Get the data** — if an upstream skill (e.g., `bigquery-skill`) has already produced a JSON array of row objects, use that directly as the `data` field. Otherwise, run whatever query is needed to get the data.
+1. **Get the data** — if an upstream skill (e.g., a data-query skill) has already produced a JSON array of row objects, use that directly as the `data` field. Otherwise, run whatever query is needed to get the data.
 2. **Build the chart JSON spec:**
    - Set `data` to the JSON array from the upstream skill.
    - Choose a chart `type` based on the data shape:

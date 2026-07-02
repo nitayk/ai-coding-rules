@@ -122,12 +122,12 @@ Editions makes enum semantics explicit via the `enum_type` feature:
 
 ```proto
 edition = "2024";
-package unityads.ads.sdk.v1;
+package example.ads.sdk.v1;
 
 option features.enum_type = OPEN;  // explicit — don't rely on language default
 ```
 
-For UADS schemas in `unityapis`, prefer `OPEN` — Kafka replay and SDK heterogeneity make closed semantics a foot-gun.
+For shared schemas in `apis`, prefer `OPEN` — Kafka replay and SDK heterogeneity make closed semantics a foot-gun.
 
 ---
 

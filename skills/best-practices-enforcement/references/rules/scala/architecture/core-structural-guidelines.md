@@ -297,13 +297,13 @@ class UserFacadeSpec extends AnyFlatSpec with Matchers {
 }
 ```
 
-## Integration with IDP
+## Integration with a Data Pipeline
 
-### IDP-Specific Structural Patterns
-Apply these guidelines to IDP's data processing architecture.
+### Data-Pipeline Structural Patterns
+Apply these guidelines to your data-processing architecture.
 
 ```scala
-// Good: IDP Example: Clean transformation architecture
+// Good: Data-pipeline example: Clean transformation architecture
 trait ITransformationService {
   def applyTransformation(data: DataFrame, config: TransformationConfig): Future[DataFrame]
   def validateTransformation(config: TransformationConfig): Either[ValidationError, Unit]
@@ -355,6 +355,6 @@ class DataProcessingFacade(
 **Scala-Specific:**
 - [Functional Integration in Facade](functional-integration-in-facade.md)
 - [Error Handling Patterns](../language/error-handling-patterns.md)
-- [IDP Scala Code Style](../meta/scala-code-style.md)
+- [Scala Code Style](../meta/scala-code-style.md)
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

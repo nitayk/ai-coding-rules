@@ -91,7 +91,7 @@ Suites can nest (`@Suite` types declared inside other `@Suite` types) and inheri
 // ✅ Good: one test, many cases, individually reported
 @Test(arguments: [
     ("alice@example.com", true),
-    ("bob@unity3d.com", true),
+    ("bob@example.org", true),
     ("not-an-email", false),
     ("", false),
 ])

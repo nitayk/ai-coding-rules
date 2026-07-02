@@ -14,7 +14,7 @@ def test_load_all_shipped_tasks():
     specs = tasks_mod.load_tasks(TASKS_DIR)
     names = {s.name for s in specs}
     assert names == {
-        "codegraph_detector_fix",
+        "kafka_detector_fix",
         "typed_config_bugfix",
         "small_refactor",
     }

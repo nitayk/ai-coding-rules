@@ -9,15 +9,15 @@ Sources: [Protocol Buffers Style Guide](https://protobuf.dev/programming-guides/
 ## Files
 
 - **`lower_snake_case.proto`**, one dominant message per file, file basename matches the dominant message in snake_case.
-- Files live under directories that mirror the package: `unityads/ads/sdk/v1/gateway.proto` declares `package unityads.ads.sdk.v1;`.
+- Files live under directories that mirror the package: `example/ads/sdk/v1/gateway.proto` declares `package example.ads.sdk.v1;`.
 
 ```proto
-// ✅ Good: file unityads/ads/sdk/v1/ad_request.proto
+// ✅ Good: file example/ads/sdk/v1/ad_request.proto
 syntax = "proto3";
 
-package unityads.ads.sdk.v1;
+package example.ads.sdk.v1;
 
-option go_package = "github.com/unity-ads/unityapis/gen/go/unityads/ads/sdk/v1;sdkv1";
+option go_package = "github.com/example-org/apis/gen/go/example/ads/sdk/v1;sdkv1";
 
 message AdRequest {
   // ...
@@ -36,16 +36,16 @@ message adRequest {}  // wrong message casing
 
 ## Packages
 
-- Dot-delimited, all lowercase, no underscores. `unityads.ads.sdk.v1` — never `unityads.adsSDK.v1` or `unity_ads.ads.sdk.v1`.
+- Dot-delimited, all lowercase, no underscores. `example.ads.sdk.v1` — never `example.adsSDK.v1` or `example_ads.ads.sdk.v1`.
 - **Always end with a version suffix** (`v1`, `v1beta1`, `v2`). Buf's STANDARD lint enforces this. The version suffix is what lets you ship `v2` alongside `v1` without renaming the package.
 - A breaking change to a stable package (`v1`) requires a new package (`v2`) — never silently break `v1`. See `governance/backward-compatibility-checklist.md`.
 
 ```proto
 // ✅ Good
-package unityads.ads.valuation.v1;
+package example.ads.valuation.v1;
 
 // ❌ Bad: no version suffix — Buf will refuse this in STANDARD lint
-package unityads.ads.valuation;
+package example.ads.valuation;
 ```
 
 ---
@@ -131,10 +131,10 @@ Every `.proto` file that will be consumed by Go code must declare `option go_pac
 
 ```proto
 // ✅ Good
-option go_package = "github.com/unity-ads/unityapis/gen/go/unityads/ads/sdk/v1;sdkv1";
+option go_package = "github.com/example-org/apis/gen/go/example/ads/sdk/v1;sdkv1";
 
 // ❌ Bad: generated Go package is named `v1`
-option go_package = "github.com/unity-ads/unityapis/gen/go/unityads/ads/sdk/v1";
+option go_package = "github.com/example-org/apis/gen/go/example/ads/sdk/v1";
 ```
 
 ---

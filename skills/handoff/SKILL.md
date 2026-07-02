@@ -51,7 +51,7 @@ Two patterns this enables:
    their contents — the receiving agent can open them. Duplication rots.
 
 4. **Include a "Suggested skills" section** so the fresh session auto-flavors
-   itself (e.g. "invoke `/e2e` for the build", "`/code-graph-architect` to map
+   itself (e.g. "invoke `/e2e` for the build", "do a code-search pass to map
    callers first"). This is what lets a cold session start warm.
 
 5. **Redact secrets / PII** — no API keys, tokens, passwords, or personal data

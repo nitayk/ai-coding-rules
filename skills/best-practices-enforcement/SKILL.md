@@ -36,7 +36,7 @@ If you're tempted to invoke this AND `/code-review-excellence` AND `/code-cleanu
 
 ## Token-bomb guard (READ FIRST)
 
-This skill loads ~10 rule files into context. **If the orchestrator already loaded any of those rule files earlier in the session (e.g. via `/code-review`, `/service-refactoring`, or a prior gate run), SKIP the load step** — just reference them by path. Re-loading the same rule files compounds context cost across phases. Track which rules are already in context; only `read_file` the missing ones.
+This skill loads ~10 rule files into context. **If the orchestrator already loaded any of those rule files earlier in the session (e.g. via `/code-review`, `/code-simplification`, or a prior gate run), SKIP the load step** — just reference them by path. Re-loading the same rule files compounds context cost across phases. Track which rules are already in context; only `read_file` the missing ones.
 
 ## Core Directive
 
@@ -114,7 +114,7 @@ Best Practices Audit Report (in chat):
 ## Related
 
 - `/code-review` command (`commands/code-review.md`) - Broader code review
-- `/service-refactoring` skill - Apply during refactoring
-- `/service-migration` skill - Ensure migrated code follows practices
+- `/code-simplification` skill - Apply during refactoring
+- `/code-cleanup` skill - Remove debug artifacts and noise before commit
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

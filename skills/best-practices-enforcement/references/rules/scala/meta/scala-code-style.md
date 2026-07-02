@@ -306,7 +306,7 @@ val targetOpt: Option[String] = input.alias
 val configOpt: Option[Configuration] = loadConfig()
 val userOpt: Option[User] = findUser(id)
 
-// Good: Consistent with IDP codebase patterns
+// Good: Consistent with data-pipeline codebase patterns
 appConfigurations.maybeTransformations
 appConfigurations.maybeAggregation
 appConfigurations.maybePreFilters
@@ -564,7 +564,7 @@ private def safecast(value: Column, targetType: DataType): Column = {
 }
 ```
 
-## IDP-Specific Patterns
+## Data-Pipeline Patterns
 
 ### Transformation Implementation Pattern
 ```scala

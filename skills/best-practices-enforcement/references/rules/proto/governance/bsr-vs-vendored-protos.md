@@ -1,6 +1,6 @@
 # BSR vs Vendored Protos
 
-UADS today distributes shared protos by vendoring `unityapis` (consumers import the generated Go from the repo, or run `buf generate` against a checked-out copy). The Buf Schema Registry (BSR) is the managed alternative: schemas are published, versioned, and pulled by hash, with generated code available as a pre-built artifact. Both work; the right answer depends on your governance, access-control, and toolchain needs — not on which is newer.
+A common setup distributes shared protos by vendoring `apis` (consumers import the generated Go from the repo, or run `buf generate` against a checked-out copy). The Buf Schema Registry (BSR) is the managed alternative: schemas are published, versioned, and pulled by hash, with generated code available as a pre-built artifact. Both work; the right answer depends on your governance, access-control, and toolchain needs — not on which is newer.
 
 This rule documents the tradeoffs honestly so the team can pick deliberately. It does **not** recommend a migration today.
 
@@ -11,22 +11,22 @@ Source: [Buf Docs](https://buf.build/docs/).
 ## What "vendored protos" means here
 
 ```
-unityapis (git repo)
+apis (git repo)
 ├── proto/
-│   ├── unityads/ads/sdk/v1/*.proto
+│   ├── example/ads/sdk/v1/*.proto
 │   └── ...
 ├── buf.yaml
 └── gen/
     └── go/                   ← generated code, committed
-        └── unityads/ads/sdk/v1/*.pb.go
+        └── example/ads/sdk/v1/*.pb.go
 
-ads-sdk-gateway (consumer)
-└── go.mod                    ← depends on github.com/unity-ads/unityapis
+my-service (consumer)
+└── go.mod                    ← depends on github.com/example-org/apis
 ```
 
 Consumers either:
 
-1. Import the generated Go directly (`go get github.com/unity-ads/unityapis/gen/go/...`), or
+1. Import the generated Go directly (`go get github.com/example-org/apis/gen/go/...`), or
 2. Vendor the raw `.proto` files into their own tree (rare; usually means downstream wants to add codegen options).
 
 Schema distribution is "however git serves a repo."
@@ -46,14 +46,14 @@ BSR is a managed schema registry:
 # Consumer's buf.yaml referencing a BSR module
 version: v2
 deps:
-  - buf.build/unity-ads/unityapis:v1.42.0
+  - buf.build/example-org/apis:v1.42.0
 ```
 
 ---
 
 ## Tradeoffs
 
-| Dimension | Vendored (`unityapis` today) | BSR |
+| Dimension | Vendored (`apis` today) | BSR |
 |---|---|---|
 | **Access control** | GitHub repo permissions | BSR org/team permissions; finer-grained per-module |
 | **Versioning** | Git tags / SHAs | Content-addressed digests + optional semver tags |
@@ -79,16 +79,16 @@ Adopt BSR if **multiple** of the following are true:
 
 ---
 
-## When vendored is the right choice (UADS today)
+## When vendored is the right choice
 
 Stay vendored if:
 
-- All consumers are inside the same GitHub org (UADS today).
+- All consumers are inside the same GitHub org.
 - Git is already the source of truth for everything else.
 - The current workflow isn't actually painful — the friction is acceptable.
 - Engineering capacity for a registry migration would deliver more value elsewhere.
 
-**As of 2026-05-27, UADS is squarely in the "stay vendored" column.** `unityapis` works; consumers are all in-org; the `buf breaking` + `buf lint` CI checks (see sibling rules) already give us the schema-discipline benefits BSR markets, without the migration cost.
+**A vendored-by-default setup with all consumers in-org is squarely in the "stay vendored" column.** When `apis` works and consumers are all in-org, the `buf breaking` + `buf lint` CI checks (see sibling rules) already give you the schema-discipline benefits BSR markets, without the migration cost.
 
 Revisit when:
 
@@ -120,7 +120,7 @@ Remote Plugins shift the burden of pinning plugin versions off your machine and 
 
 If a future decision picks BSR, the migration shape is:
 
-1. Push `unityapis` to BSR as a new module (`buf push`).
+1. Push `apis` to BSR as a new module (`buf push`).
 2. Add `deps:` entries in consumer `buf.yaml`s alongside the existing import paths.
 3. Switch consumers one-by-one to pull from BSR (codegen layout stays the same).
 4. After every consumer is migrated, freeze the GitHub repo's `gen/` directory and treat BSR as the source of truth.

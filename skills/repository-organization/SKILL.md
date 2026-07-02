@@ -136,6 +136,6 @@ Deliverable: **target map** (bullet tree or table) + **what references must chan
 
 ## Related examples
 
-Concrete path-bootstrap patterns (adjust names): `manage/code-graph-system/scripts/_cg_repo_root.py`, `scripts/lib/bash_common.sh`.
+Concrete path-bootstrap patterns (adjust names): `scripts/_repo_root.py`, `scripts/lib/bash_common.sh`.
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

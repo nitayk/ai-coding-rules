@@ -2,7 +2,7 @@
 
 **This is the single most important rule in `rules/proto/`.** Every other rule in here is style or pattern guidance — a human reviewer can recover from a missed lint. `buf breaking` catches the changes that silently corrupt every persisted message, every Kafka topic, and every generated client in production: renumbered fields, reused field numbers, deleted enum values, swapped types. None of those are caught by code review. `buf breaking` catches all of them, in a few seconds, with one CI step.
 
-For UADS specifically: `unityapis` is consumed by `ads-sdk-gateway`, `ads-valuation-composer`, `ads-dd-valuation-valuator`, `ads-audience-pinpointer`, `ads-ds-candidate-selection`, and ~every other Go backend. A single accidental breaking change blast-radiuses across the whole product. Wire this rule into `unityapis`'s CI before anything else in this directory.
+In a shared-schema setup: `apis` is consumed by every Go backend in the org. A single accidental breaking change blast-radiuses across the whole product. Wire this rule into `apis`'s CI before anything else in this directory.
 
 Sources: [Buf Breaking Change Rules](https://buf.build/docs/breaking/rules/), [Buf Docs](https://buf.build/docs/).
 
@@ -49,7 +49,7 @@ This is the whole rule. Don't gate it on a label, don't make it advisory — mak
 | `WIRE_JSON` | Only changes that break wire-format or JSON-mapping compatibility | Public APIs where source-incompatible source refactors are acceptable |
 | `WIRE` | Only wire-format breakage (rename a field → fine because the number is the same) | Public binary-only APIs |
 
-**Start at `FILE`** for `unityapis`. It's the strictest, catches the most, and the few false positives (legitimate renames) are easier to handle case-by-case than the false negatives at lower tiers.
+**Start at `FILE`** for `apis`. It's the strictest, catches the most, and the few false positives (legitimate renames) are easier to handle case-by-case than the false negatives at lower tiers.
 
 ```yaml
 # buf.yaml
@@ -80,7 +80,7 @@ message Ad {
 - **WIRE**: passes. The number is unchanged; the wire bytes are unchanged.
 - **FILE**: fails (`FIELD_SAME_NAME`). The generated Go field is now `AdUnit` not `AdUnitId` — every Go caller breaks at compile time on re-generation.
 
-`WIRE`'s tolerance for source breaks is fine for a true binary-only API, but for `unityapis` (which every Go service regenerates from) it'd let you ship hours-long incidents.
+`WIRE`'s tolerance for source breaks is fine for a true binary-only API, but for `apis` (which every Go service regenerates from) it'd let you ship hours-long incidents.
 
 ---
 
@@ -104,7 +104,7 @@ See `backward-compatibility-checklist.md` for the full review-time checklist.
 You will, occasionally, want to actually break compat (e.g. shipping `v2` of a package). The right workflow:
 
 1. **Don't ignore the check.** Don't `--exclude` paths; don't carry a "breaking-changes-allowed" label.
-2. **Bump the package version.** `unityads.ads.sdk.v1` → `unityads.ads.sdk.v2`. The old package stays, the new package is unconstrained.
+2. **Bump the package version.** `example.ads.sdk.v1` → `example.ads.sdk.v2`. The old package stays, the new package is unconstrained.
 3. **Delete the old package only after every consumer migrates.** `buf breaking` will start failing on deletion — that's correct, and the response is to coordinate consumer cutover, not to ignore the failure.
 
 ```yaml
@@ -114,7 +114,7 @@ breaking:
   use:
     - FILE
   ignore:
-    - unityads/ads/sdk/v1/   # being retired 2026-08; remove this entry when directory is deleted
+    - example/ads/sdk/v1/   # being retired 2026-08; remove this entry when directory is deleted
 ```
 
 Every ignore entry has an expiry date in the comment.

@@ -52,7 +52,7 @@ These change the bytes on the wire. They will fail `buf breaking` at every tier.
 
 ## ❌ Forbidden — source-breaking (FILE tier)
 
-These don't change wire bytes but break every consumer that regenerates code. `buf breaking` at FILE catches them; at WIRE it doesn't. For `unityapis` (consumed by every Go backend that regenerates) treat these as fully forbidden.
+These don't change wire bytes but break every consumer that regenerates code. `buf breaking` at FILE catches them; at WIRE it doesn't. For `apis` (consumed by every Go backend that regenerates) treat these as fully forbidden.
 
 - **Rename a field, message, enum value, RPC, service, or package.** Wire is fine; every generated symbol changes.
 - **Move a message between files or packages.** Import paths change.
@@ -92,14 +92,14 @@ A package version bump is the only safe way to make breaking changes:
 
 ```proto
 // Old, frozen
-package unityads.ads.sdk.v1;
+package example.ads.sdk.v1;
 
 message AdRequest {
   string ad_unit_id = 1;
 }
 
 // New, free to redesign
-package unityads.ads.sdk.v2;
+package example.ads.sdk.v2;
 
 message AdRequest {
   string placement_id = 1;   // renamed concept

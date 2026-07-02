@@ -15,7 +15,7 @@ Setup persistent local development server using pm2 process management.
 |---|---|
 | **USE WHEN** | Node.js dev server (`npm run dev`, Next.js, Vite, Nuxt, Remix, Astro) — anything spawned from `npm`/`pnpm`/`yarn` that you want to keep alive across terminal closes |
 | **DO NOT USE FOR** | Go services (`go run`, compiled binaries) · Scala/sbt (`sbt run`, `sbt ~reStart`) · Python (`uvicorn`, `gunicorn`, `flask run`) · Docker Compose / Kubernetes stacks · anything already managed by `make dev`, `tilt`, `skaffold`, or a repo-specific launcher |
-| **INSTEAD** | Go/Scala/Python services in this workspace (UADS / iAds / ISX) typically run via `sbt`, `go run`, `docker compose`, or k8s — see `/docker-patterns` or run the service's documented command directly. pm2 adds no value (and may mask) for those stacks. |
+| **INSTEAD** | Go/Scala/Python services typically run via `sbt`, `go run`, `docker compose`, or k8s — see `/docker-patterns` or run the service's documented command directly. pm2 adds no value (and may mask) for those stacks. |
 
 Skip the rest of this skill if your stack isn't Node.js.
 
