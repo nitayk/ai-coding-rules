@@ -22,7 +22,7 @@ contents, JSON merges, gitignore blocks). Log wording may differ; effects may no
 
 ```
 cli/
-  go.mod                       module github.com/nitayk/ai-coding-rules/cli
+  go.mod                       module github.com/nitayk/nitays-agent-toolkit/cli
   main.go                      thin: os.Exit(cmd.Execute())
   cmd/                         cobra wiring only (flags, help, arg validation)
     root.go  install.go  sync.go  link.go  update.go
@@ -71,7 +71,7 @@ rules-repo root (matches the "keep self-contained for now" constraint). Build:
   → `<hooksdir>/`, inject into `.claude/settings.json`, delete `hooks.json`.
 - **claude isolation**: `permissions.deny` + `allow` seeded into `.claude/settings.json`.
 - **gitignore**: managed block (`.agents/`, `*-workspace/`) + memory dir + ECC paths.
-- **install**: detect repo root (walk up for `.git`); if run from the ai-coding-rules
+- **install**: detect repo root (walk up for `.git`); if run from the nitays-agent-toolkit
   repo itself, call sync directly; else add/update submodule (SSH→HTTPS fallback);
   install/append post-merge hook. The hook now invokes `acr sync` (not `bash sync-rules.sh`)
   — a deliberate, documented deviation since the tool itself is being replaced.
@@ -99,6 +99,6 @@ rules-repo root (matches the "keep self-contained for now" constraint). Build:
 
 ## Binary name
 
-Primary suggestion **`acr`** (ai-coding-rules; short, unshadowed). Alt: `ruler` —
+Primary suggestion **`acr`** (nitays-agent-toolkit; short, unshadowed). Alt: `ruler` —
 rejected as a default because an unrelated AI-rules tool already ships as `ruler`
 (`npx @intellectronica/ruler`), so the name would collide/confuse.

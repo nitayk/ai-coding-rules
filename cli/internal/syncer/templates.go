@@ -1,8 +1,8 @@
 package syncer
 
 const (
-	gitignoreMarkerBegin = "# --- ai-coding-rules managed (auto; do not remove) ---"
-	gitignoreMarkerEnd   = "# --- end ai-coding-rules managed ---"
+	gitignoreMarkerBegin = "# --- nitays-agent-toolkit managed (auto; do not remove) ---"
+	gitignoreMarkerEnd   = "# --- end nitays-agent-toolkit managed ---"
 )
 
 // managedGitignoreBlock is appended to .gitignore. The ignore patterns

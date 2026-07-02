@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate ai-coding-rules: frontmatter, skills, agents, rules
+# Validate nitays-agent-toolkit: frontmatter, skills, agents, rules
 #
 # Usage:
 #   ./scripts/validate.sh          # Full validation
@@ -18,7 +18,7 @@ red()    { printf "\033[31m%s\033[0m\n" "$1"; }
 green()  { printf "\033[32m%s\033[0m\n" "$1"; }
 yellow() { printf "\033[33m%s\033[0m\n" "$1"; }
 
-echo "Validating ai-coding-rules..."
+echo "Validating nitays-agent-toolkit..."
 echo "Repo: $REPO_DIR"
 echo ""
 

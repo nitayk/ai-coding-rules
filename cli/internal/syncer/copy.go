@@ -3,7 +3,7 @@ package syncer
 import (
 	"path/filepath"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
 )
 
 // copyOrLink ports smart_copy for files: symlink when UseSymlinks, else copy

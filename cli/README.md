@@ -1,6 +1,6 @@
-# `acr` — ai-coding-rules CLI
+# `acr` — nitays-agent-toolkit CLI
 
-`acr` is a single static Go binary that manages the ai-coding-rules shared
+`acr` is a single static Go binary that manages the nitays-agent-toolkit shared
 submodule and the skills, agents, commands, and hooks it deploys into Claude
 Code projects. It replaces four shell scripts with one typed CLI:
 
@@ -42,7 +42,7 @@ All mutating commands accept `--dry-run` and the global `-v/--verbose`.
 ### `acr install`
 One-shot setup for a consumer repo: reconciles the `.cursor/rules/shared`
 submodule, runs a Claude Code sync, and installs a `post-merge` git hook so
-syncs happen after every `git pull`. Run from inside the ai-coding-rules
+syncs happen after every `git pull`. Run from inside the nitays-agent-toolkit
 checkout itself, it skips the submodule/hook steps and just syncs.
 
 ```bash

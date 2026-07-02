@@ -1,4 +1,4 @@
-# ai-coding-rules
+# nitays-agent-toolkit
 
 A curated, best-of-breed AI coding toolkit that combines top community skills with battle-tested workflows. Works as a git submodule for any project, instantly supercharging your AI-assisted development.
 
@@ -25,8 +25,8 @@ The shell scripts were replaced by a single Go CLI, **`acr`**. Build it once:
 
 ```bash
 # One-time: clone to your home directory and build the CLI
-git clone https://github.com/nitayk/ai-coding-rules.git ~/ai-coding-rules
-cd ~/ai-coding-rules && go build -o ~/.local/bin/acr ./cli   # ensure ~/.local/bin is on PATH
+git clone https://github.com/nitayk/nitays-agent-toolkit.git ~/nitays-agent-toolkit
+cd ~/nitays-agent-toolkit && go build -o ~/.local/bin/acr ./cli   # ensure ~/.local/bin is on PATH
 ```
 
 See [`cli/README.md`](cli/README.md) for full command docs.
@@ -41,7 +41,7 @@ cd ~/projects/my-app && acr sync          # add --copy to copy instead of symlin
 
 To update a project later:
 ```bash
-cd ~/ai-coding-rules && git pull && acr update   # refresh community sources
+cd ~/nitays-agent-toolkit && git pull && acr update   # refresh community sources
 cd ~/projects/my-app && acr sync                 # re-deploy
 ```
 
@@ -51,7 +51,7 @@ Version-pinned assets committed to the project repo. `acr install` adds the
 submodule, syncs, and installs a post-merge hook that re-syncs after `git pull`:
 
 ```bash
-git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
+git submodule add https://github.com/nitayk/nitays-agent-toolkit.git .cursor/rules/shared
 go build -o ~/.local/bin/acr ./.cursor/rules/shared/cli
 acr install
 ```
@@ -195,7 +195,7 @@ Install with: `npx skills add owner/repo --skill "skill-name"`
 ### Pull latest + update community sources
 
 ```bash
-cd ~/ai-coding-rules
+cd ~/nitays-agent-toolkit
 git pull
 acr update                        # fetch latest from obra/superpowers + anthropics/skills
 git add -A && git commit -m "chore: update community skills"

@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/syncer"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/syncer"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ func newSyncCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sync",
 		Short: "Sync skills/agents/commands/hooks into a project",
-		Long: `Sync deploys skills, agents, commands, and hooks from an ai-coding-rules
+		Long: `Sync deploys skills, agents, commands, and hooks from an nitays-agent-toolkit
 checkout into a consumer repo's Claude Code (.claude/) directories.
 
 Skills are always copied (Claude doesn't index symlinked skill trees);
@@ -70,11 +70,11 @@ Claude Code's context.`,
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "overwrite managed files when they differ")
 	cmd.Flags().BoolVar(&backup, "backup", false, "create backups before overwriting")
 	cmd.Flags().StringVar(&repoRoot, "repo-root", "", "consumer repo to sync into (default: detected)")
-	cmd.Flags().StringVar(&sourceDir, "source", "", "ai-coding-rules content dir (default: detected)")
+	cmd.Flags().StringVar(&sourceDir, "source", "", "nitays-agent-toolkit content dir (default: detected)")
 	return cmd
 }
 
-// resolveSyncDirs determines the consumer repo root and the ai-coding-rules
+// resolveSyncDirs determines the consumer repo root and the nitays-agent-toolkit
 // content dir. Explicit flags win; otherwise it detects dev mode (cwd is the
 // checkout) vs consumer mode (submodule at .cursor/rules/shared).
 func resolveSyncDirs(repoRoot, sourceDir string) (root, script string, err error) {
@@ -89,7 +89,7 @@ func resolveSyncDirs(repoRoot, sourceDir string) (root, script string, err error
 	if sourceDir != "" {
 		return root, sourceDir, nil
 	}
-	// Dev mode: cwd is the ai-coding-rules checkout.
+	// Dev mode: cwd is the nitays-agent-toolkit checkout.
 	if fsx.IsDir(filepath.Join(root, "skills")) && fsx.Exists(filepath.Join(root, "config", "skill-groups.yaml")) {
 		return root, root, nil
 	}
@@ -98,5 +98,5 @@ func resolveSyncDirs(repoRoot, sourceDir string) (root, script string, err error
 	if fsx.IsDir(filepath.Join(sub, "skills")) {
 		return root, sub, nil
 	}
-	return "", "", fmt.Errorf("could not locate ai-coding-rules content; pass --source (and --repo-root), or run from the checkout or a repo with the submodule at .cursor/rules/shared")
+	return "", "", fmt.Errorf("could not locate nitays-agent-toolkit content; pass --source (and --repo-root), or run from the checkout or a repo with the submodule at .cursor/rules/shared")
 }

@@ -102,7 +102,7 @@ const hooksJSON = `{
 }
 `
 
-// buildSource creates a minimal ai-coding-rules checkout fixture and copies the
+// buildSource creates a minimal nitays-agent-toolkit checkout fixture and copies the
 // real sync-rules.sh into it so the bash baseline runs the actual script.
 func buildSource(t *testing.T) string {
 	t.Helper()
@@ -359,7 +359,7 @@ func TestLinkParity(t *testing.T) {
 }
 
 // TestInstallFromRepoParity exercises the RUNNING_FROM_REPO fast path: invoked
-// inside an ai-coding-rules checkout, install just runs a sync (no submodule, no
+// inside an nitays-agent-toolkit checkout, install just runs a sync (no submodule, no
 // hook). Symlinks here are repo-relative, so they are compared by raw target.
 func TestInstallFromRepoParity(t *testing.T) {
 	requireTools(t)
