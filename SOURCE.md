@@ -1,11 +1,11 @@
 # Source of truth
 
-This repository **is** [nitayk/ai-coding-rules](https://github.com/nitayk/ai-coding-rules): the canonical package (skills, agents, commands, hooks, core rules, installer). It targets **Claude Code**.
+This repository **is** [nitayk/nitays-agent-toolkit](https://github.com/nitayk/nitays-agent-toolkit): the canonical package (skills, agents, commands, hooks, core rules, installer). It targets **Claude Code**.
 
 **Consumers** add it as a submodule and run the `acr` installer:
 
 ```bash
-git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
+git submodule add https://github.com/nitayk/nitays-agent-toolkit.git .cursor/rules/shared
 go build -o ~/.local/bin/acr ./.cursor/rules/shared/cli
 acr install
 ```

@@ -16,8 +16,8 @@ var verbose bool
 func newRootCmd() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "acr",
-		Short: "ai-coding-rules installer/sync tooling",
-		Long: `acr manages the ai-coding-rules shared submodule and the skills, agents,
+		Short: "nitays-agent-toolkit installer/sync tooling",
+		Long: `acr manages the nitays-agent-toolkit shared submodule and the skills, agents,
 commands, and hooks it deploys into Claude Code projects.
 
 It replaces the install.sh / sync-rules.sh / link-to-project.sh /

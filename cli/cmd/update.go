@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
-	"github.com/nitayk/ai-coding-rules/cli/internal/updater"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -34,6 +34,6 @@ After running, review changes with 'git diff' and commit.`,
 	}
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "show what would change without applying")
 	cmd.Flags().BoolVar(&showDiff, "diff", false, "show diffs before applying changes")
-	cmd.Flags().StringVar(&repo, "repo", "", "ai-coding-rules checkout to update (default: current directory)")
+	cmd.Flags().StringVar(&repo, "repo", "", "nitays-agent-toolkit checkout to update (default: current directory)")
 	return cmd
 }

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/nitayk/ai-coding-rules/cli/internal/linker"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/linker"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +13,9 @@ func newLinkCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "link <project-dir>",
-		Short: "Symlink this ai-coding-rules checkout into a project",
+		Short: "Symlink this nitays-agent-toolkit checkout into a project",
 		Long: `Link creates a symlink from a project's .cursor/rules/shared to this
-ai-coding-rules checkout, instead of using a git submodule. One clone, many
+nitays-agent-toolkit checkout, instead of using a git submodule. One clone, many
 projects; update once, all projects benefit.
 
 The submodule/checkout lives at .cursor/rules/shared — a Claude-safe location
@@ -37,6 +37,6 @@ commands/hooks into .claude/.`,
 		},
 	}
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be done without making changes")
-	cmd.Flags().StringVar(&source, "source", "", "path to the ai-coding-rules checkout (default: current directory)")
+	cmd.Flags().StringVar(&source, "source", "", "path to the nitays-agent-toolkit checkout (default: current directory)")
 	return cmd
 }

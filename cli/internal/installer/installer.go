@@ -2,7 +2,7 @@
 // reconciles the .cursor/rules/shared submodule, runs a sync, and installs a
 // post-merge hook so syncs happen automatically after `git pull`.
 //
-// When invoked from inside the ai-coding-rules checkout itself, it skips the
+// When invoked from inside the nitays-agent-toolkit checkout itself, it skips the
 // submodule/hook steps and just runs a sync in-process (matching the shell's
 // RUNNING_FROM_REPO fast path).
 package installer
@@ -15,9 +15,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nitayk/ai-coding-rules/cli/internal/fsx"
-	"github.com/nitayk/ai-coding-rules/cli/internal/syncer"
-	"github.com/nitayk/ai-coding-rules/cli/internal/ui"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/fsx"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/syncer"
+	"github.com/nitayk/nitays-agent-toolkit/cli/internal/ui"
 )
 
 const submodulePath = ".cursor/rules/shared"
@@ -78,9 +78,9 @@ func Run(o Options) error {
 	o.migrateLegacyClaudeSubmodule(repoRoot)
 	o.removeStaleClaudeRules(repoRoot)
 
-	// Fast path: running from the ai-coding-rules checkout itself.
+	// Fast path: running from the nitays-agent-toolkit checkout itself.
 	if runningFromRepo(repoRoot) {
-		o.Log.Info("Running from ai-coding-rules repo itself — syncing directly...")
+		o.Log.Info("Running from nitays-agent-toolkit repo itself — syncing directly...")
 		return o.runSync(repoRoot, repoRoot, targets)
 	}
 
@@ -139,7 +139,7 @@ func detectRepoRoot(start string) (string, bool) {
 	}
 }
 
-// runningFromRepo reports whether repoRoot is an ai-coding-rules checkout
+// runningFromRepo reports whether repoRoot is an nitays-agent-toolkit checkout
 // (carries the source content directories), matching RUNNING_FROM_REPO.
 func runningFromRepo(repoRoot string) bool {
 	return fsx.IsDir(filepath.Join(repoRoot, "skills")) &&
@@ -223,7 +223,7 @@ func (o Options) addSubmodule(repoRoot string) error {
 		}
 	}
 	return fmt.Errorf("failed to add submodule; add it manually: git submodule add %s %s",
-		"https://github.com/nitayk/ai-coding-rules.git", submodulePath)
+		"https://github.com/nitayk/nitays-agent-toolkit.git", submodulePath)
 }
 
 func (o Options) updateSubmodule(repoRoot string) {
@@ -273,7 +273,7 @@ func (o Options) installPostMergeHook(repoRoot string) {
 		return
 	}
 	content := "#!/usr/bin/env bash\n" +
-		"# Post-merge hook: sync ai-coding-rules when submodule reference changes\n" +
+		"# Post-merge hook: sync nitays-agent-toolkit when submodule reference changes\n" +
 		"# Installed by acr install\n\n" +
 		"cd \"$(git rev-parse --show-toplevel)\" || exit 0\n" +
 		o.hookBlock()
@@ -281,7 +281,7 @@ func (o Options) installPostMergeHook(repoRoot string) {
 	o.Log.Success("Post-merge hook installed")
 }
 
-const hookMarker = "ai-coding-rules: sync after pull"
+const hookMarker = "nitays-agent-toolkit: sync after pull"
 
 func (o Options) hookBlock() string {
 	args := fmt.Sprintf("--force --target %q", o.Target)
@@ -323,8 +323,8 @@ func (o Options) summary() {
 
 func submoduleURL(repoRoot string) string {
 	out, err := gitOut(repoRoot, "remote", "get-url", "origin")
-	const ssh = "git@github.com:nitayk/ai-coding-rules.git"
-	const https = "https://github.com/nitayk/ai-coding-rules.git"
+	const ssh = "git@github.com:nitayk/nitays-agent-toolkit.git"
+	const https = "https://github.com/nitayk/nitays-agent-toolkit.git"
 	if err == nil && strings.Contains(out, "git@") {
 		return ssh
 	}

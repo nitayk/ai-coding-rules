@@ -1,4 +1,4 @@
-module github.com/nitayk/ai-coding-rules/cli
+module github.com/nitayk/nitays-agent-toolkit/cli
 
 go 1.23.3
 
