@@ -152,4 +152,4 @@ func TestDeadline(t *testing.T) {
 - [Go 1.24 release notes](https://go.dev/doc/go1.24)
 - [Package `testing/synctest`](https://pkg.go.dev/testing/synctest)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

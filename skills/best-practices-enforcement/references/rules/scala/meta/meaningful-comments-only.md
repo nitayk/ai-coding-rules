@@ -140,4 +140,4 @@ if (!DataSetUtil.columnExists(df, timestampColumn)) {
 **Universal Principles:**
 - [Generic Code Quality Principles](../../../generic/code-quality/core-principles.md) - Universal comment guidelines (this file provides Scala-specific examples)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

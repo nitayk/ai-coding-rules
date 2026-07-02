@@ -239,4 +239,4 @@ def create_user(data: dict) -> User:
 - [Hudson River Trading: Building Robust Codebases with Type Annotations](https://www.hudsonrivertrading.com/hrtbeat/building-robust-codebases-with-pythons-type-annotations/)
 - [Meta: Typed Python Survey 2024](https://engineering.fb.com/2024/12/09/developer-tools/typed-python-2024-survey-meta/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

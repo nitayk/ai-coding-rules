@@ -95,4 +95,4 @@ If the plan changes, update the checklist. Keep it current — it is your source
 truth for what remains; once the conversation gets long, re-read it before starting
 each step.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

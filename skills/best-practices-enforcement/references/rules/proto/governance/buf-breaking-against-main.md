@@ -173,4 +173,4 @@ When `buf breaking` fails, the message names the rule it violated. The top failu
 - [Buf Docs](https://buf.build/docs/)
 - [AIP-180 — Backwards Compatibility](https://google.aip.dev/180)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

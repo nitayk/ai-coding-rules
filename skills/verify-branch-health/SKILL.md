@@ -314,4 +314,4 @@ These are gated behind `--deep` because they're slower and more likely to produc
 - [git-ls-files exclude-standard](https://git-scm.com/docs/git-ls-files)
 - [cli/cli#8515 — ghost remote refs after `gh pr merge -d`](https://github.com/cli/cli/issues/8515)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

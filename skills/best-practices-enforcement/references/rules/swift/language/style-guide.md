@@ -41,4 +41,4 @@ Pipeline: run swift-format first (it rewrites layout), then SwiftLint (it lints 
 - [swift-format](https://github.com/swiftlang/swift-format)
 - [SwiftLint rule directory](https://realm.github.io/SwiftLint/rule-directory.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

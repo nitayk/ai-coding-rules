@@ -178,4 +178,4 @@
 - [Functional Composition and HOF](../language/functional-composition-and-hof.md) - Composing functions efficiently
 - [Referential Transparency](../language/referential-transparency.md) - Pure functions and performance
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -226,4 +226,4 @@ def health(settings: SettingsDep) -> dict:
 - [FastAPI: Lifespan Events](https://fastapi.tiangolo.com/advanced/events/)
 - [FastAPI: Dependencies with Annotated](https://fastapi.tiangolo.com/tutorial/dependencies/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -112,4 +112,4 @@ fun String.isValidEmail(): Boolean = ...
 - [Kotlin Extension Functions](https://kotlinlang.org/docs/extensions.html)
 - [Extension Functions - Baeldung](https://www.baeldung.com/kotlin/extension-methods)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

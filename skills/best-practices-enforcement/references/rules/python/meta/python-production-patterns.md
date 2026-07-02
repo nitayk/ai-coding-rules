@@ -224,4 +224,4 @@ print(f"Processing {count} items")
 - [Ruff documentation](https://docs.astral.sh/ruff/) — official Astral docs (replaces flake8/black/isort/pyupgrade)
 - [Poetry Documentation](https://python-poetry.org/docs/) — still maintained for existing projects
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

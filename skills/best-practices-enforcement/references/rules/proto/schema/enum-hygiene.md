@@ -165,4 +165,4 @@ The compiler will refuse to let the next contributor accidentally re-add either 
 - [Proto3 Language Guide — Enumerations](https://protobuf.dev/programming-guides/proto3/)
 - [Protobuf Editions Overview](https://protobuf.dev/editions/overview/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

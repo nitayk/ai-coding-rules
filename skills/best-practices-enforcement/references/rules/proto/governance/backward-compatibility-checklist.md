@@ -126,4 +126,4 @@ Both packages live side-by-side; consumers migrate at their own pace; the old pa
 - [Buf Breaking Change Rules](https://buf.build/docs/breaking/rules/)
 - [Protobuf Language Guide — Updating a Message Type](https://protobuf.dev/programming-guides/proto3/#updating)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

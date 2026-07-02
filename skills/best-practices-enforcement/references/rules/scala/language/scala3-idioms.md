@@ -249,4 +249,4 @@ In the shared sources: stick to the **2.13 syntax subset** that Scala 3 also acc
 - [Scala 3 Migration: tooling tour](https://docs.scala-lang.org/scala3/guides/migration/tooling-tour.html) — `sbt-scala3-migrate`, source levels
 - [Scala 3 Migration Compatibility](https://docs.scala-lang.org/scala3/guides/migration/compatibility-intro.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

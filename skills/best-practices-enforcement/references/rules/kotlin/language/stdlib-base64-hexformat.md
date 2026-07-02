@@ -98,4 +98,4 @@ The hand-rolled versions allocate a `Formatter` per byte and offer no upper/lowe
 - [kotlin.io.encoding.Base64](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.encoding/-base64/) — stdlib API reference
 - [kotlin.text.HexFormat](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/-hex-format/) — stdlib API reference
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

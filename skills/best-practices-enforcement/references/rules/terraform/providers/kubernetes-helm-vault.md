@@ -235,4 +235,4 @@ Works on a laptop with `gcloud` installed and authenticated. Fails in any CI run
 - [Terraform Helm provider — auth](https://registry.terraform.io/providers/hashicorp/helm/latest/docs)
 - [CFT terraform-google-vault](https://github.com/terraform-google-modules/terraform-google-vault)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

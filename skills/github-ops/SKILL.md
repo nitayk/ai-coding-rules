@@ -144,4 +144,4 @@ Before completing any GitHub operations task:
 - releases include accurate changelogs
 - security alerts are acknowledged and tracked
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

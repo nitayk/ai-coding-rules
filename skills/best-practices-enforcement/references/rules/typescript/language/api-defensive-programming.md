@@ -276,4 +276,4 @@ When modifying API-consuming code:
 - [MDN: Optional Chaining](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining)
 - [TypeScript: Type Guards](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

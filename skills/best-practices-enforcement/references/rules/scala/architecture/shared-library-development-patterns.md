@@ -642,4 +642,4 @@ This comprehensive development framework ensures that shared libraries provide r
 
 **Scala-Specific:**
 - This file provides Scala-specific shared library development patterns (zero breaking changes, versioning, API design)
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

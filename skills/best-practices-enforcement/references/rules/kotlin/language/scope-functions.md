@@ -158,4 +158,4 @@ val result = data?.let { d ->
 - [Kotlin Scope Functions](https://kotlinlang.org/docs/scope-functions.html)
 - [Kotlin: When to use apply, let, also, and run](https://redmugguy.dev/posts/kotlin-scope-functions)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

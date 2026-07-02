@@ -256,4 +256,4 @@ func (c *Counter) Value() int64 {
 - [Package sync](https://pkg.go.dev/sync)
 - [A Guide to Go's sync Package](https://reintech.io/blog/guide-gos-sync-package-mutexes-waitgroups-atomic-operations)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

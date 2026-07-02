@@ -254,4 +254,4 @@ Do not deploy until:
 - `/multi-agent-branching` — Branch isolation for concurrent agents
 - `/writing-plans` — Phase-ready planning before implementation
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

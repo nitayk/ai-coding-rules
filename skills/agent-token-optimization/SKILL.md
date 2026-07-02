@@ -94,4 +94,4 @@ This is **not** a substitute for `/verification-before-completion` (honesty gate
 
 Do **not** assume Cursor and Claude expose identical hook events or paths—see [hooks/README.md](../../hooks/README.md).
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

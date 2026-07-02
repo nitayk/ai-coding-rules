@@ -334,4 +334,4 @@ def validateUser(email: String, age: Int): User = {
 - [Error Handling Patterns](../language/error-handling-patterns.md) - Example of Scala-specific patterns
 - [Functional Programming Principles](functional-programming-principles.md) - Scala FP patterns
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

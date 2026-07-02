@@ -157,4 +157,4 @@ terraform fmt -check -recursive  # CI guard
 - [Terraform Style Guide — resource naming](https://developer.hashicorp.com/terraform/language/style#resource-naming)
 - [GCP Terraform Best Practices — general style](https://docs.cloud.google.com/docs/terraform/best-practices/general-style-structure)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

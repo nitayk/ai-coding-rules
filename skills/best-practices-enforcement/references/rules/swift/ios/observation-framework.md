@@ -186,4 +186,4 @@ Mixing the two in the same view hierarchy works but adds cognitive overhead — 
 - [Apple — Migrating from ObservableObject to Observable](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro)
 - [WWDC23 "Discover Observation in SwiftUI"](https://developer.apple.com/videos/play/wwdc2023/10149/) — original introduction
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

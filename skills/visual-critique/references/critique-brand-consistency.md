@@ -41,4 +41,4 @@ Rate each dimension: `pass` / `minor issue` / `major issue`.
 - Imagery or illustration sourced outside the brand mood reference
 - Inconsistent radius or shadow values across components on the same screen
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

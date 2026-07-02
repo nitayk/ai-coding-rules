@@ -289,4 +289,4 @@ Before committing tests:
 - [ ] No flaky tests (no timing dependencies)
 - [ ] Test data is clear and minimal
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

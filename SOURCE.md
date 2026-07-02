@@ -1,22 +1,17 @@
 # Source of truth
 
-This repository **is** [nitayk/ai-coding-rules](https://github.com/nitayk/ai-coding-rules): the canonical package (rules, skills, installers).
+This repository **is** [nitayk/ai-coding-rules](https://github.com/nitayk/ai-coding-rules): the canonical package (skills, agents, commands, hooks, core rules, installer). It targets **Claude Code**.
 
-**Consumers** add it as a submodule and run the unified installer from the submodule path:
+**Consumers** add it as a submodule and run the `acr` installer:
 
 ```bash
-# Add submodule + sync (Cursor, default)
-bash .cursor/rules/shared/install.sh
-
-# Claude Code target
-bash .cursor/rules/shared/install.sh --target claude
-
-# Both targets
-bash .cursor/rules/shared/install.sh --target cursor,claude
+git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
+go build -o ~/.local/bin/acr ./.cursor/rules/shared/cli
+acr install
 ```
 
-The submodule always lives at `.cursor/rules/shared` (never under `.claude/rules/` — Claude Code auto-loads all `.md` files there, causing context explosion). `sync-rules.sh` handles copying skills/agents/commands to the correct `.claude/` paths.
+The submodule lives at `.cursor/rules/shared` on purpose — **never** under `.claude/rules/`, because Claude Code auto-loads every `.md` file under `.claude/` and a submodule there would cause a context explosion. Claude ignores `.cursor/`, so it's a safe home for the checkout. `acr sync` copies skills/agents/commands/hooks to the correct `.claude/` paths.
 
-Skills are always **copied** (not symlinked) because Cursor and Claude Code do not discover symlinked skill directories. Agents and commands use symlinks for automatic updates; use `--copy` to fall back to full copying.
+Skills are always **copied** (not symlinked) because Claude Code does not discover symlinked skill directories. Agents and commands use symlinks for automatic updates; use `--copy` to fall back to full copying.
 
-See also [UPSTREAM_SCOPE.md](./UPSTREAM_SCOPE.md) for how this pack relates to ironsource **mobile-cursor-rules** and Unity **ai-agent-skills**.
+See also [UPSTREAM_SCOPE.md](./UPSTREAM_SCOPE.md) for how this pack relates to ironsource **mobile-agent-toolkit** and Unity **ai-agent-skills**.

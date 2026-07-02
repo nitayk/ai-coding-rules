@@ -108,4 +108,4 @@ gh pr create --title "Description" --body "Details"
 - Service Refactoring - Applies this workflow
 - **Same change across many repos** (bulk PRs, `progress.md`, orchestration repo) → `/mass-repo-orchestration`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

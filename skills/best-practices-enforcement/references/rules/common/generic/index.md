@@ -158,4 +158,4 @@ When adding tools or technologies:
 - **Style guide**: See `meta/cursor-rules-style-guide.md`
 - **Router**: See `ROUTER.md` for intent-based rule loading
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

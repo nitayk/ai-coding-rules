@@ -95,4 +95,4 @@ Resist the urge to mark a rule `alwaysApply: true`. The only thing in `rules/pro
 - [`rules/go/index.md`](../../go/index.md) — the structural template this directory mirrors
 - Repository `index.md` style guide (top-level `rules/common/meta/`)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

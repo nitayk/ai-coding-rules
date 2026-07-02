@@ -126,4 +126,4 @@ session_regenerate_id(true);  // On login
 - [PHP The Right Way - Security](https://phptherightway.com/#security)
 - [PHP Manual - filter_var](https://www.php.net/manual/en/function.filter-var.php)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

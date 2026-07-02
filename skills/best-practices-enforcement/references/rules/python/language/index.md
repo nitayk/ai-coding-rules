@@ -54,4 +54,4 @@
 - **Security**: See `../meta/python-security-patterns.md` for secrets, injection prevention
 - **Production**: See `../meta/python-production-patterns.md` for deployment, tooling
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -30,4 +30,4 @@
 - **Governance**: `../governance/index.md` — `buf lint` covers protovalidate annotations too
 - **gRPC**: `../grpc/status-codes-and-errors.md` — failed validation should return `INVALID_ARGUMENT`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

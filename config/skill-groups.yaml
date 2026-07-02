@@ -45,13 +45,6 @@ agent_groups:
     - monitoring-analyst
     - data-validator
 
-# Rule groups — tags for .mdc rule files under rules/.
-# Rules live in the submodule checkout (not individually copied). The `group:`
-# frontmatter field is a passive annotation for agents/humans.
-rule_groups:
-  # No org-specific rule groups in the generic profile.
-  # Add custom groups here if needed.
-
 groups:
   # === Foundation — every repo should have these ===
   core:
@@ -178,9 +171,7 @@ groups:
 
   # === Miscellaneous ===
   misc:
-    - code-migration
     - ecc-harness-playbook
-    - github-actions-workflows-helper
     - benchmark
 
   # === Scala stack (excluded by default) ===

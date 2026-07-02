@@ -397,4 +397,4 @@ Recommended: Opus 4.6 for blueprint planning, Sonnet 4.6 for phase execution.
 | `strategic-compact` | Long session context management |
 | `cost-aware-llm-pipeline` | Token optimization recommendations |
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

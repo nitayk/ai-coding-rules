@@ -448,4 +448,4 @@ val service = new Service(
 
 - [Random Scala Tip #697: Avoid Anonymous Functions as Dependencies](https://blog.daniel-beskin.com/2025-01-07-random-scala-tip-697-avoid-anon-func-deps) - Daniel Beskin's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

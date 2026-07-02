@@ -116,4 +116,4 @@ Anywhere else, treat `GlobalScope` in code review as a defect.
 - [Android coroutines best practices](https://developer.android.com/kotlin/coroutines/coroutines-best-practices) — Inject Dispatchers; avoid GlobalScope; main-safety
 - [Coroutines overview](https://kotlinlang.org/docs/coroutines-overview.html) — Structured-concurrency primer
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

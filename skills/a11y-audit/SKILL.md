@@ -72,4 +72,4 @@ is in axe's `color-contrast` help URL.
   fetched at runtime — NOT vendored here, so no license entanglement) via Playwright,
   reusing the webapp-testing skill's native-Playwright pattern. Promoted to mobile-agent-toolkit (AQ-3 ui-uplift suite). -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

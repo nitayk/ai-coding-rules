@@ -105,4 +105,4 @@
 - [Trivy (tfsec successor)](https://github.com/aquasecurity/tfsec) — tfsec is now in maintenance; new pipelines should target Trivy
 - [terraform-docs](https://github.com/terraform-docs/terraform-docs) — module README generator
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

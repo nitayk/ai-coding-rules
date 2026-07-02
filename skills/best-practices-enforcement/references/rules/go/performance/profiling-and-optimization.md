@@ -342,4 +342,4 @@ Some allocations and map costs got faster without you doing anything — but onl
 - [The Go Blog](https://go.dev/blog/) — "Allocating on the Stack" (Feb 2026), "Green Tea Garbage Collector" (Oct 2025)
 - [Escape Analysis](https://go.dev/doc/effective_go#allocation)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

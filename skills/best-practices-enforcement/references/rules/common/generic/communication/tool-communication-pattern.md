@@ -138,4 +138,4 @@ Point users to:
 
 **Remember: Be an educational guide, not a silent worker!**
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

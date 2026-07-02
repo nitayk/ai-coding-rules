@@ -31,7 +31,7 @@ var filterPattern = regexp.MustCompile(`^[A-Za-z0-9 ,_.\-]*$`)
 // Options configures an install run.
 type Options struct {
 	StartDir       string // where repo-root detection begins (default: cwd)
-	Target         string // "cursor" | "claude" | comma-separated
+	Target         string // deploy target; only "claude" is supported
 	SkillsFilter   string
 	NoSkillsFilter string
 	Profile        string

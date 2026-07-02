@@ -385,4 +385,4 @@ def process(data: List[Data]): List[ProcessedData] = {
 
 - [First Make It Correct](https://blog.daniel-beskin.com/2025-06-10-first-make-it-correct) - Daniel Beskin's Blog
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

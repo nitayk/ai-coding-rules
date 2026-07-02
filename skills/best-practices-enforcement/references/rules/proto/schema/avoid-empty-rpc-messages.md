@@ -161,4 +161,4 @@ service AdService {
 - [Buf Style Guide](https://buf.build/docs/best-practices/style-guide/)
 - [AIP-180 — Backwards Compatibility](https://google.aip.dev/180)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

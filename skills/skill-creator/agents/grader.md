@@ -222,4 +222,4 @@ Write a JSON file with this structure:
 - **Explain failures**: Make it clear why evidence was insufficient
 - **No partial credit**: Each expectation is pass or fail, not partial
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

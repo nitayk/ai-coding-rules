@@ -134,4 +134,4 @@ val user = withTimeoutOrNull(3.seconds) { api.getUser(id) }
 - [Kotlin Cancellation and Timeouts](https://kotlinlang.org/docs/cancellation-and-timeouts.html)
 - [Android Coroutines Best Practices](https://developer.android.com/kotlin/coroutines/coroutines-best-practices)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

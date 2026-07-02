@@ -201,4 +201,4 @@ If no expectations were provided, omit the `expectation_results` field entirely.
 - **Explain your reasoning**: The reasoning field should make it clear why you chose the winner.
 - **Handle edge cases**: If both outputs fail, pick the one that fails less badly. If both are excellent, pick the one that's marginally better.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

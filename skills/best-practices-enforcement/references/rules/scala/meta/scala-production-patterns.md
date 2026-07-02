@@ -144,4 +144,4 @@ def findUser(id: String): Option[User] =
 - [Effective Scala](https://twitter.github.io/effectivescala/)
 - [Scala Best Practices](https://nrinaudo.github.io/scala-best-practices/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

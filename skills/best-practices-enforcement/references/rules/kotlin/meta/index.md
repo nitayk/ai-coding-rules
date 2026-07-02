@@ -35,4 +35,4 @@
 - **Language**: See `../language/index.md` for Kotlin language patterns
 - **Android**: See `../android/index.md` for Android patterns
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

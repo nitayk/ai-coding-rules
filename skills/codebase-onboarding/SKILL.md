@@ -233,4 +233,4 @@ Generate or update a project-specific CLAUDE.md based on detected conventions. I
 **Action**: Read existing CLAUDE.md, run Phases 1-3, merge new findings
 **Output**: Updated `CLAUDE.md` with additions clearly marked
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

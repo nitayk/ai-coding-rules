@@ -50,4 +50,4 @@ You design feedback mechanisms that confirm actions, communicate status, and gui
 - Ensure feedback is accessible (not color-only)
 - Test that feedback timing feels right
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

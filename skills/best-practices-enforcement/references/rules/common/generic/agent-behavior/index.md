@@ -16,4 +16,4 @@
 
 These rules apply **universally** to all agent interactions regardless of language or framework. They govern agent behavior itself, not code patterns.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

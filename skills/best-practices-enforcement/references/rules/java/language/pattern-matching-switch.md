@@ -138,4 +138,4 @@ Equivalent visitor would require a `JsonVisitor<R>` interface, an `accept()` met
 - [JEP 440: Record Patterns (Final, JDK 21)](https://openjdk.org/jeps/440) — deconstruction patterns
 - [dev.java/learn — Pattern Matching](https://dev.java/learn/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

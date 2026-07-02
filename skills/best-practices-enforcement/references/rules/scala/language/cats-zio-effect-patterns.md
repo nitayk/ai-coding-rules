@@ -224,4 +224,4 @@ val testProgram = program.provideLayer(testDbLayer)
 - [Cats Effect 3 Resource & IOApp Patterns](cats-effect-3-resource-patterns.md) - in-repo deep dive on CE 3.6+ specifics
 - [Cats Effect Resource Handling](https://www.baeldung.com/scala/cats-effect-resource-handling) - supplemental walkthrough
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -54,4 +54,4 @@ Match input type to the data being collected:
 - Measure field-level abandonment (which fields do users leave the form on?) — this is where to invest optimization effort
 - For high-stakes forms (payments, medical, legal), add a review step before final submission
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

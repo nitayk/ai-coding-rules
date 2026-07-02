@@ -122,4 +122,4 @@
 ### Supplemental
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) — useful supplement; no visible last-revised date
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

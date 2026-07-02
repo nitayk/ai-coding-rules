@@ -14,7 +14,6 @@ const managedGitignoreBlock = "\n" +
 	"# Regenerate managed skills: acr install\n" +
 	".agents/\n" +
 	"# Skill-creator / eval scratch dirs (not real skills)\n" +
-	".cursor/skills/*-workspace/\n" +
 	".claude/skills/*-workspace/\n" +
 	gitignoreMarkerEnd + "\n"
 
@@ -34,9 +33,7 @@ Use this space for temporary notes.
 const eccGitignoreBlock = `
 # ECC: agent sessions + hook logs
 .claude/sessions/
-.cursor/sessions/
 .claude/hooks/logs/
-.cursor/hooks/logs/
 `
 
 // capitalize upper-cases the first byte (ASCII), matching the shell's

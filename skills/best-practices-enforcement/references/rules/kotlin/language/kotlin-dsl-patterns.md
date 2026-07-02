@@ -120,4 +120,4 @@ class Div : Element() {
 - [Kotlin Type-Safe Builders](https://kotlinlang.org/docs/type-safe-builders.html)
 - [Kotlin Builder Inference](https://kotlinlang.org/docs/using-builders-with-builder-inference.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

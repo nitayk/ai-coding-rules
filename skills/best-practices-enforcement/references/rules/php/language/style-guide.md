@@ -149,4 +149,4 @@ class UserService
 - [PSR-4: Autoloader](https://www.php-fig.org/psr/psr-4/)
 - [PHP The Right Way](https://phptherightway.com/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

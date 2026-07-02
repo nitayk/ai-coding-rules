@@ -46,4 +46,4 @@ When suggesting config options, CLI flags, or API parameters:
 - Admit uncertainty: "I cannot verify this option exists - please check the docs."
 - Never invent plausible-sounding options without verification.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

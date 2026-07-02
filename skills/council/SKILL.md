@@ -203,4 +203,4 @@ Likely council shape:
 
 The value is not unanimity. The value is making the disagreement legible before choosing.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

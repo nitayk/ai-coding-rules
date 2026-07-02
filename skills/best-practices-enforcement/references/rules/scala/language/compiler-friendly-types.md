@@ -412,4 +412,4 @@ When refactoring existing code:
 
 - [The Compiler Is Your Best Friend, Stop Lying to It](https://blog.daniel-beskin.com/2025-12-22-the-compiler-is-your-best-friend-stop-lying-to-it) - Daniel Beskin's Blog (old buttondown.com URL 302-redirects here)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

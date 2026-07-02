@@ -13,4 +13,4 @@
 ## 3. Delegates
 - Always declare delegate properties as `weak` to avoid retain cycles: `@property (nonatomic, weak) id<MyDelegate> delegate;`.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

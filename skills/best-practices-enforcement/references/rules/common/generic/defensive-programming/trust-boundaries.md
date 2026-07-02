@@ -160,4 +160,4 @@ Before processing external data:
 
 **Language-specific**: See `frontend/javascript-typescript/language/api-defensive-programming.md` for JS/TS patterns; backend rules for config/validation patterns.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

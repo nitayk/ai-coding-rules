@@ -422,4 +422,4 @@ function login(credentials: Credentials) {
 **Last Updated**: 2026-01-06
 **Reference**: Vue 3 Official Docs, Vue Composition API RFC
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

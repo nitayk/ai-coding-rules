@@ -70,4 +70,4 @@
 **Scala-Specific:**
 - [Play JSON Gotchas](play-json-gotchas.md) - Common pitfalls and anti-patterns when working with Play JSON
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

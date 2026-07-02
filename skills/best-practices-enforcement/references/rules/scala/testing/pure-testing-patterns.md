@@ -1822,4 +1822,4 @@ But even then, **minimize** the infrastructure and **isolate** it to what's nece
 - [Purify Your Tests III: Lean, Mean Testing Machine](https://blog.daniel-beskin.com/2024-05-30-purify-tests-3) - **Minimizing test infrastructure overhead** - Eliminating heavy mocks, using pure functions, making tests lean and fast
 - [Purify Your Tests Episode IV: The Monoids Strike Back](https://blog.daniel-beskin.com/2024-12-02-purify-tests-4) - **Composing tests with monoids** - Using algebraic structures to combine test scenarios, results, and data predictably
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

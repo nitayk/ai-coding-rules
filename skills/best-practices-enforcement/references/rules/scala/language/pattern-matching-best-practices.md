@@ -250,4 +250,4 @@ def processConfig(config: ReadConfigurations): String = config match {
 - [Compiler-Friendly Types](compiler-friendly-types.md) - Type safety principles
 - [Scala Complex Enum Best Practices](../data/scala-complex-enum-best-practices.md) - Sealed types and ADTs
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

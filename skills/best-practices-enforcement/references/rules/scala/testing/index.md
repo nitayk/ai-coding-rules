@@ -43,4 +43,4 @@
 - **Meta**: See `../meta/correctness-first.md` - testing for correctness
 - **Generic**: See `references/rules/common/generic/testing/core-principles.md` for universal testing principles
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

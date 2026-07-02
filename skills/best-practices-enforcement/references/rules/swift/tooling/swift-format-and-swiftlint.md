@@ -198,4 +198,4 @@ SwiftLint historically grew layout rules (`trailing_whitespace`, `line_length`, 
 - [Google Swift Style Guide](https://google.github.io/swift/) — the rule basis swift-format ships
 - [SwiftLint rules reference](https://realm.github.io/SwiftLint/rule-directory.html) — all ~200 rules
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

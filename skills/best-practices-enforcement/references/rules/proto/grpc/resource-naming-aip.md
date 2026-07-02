@@ -178,4 +178,4 @@ Some collections support `-` as a wildcard segment for "across all" semantics: `
 - [AIP-159 — Reading across collections](https://google.aip.dev/159)
 - [Google API Improvement Proposals](https://google.aip.dev/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -199,4 +199,4 @@ Pass values as inputs. Remote state should be consumed only at root-module level
 - [HashiCorp Style Guide — Module Structure](https://developer.hashicorp.com/terraform/language/style#module-structure)
 - [Terraform — Providers within Modules](https://developer.hashicorp.com/terraform/language/modules/develop/providers)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

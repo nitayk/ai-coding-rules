@@ -95,4 +95,4 @@ In the PR or commit message, include:
 - `/benchmark` — for establishing baselines and measuring regression
 - `/agent-token-optimization` — for *agent / LLM* spend optimization (different problem from runtime perf)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

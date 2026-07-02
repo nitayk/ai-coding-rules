@@ -18,7 +18,7 @@ func newRootCmd() *cobra.Command {
 		Use:   "acr",
 		Short: "ai-coding-rules installer/sync tooling",
 		Long: `acr manages the ai-coding-rules shared submodule and the skills, agents,
-commands, and hooks it deploys into Cursor and Claude Code projects.
+commands, and hooks it deploys into Claude Code projects.
 
 It replaces the install.sh / sync-rules.sh / link-to-project.sh /
 update-community.sh shell scripts with a single typed binary.`,

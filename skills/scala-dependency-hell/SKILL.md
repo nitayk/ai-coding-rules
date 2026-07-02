@@ -103,4 +103,4 @@ sbt "<module>/test"
 - sbt-conflict-classes: https://github.com/xuwei-k/sbt-conflict-classes
 - sbt-eviction-rules: https://github.com/scalacenter/sbt-eviction-rules
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

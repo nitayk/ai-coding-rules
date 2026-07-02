@@ -317,4 +317,4 @@ sbt assembly  # Test locally before CI!
 - **Play JSON Guide:** `backend/scala/data/play-json-gotchas.md`
 - **Scala Best Practices:** `backend/scala/`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

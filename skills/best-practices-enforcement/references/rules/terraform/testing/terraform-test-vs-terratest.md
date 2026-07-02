@@ -216,4 +216,4 @@ run "create_cluster" {
 - [env0 — Terratest vs `terraform test`](https://www.env0.com/blog/terratest-vs-terraform-opentofu-test-in-depth-comparison)
 - [Terratest](https://terratest.gruntwork.io/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

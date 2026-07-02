@@ -389,4 +389,4 @@ Users experiencing stress, frustration, or urgency have reduced cognitive capaci
 
 **Remember**: Accessibility isn't a feature—it's a baseline requirement. Writing accessibly makes your product better for everyone, not just users with disabilities.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

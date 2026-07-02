@@ -35,4 +35,4 @@ Show placeholder text/images while loading. Use realistic proportions. Transitio
 - Test on slow connections
 - Respect reduced-motion for shimmer animations
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

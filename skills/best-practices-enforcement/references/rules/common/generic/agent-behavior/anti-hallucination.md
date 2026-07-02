@@ -63,4 +63,4 @@ Before completing any task, confirm:
 - [ ] Dependencies listed are actually installed (check package.json/requirements.txt/build.sbt)
 - [ ] Config values come from actual config files, not assumptions
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

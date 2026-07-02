@@ -251,4 +251,4 @@ public class BadCounter {
 - [java.util.concurrent API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/package-summary.html)
 - [JEP 444: Virtual Threads (Final, JDK 21)](https://openjdk.org/jeps/444) — pinning section
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

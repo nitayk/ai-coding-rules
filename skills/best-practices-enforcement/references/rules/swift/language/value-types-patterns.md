@@ -134,4 +134,4 @@ Task { await processUser(user) }
 - [Choosing Between Structures and Classes - Apple](https://developer.apple.com/documentation/swift/choosing-between-structures-and-classes)
 - [Value and Reference Types - Swift.org](https://swift.org/documentation/articles/value-and-reference-types.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

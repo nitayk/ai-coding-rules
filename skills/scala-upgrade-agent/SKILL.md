@@ -86,4 +86,4 @@ For phases, code snippets, Play JSON migration, assembly merge strategy, and com
 
 If WartRemover suppressions not working reliably: Temporarily comment out `-Xfatal-warnings` in scalacOptions. Re-enable after stabilizing.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -146,4 +146,4 @@ composer update --no-dev  # May change versions
 - [PHP OPcache Documentation](https://www.php.net/manual/en/book.opcache.php)
 - [PHP-FPM Configuration](https://www.php.net/manual/en/install.fpm.configuration.php)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

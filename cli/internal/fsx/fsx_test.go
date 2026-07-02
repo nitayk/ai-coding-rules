@@ -9,7 +9,7 @@ import (
 func TestRelSymlinkPath(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "src", "agents", "x.md")
-	destDir := filepath.Join(root, "proj", ".cursor", "agents")
+	destDir := filepath.Join(root, "proj", ".claude", "agents")
 	rel, err := RelSymlinkPath(source, destDir)
 	if err != nil {
 		t.Fatal(err)

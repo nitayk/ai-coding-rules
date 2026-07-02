@@ -267,4 +267,4 @@ suspend fun fetchUser(id: String): User? {  // What does null mean?
 - [Kotlin Sealed Interfaces](https://kotlinlang.org/docs/sealed-classes.html#sealed-interfaces)
 - [JetBrains Kotlin Blog](https://blog.jetbrains.com/kotlin/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

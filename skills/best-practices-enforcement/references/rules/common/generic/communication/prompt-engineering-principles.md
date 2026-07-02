@@ -361,4 +361,4 @@ Refactor this script to be shorter, more elegant, and less fluff—but keep it r
 ---
 
 **Remember**: Understand architecture limitations, test simple techniques first, optimize for specific tasks, and measure everything. Simple solutions often outperform complex ones.
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

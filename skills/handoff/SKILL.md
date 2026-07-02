@@ -106,4 +106,4 @@ complement-routing against the rest of the toolkit's handoff/compaction
 primitives (`strategic-compact`, `pause`/`unpause`, `agent-mailbox`, subagents)
 so the seam it fills is unambiguous.*
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

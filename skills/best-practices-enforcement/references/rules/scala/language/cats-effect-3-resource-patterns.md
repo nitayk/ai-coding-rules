@@ -229,4 +229,4 @@ See [Cats and ZIO Effect Patterns](cats-zio-effect-patterns.md) — pick one eff
 - [Resource tutorial](https://typelevel.org/cats-effect/docs/std/resource) — full Resource API
 - [IOApp tutorial](https://typelevel.org/cats-effect/docs/getting-started) — entry-point variants
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

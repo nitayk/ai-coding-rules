@@ -341,4 +341,4 @@ A pm2-managed dev server that is installed/verified, started, responding to requ
 
 > "Ecosystem files make configuration reusable"
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

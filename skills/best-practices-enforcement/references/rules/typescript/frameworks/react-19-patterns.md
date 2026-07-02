@@ -244,4 +244,4 @@ The class-component pattern from `language/error-handling-patterns.md` still wor
 - [useOptimistic](https://react.dev/reference/react/useOptimistic)
 - [use()](https://react.dev/reference/react/use)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

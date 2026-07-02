@@ -30,20 +30,21 @@ See `rules/communication-standards.md` for templates and examples.
 
 | Type | Location | Trigger | Purpose |
 |------|----------|---------|---------|
-| **Rules** | `rules/` | Auto (file paths) | Language patterns, shared standards |
+| **Rules** | `rules/*.md` | Referenced here / on demand | Core prose standards |
 | **Skills** | `skills/` | Auto or `/skill-name` | Multi-step workflows |
 | **Agents** | `agents/` | Auto delegation | Specialized expertise |
 | **Commands** | `commands/` | `/command-name` | Quick workflows |
 
 ## Context Management
 
-- **Reference files** (tools/) load ON-DEMAND only. Do NOT read them unless the task specifically needs them.
+- **Skill references** (files under a skill's `references/`) load ON-DEMAND only. Do NOT read them unless the task specifically needs them.
 - **Domain skills** (docx, pdf, xlsx, pptx) require explicit `/skill-name` invocation.
-- When you need a tool reference, read ONE specific guide -- never bulk-read the directory.
+- When you need a reference, read ONE specific file -- never bulk-read a directory.
 
 ## Setup
 
 1. Add as submodule: `git submodule add <repo-url> .cursor/rules/shared`
+   (the checkout lives under `.cursor/` on purpose — Claude ignores `.cursor/`, so it avoids the `.claude/` auto-load context explosion)
 2. Build the CLI: `go build -o acr ./.cursor/rules/shared/cli` (put `acr` on your PATH)
-3. Run setup: `acr install --target claude` (see `.cursor/rules/shared/cli/README.md`)
+3. Run setup: `acr install` (see `.cursor/rules/shared/cli/README.md`)
 4. Optional: Configure `.claude/settings.json` for permissions

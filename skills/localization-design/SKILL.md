@@ -71,4 +71,4 @@ Color meaning varies significantly by culture:
 - Partner with in-market users or cultural consultants, not just translators — translation handles words; localization handles meaning
 - Audit icon and illustration libraries for cultural neutrality before internationalizing
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

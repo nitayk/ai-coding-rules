@@ -235,4 +235,4 @@ Open a failed trace with `npx playwright show-trace trace.zip` — it's a full D
 - [Playwright Auth](https://playwright.dev/docs/auth)
 - [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -1,20 +1,18 @@
 # ai-coding-rules
 
-A curated, best-of-breed AI coding toolkit that combines top community skills with battle-tested rules and workflows. Works as a git submodule for any project, instantly supercharging your AI-assisted development.
+A curated, best-of-breed AI coding toolkit that combines top community skills with battle-tested workflows. Works as a git submodule for any project, instantly supercharging your AI-assisted development.
 
-Supports both **Cursor** and **Claude Code**.
+Built for **Claude Code**.
 
 ## What's Inside
 
 | Category | Count | Source |
 |----------|-------|--------|
-| **Skills** | 57 | obra/superpowers, anthropics/skills, mcr, Unity, custom |
-| **Agents** | 9 | architect, code-reviewer, data-validator, and more |
-| **Commands** | 12 | brainstorm, create-pr, fix-issue, council, and more |
+| **Skills** | 103 | obra/superpowers, anthropics/skills, mobile-agent-toolkit, custom |
+| **Agents** | 20 | architect, code-reviewer, verifier, and more |
+| **Commands** | 14 | create-pr, fix-issue, evolve, and more |
 | **Hooks** | 20+ | Quality, security, observability, ECC |
-| **Cursor Rules** | 200+ | Custom (Scala, Python, Go, Java, PHP, JS/TS, Swift, Kotlin, Obj-C) |
-| **Claude Rules** | 7 | Custom |
-| **CLI Tool Guides** | 13 | curl, jq, yq, git, docker, kcat, kubectl, aws-cli, gcloud, helm, terraform, ripgrep, gh-cli |
+| **Core rules** | 7 | Prose standards in `rules/*.md` (referenced from `CLAUDE.md`) |
 
 ## Quick Start
 
@@ -34,11 +32,11 @@ cd ~/ai-coding-rules && go build -o ~/.local/bin/acr ./cli   # ensure ~/.local/b
 See [`cli/README.md`](cli/README.md) for full command docs.
 
 ```bash
-# Link the checkout into a project and deploy skills/rules/agents/commands
+# Link the checkout into a project and deploy skills/agents/commands/hooks
 acr link ~/projects/my-app
 cd ~/projects/my-app && acr sync          # add --copy to copy instead of symlink
 
-# Restart Cursor -- done! 103 skills + 200+ rules in that project.
+# Restart Claude Code -- done! 103 skills deployed into that project's .claude/.
 ```
 
 To update a project later:
@@ -49,28 +47,29 @@ cd ~/projects/my-app && acr sync                 # re-deploy
 
 ### Option B: Git submodule (team/open-source projects)
 
-Version-pinned rules committed to the project repo. `acr install` adds the
+Version-pinned assets committed to the project repo. `acr install` adds the
 submodule, syncs, and installs a post-merge hook that re-syncs after `git pull`:
 
 ```bash
 git submodule add https://github.com/nitayk/ai-coding-rules.git .cursor/rules/shared
 go build -o ~/.local/bin/acr ./.cursor/rules/shared/cli
-acr install --target cursor               # or: --target cursor,claude
+acr install
 ```
 
-> Global (`~/.cursor/`) skill install is no longer supported — skills must live
-> in per-project directories.
+> The checkout lives at `.cursor/rules/shared` on purpose: Claude Code auto-loads
+> everything under `.claude/`, so a submodule there would blow up the context
+> window. Claude ignores `.cursor/`, making it a safe home for the checkout.
 
-### What goes where (Cursor architecture)
+### What goes where
 
-| What | Global (`~/.cursor/`) | Project (`.cursor/`) | How |
-|------|----------------------|---------------------|-----|
-| **Skills** | `~/.cursor/skills/` | `.cursor/skills/` | Both work, project takes precedence |
-| **Rules** (.mdc) | **Not supported** on disk (Settings UI only) | `.cursor/rules/` | Must be per-project |
-| **Agents** | `~/.cursor/agents/` | `.cursor/agents/` | Both work |
-| **Commands** | `~/.cursor/commands/` | `.cursor/commands/` | Both work |
+`acr sync` deploys into the project's `.claude/` directory:
 
-Source: [Cursor Skills Docs](https://cursor.com/docs/context/skills), [Cursor Rules Docs](https://cursor.com/docs/context/rules)
+| What | Location | How |
+|------|----------|-----|
+| **Skills** | `.claude/skills/` | Copied (Claude Code doesn't index symlinked skill trees) |
+| **Agents** | `.claude/agents/` | Symlinked by default (`--copy` to copy) |
+| **Commands** | `.claude/commands/` | Symlinked by default (`--copy` to copy) |
+| **Hooks** | `.claude/hooks/` + `.claude/hooks.json` | Merged |
 
 ## Skills Inventory
 
@@ -162,16 +161,6 @@ Source: [Cursor Skills Docs](https://cursor.com/docs/context/skills), [Cursor Ru
 | `strategic-compact` | Context compaction at logical intervals |
 | `prompt-optimizer` | Optimize LLM prompts |
 | `repository-organization` | Restructure messy repos |
-
-## Cursor Rules System
-
-The intelligent **Router** (`ROUTER.mdc`) auto-detects your intent and loads the right rules:
-
-- **generic/** - Architecture, code quality, testing, performance, security, debugging, communication, agent behavior
-- **backend/** - Scala, Python, Go, Java, PHP patterns
-- **frontend/** - JavaScript/TypeScript, Vue, React, accessibility, performance, security
-- **mobile/** - Swift, Kotlin, Objective-C, CocoaPods, Gradle
-- **tools/** - CLI references for curl, jq, yq, git, docker, kcat, kubectl, aws-cli, gcloud, helm, terraform, ripgrep, gh-cli
 
 ## Optional Power-Ups
 

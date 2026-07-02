@@ -175,4 +175,4 @@ Then switch to local tools (Read, Grep, Glob) for all subsequent file reads and 
 - `/create-pr` — Create a pull request for your changes
 - `/gh-manage-project` — Manage GitHub Projects V2 boards and sprints
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

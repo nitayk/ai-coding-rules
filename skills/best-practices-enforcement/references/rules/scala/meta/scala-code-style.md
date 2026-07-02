@@ -955,4 +955,4 @@ implicit val durationFormat: Format[FiniteDuration] = Format[FiniteDuration](
 - [Scala Code Smells](scala-code-smells.md) - Scala-specific code smells and refactoring patterns
 - [Meaningful Comments Only](meaningful-comments-only.md) - Comment guidelines for Scala
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

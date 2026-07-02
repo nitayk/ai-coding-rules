@@ -1,8 +1,8 @@
 # `acr` — ai-coding-rules CLI
 
 `acr` is a single static Go binary that manages the ai-coding-rules shared
-submodule and the skills, agents, commands, and hooks it deploys into Cursor and
-Claude Code projects. It replaces four shell scripts with one typed CLI:
+submodule and the skills, agents, commands, and hooks it deploys into Claude
+Code projects. It replaces four shell scripts with one typed CLI:
 
 | Old script | Subcommand |
 |---|---|
@@ -12,7 +12,9 @@ Claude Code projects. It replaces four shell scripts with one typed CLI:
 | `update-community.sh` | `acr update` |
 
 The deprecated stubs (`install-global.sh`, `install-claude.sh`,
-`install-cursor.sh`, `setup-project.sh`) were removed.
+`install-cursor.sh`, `setup-project.sh`) were removed. `acr` is Claude-only: it
+deploys skills/agents/commands/hooks into `.claude/`. The Cursor deploy target
+was removed.
 
 ## Why `acr`?
 
@@ -39,37 +41,38 @@ All mutating commands accept `--dry-run` and the global `-v/--verbose`.
 
 ### `acr install`
 One-shot setup for a consumer repo: reconciles the `.cursor/rules/shared`
-submodule, runs a sync, and installs a `post-merge` git hook so syncs happen
-after every `git pull`. Run from inside the ai-coding-rules checkout itself, it
-skips the submodule/hook steps and just syncs.
+submodule, runs a Claude Code sync, and installs a `post-merge` git hook so
+syncs happen after every `git pull`. Run from inside the ai-coding-rules
+checkout itself, it skips the submodule/hook steps and just syncs.
 
 ```bash
-acr install                         # Cursor (default)
-acr install --target claude         # Claude Code paths
-acr install --target cursor,claude  # both
+acr install                         # set up + sync Claude Code
 acr install --dry-run
 ```
 
 ### `acr sync`
-Deploys skills/agents/commands/hooks into a project. Skills are always **copied**
-(Cursor/Claude don't index symlinked skill trees); agents, commands, and hooks
-are **symlinked** by default (`--copy` to copy instead).
+Deploys skills/agents/commands/hooks into a project's `.claude/` directories.
+Skills are always **copied** (Claude doesn't index symlinked skill trees);
+agents, commands, and hooks are **symlinked** by default (`--copy` to copy
+instead).
 
 ```bash
-acr sync                          # Cursor, from a consumer repo
-acr sync --target cursor,claude
+acr sync                          # from a consumer repo
 acr sync --skills core,git        # only these skill groups
 acr sync --no-skills scala        # everything except the scala group
 acr sync --copy --force
 ```
 
 ### `acr link`
-Symlinks this checkout into a project's `.cursor/rules/shared` (and/or
-`.claude/rules/shared`) instead of using a submodule. One clone, many projects.
+Symlinks this checkout into a project's `.cursor/rules/shared` instead of using a
+submodule. One clone, many projects.
+
+The submodule/checkout lives at `.cursor/rules/shared` — a Claude-safe location:
+Claude Code ignores `.cursor/`, so keeping the shared tree there avoids the
+`.claude/` context explosion that would happen if it lived under `.claude/`.
 
 ```bash
-acr link ~/projects/my-app          # Cursor only
-acr link ~/projects/my-app --both   # Cursor + Claude
+acr link ~/projects/my-app          # link into .cursor/rules/shared
 ```
 
 ### `acr update`

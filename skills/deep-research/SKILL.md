@@ -159,4 +159,4 @@ Each agent searches, reads sources, and returns findings. The main session synth
 "Investigate the competitive landscape for AI code editors"
 ```
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

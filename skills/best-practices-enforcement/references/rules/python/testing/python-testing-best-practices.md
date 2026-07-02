@@ -367,4 +367,4 @@ pytest -s
 - **[pytest Documentation](https://docs.pytest.org/)** - Official pytest docs
 - **[Python Testing with pytest](https://pragprog.com/titles/bopytest2/)** - Brian Okken's book
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -264,4 +264,4 @@ def processSmallDataset(items: Vector[Item]): Vector[ProcessedItem] = {
 - [Scala Collections Performance (legacy 2.8–2.12)](https://docs.scala-lang.org/overviews/collections/performance-characteristics.html) - kept for old codebases; flagged "Outdated" upstream
 - [Li Haoyi - Benchmarking Scala Collections](https://www.lihaoyi.com/post/BenchmarkingScalaCollections.html) - 2016 baseline; numbers shifted on later JVMs but relative ranking holds
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -188,4 +188,4 @@ try {
 - [MDN: AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 - [Promise.allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

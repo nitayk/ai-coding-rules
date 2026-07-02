@@ -293,4 +293,4 @@ def process_with_cleanup(items: list[dict], batch_size: int = 1000):
 - [Scalene Profiler](https://github.com/plasma-umass/scalene)
 - [Memray Memory Profiler](https://bloomberg.github.io/memray/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

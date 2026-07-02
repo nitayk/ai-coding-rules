@@ -154,4 +154,4 @@ When in doubt, write the type. `var` is an optimization for the obvious case; it
 - [JEP 286: Local-Variable Type Inference (JDK 10)](https://openjdk.org/jeps/286)
 - [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) — section on `var`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

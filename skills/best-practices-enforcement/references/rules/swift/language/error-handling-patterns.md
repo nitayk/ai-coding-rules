@@ -179,4 +179,4 @@ do {
 - [Understanding Swift's Result type - Hacking with Swift](https://www.hackingwithswift.com/books/ios-swiftui/understanding-swifts-result-type)
 - [Functional Error Handling in Swift](https://softwarepatternslexicon.com/swift/functional-programming-patterns/functional-error-handling-with-result-and-throws/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->
