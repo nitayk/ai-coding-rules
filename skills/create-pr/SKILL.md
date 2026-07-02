@@ -2,6 +2,7 @@
 name: create-pr
 description: Creates a pull request with the correct template, base branch, and title convention for the repository. Use whenever the user asks to open, create, submit, or file a pull request, even if they don't explicitly say "PR". Also use this when the user mentions opening a merge request, reviewing code changes, or getting their work reviewed on GitHub. Do NOT use when the user only needs ongoing PR monitoring, bot triage, or merge coordination—use `/pr-workflow` instead.
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 
 # Create PR
@@ -18,8 +19,7 @@ Determine the repository name and path using `git rev-parse --show-toplevel`. Th
 
 ## 3. Determine the base branch
 
-- For **unity-ads-sdk** repositories (`unity-ads-sdk-android`, `unity-ads-sdk-ios`): use `release/next`.
-- For all other repositories: use `main`.
+Use `main` (or the repo's documented default/base branch if it differs, e.g. a `release/next` convention).
 
 ## 4. Find the PR template
 
@@ -29,9 +29,7 @@ Search for a PR template in the following locations (in order of priority):
 2. `pull-request-template.md` in the repo root
 3. `.github/pull_request_template.md`
 
-Read the first template found and use it as the structure for the PR body.
-
-For **unity-ads-sdk** repositories, prefer the repo-root template; only use `Unity/SDK/pull_request_template.md` if the change is confined to that subtree.
+Read the first template found and use it as the structure for the PR body. If a repo has multiple templates, prefer the repo-root one unless the change is confined to a subtree with its own template.
 
 **If no template is found**, use this default structure:
 ```
@@ -61,22 +59,19 @@ For **unity-ads-sdk** repositories, prefer the repo-root template; only use `Uni
 
 ## 6. Choose PR title
 
-### Unity Ads SDK repositories
+Default to a Conventional Commits title, e.g. `feat: add X` or `fix: Y`:
 
 ```
-<type>(<scope>):<platform>: <subject>
+<type>(<scope>): <subject>
 ```
 
-| Part         | Values / rules |
-|--------------|----------------|
-| `<type>`     | `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf` |
-| `<scope>`    | JIRA ticket number, e.g. `UASDK-5000` or `UASDK-NA` |
-| `<platform>` | `Android`, `iOS`, `Web` |
-| `<subject>`  | Short imperative description of the change |
+| Part        | Values / rules |
+|-------------|----------------|
+| `<type>`    | `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf` |
+| `<scope>`   | optional — module/area or ticket id (e.g. `PROJ-123`) |
+| `<subject>` | Short imperative description of the change |
 
-### Other repositories
-
-Use a short imperative title, e.g. `feat: add X` or `fix: Y`.
+If the repo documents its own title convention (e.g. a required ticket scope or a platform tag), follow that instead.
 
 ## 7. Ask about draft status
 

@@ -3,9 +3,31 @@ name: agent-browser
 description: "Use when the user needs to navigate websites, interact with web pages, fill forms, take screenshots, test web applications, or extract information from web pages. Do NOT use when working with non-web content, API-only tasks, or when simple curl/HTTP requests suffice."
 allowed-tools: Bash(agent-browser:*)
 disable-model-invocation: true
+last-reviewed: 2026-06-02
 ---
 
 # Browser Automation with agent-browser
+
+> **Status: EXPERIMENTAL.** The `agent-browser` CLI's canonical install source has not yet been captured in this skill. If the CLI is missing, do NOT guess or pull from an unverified source — ask the `mobile-agent-toolkit` maintainer (or check your team's internal docs) for the install instructions first. For durable, fully-supported browser automation prefer `webapp-testing` (Playwright) until this source is confirmed.
+
+## Availability check
+
+```bash
+command -v agent-browser >/dev/null && agent-browser --version  # verify installed
+```
+
+## vs `webapp-testing`
+
+Both skills automate a browser; they use **different tools** with overlapping purpose. Pick one — don't mix in the same task.
+
+| | `agent-browser` (this skill) | `webapp-testing` |
+|---|---|---|
+| Backend | `agent-browser` CLI (shell) | Playwright (MCP / scripts) |
+| Best for | Quick CLI-driven page interactions, screenshots, form fills, snapshots with `@ref` interactive elements | Scripted test suites, repeatable Playwright flows, richer assertions |
+| Output | Stdout / JSON via `--json` | Playwright trace + structured logs |
+| Install | Standalone CLI binary (see above) | Node + Playwright via that skill's `scripts/` |
+
+Default to **`agent-browser`** for ad-hoc / one-shot interactions and screenshots. Use **`webapp-testing`** when you need durable test scripts or Playwright-specific features (locators, trace viewer, fixtures).
 
 ## Quick start
 
@@ -238,11 +260,6 @@ agent-browser get text @e1 --json
 ## Debugging
 
 ```bash
-agent-browser open example.com --headed              # Show browser window
-agent-browser console                                # View console messages
-agent-browser errors                                 # View page errors
-agent-browser record start ./debug.webm   # Record from current page
-agent-browser record stop                            # Save recording
 agent-browser open example.com --headed  # Show browser window
 agent-browser --cdp 9222 snapshot        # Connect via CDP
 agent-browser console                    # View console messages
@@ -250,6 +267,8 @@ agent-browser console --clear            # Clear console
 agent-browser errors                     # View page errors
 agent-browser errors --clear             # Clear errors
 agent-browser highlight @e1              # Highlight element
+agent-browser record start ./debug.webm  # Record from current page
+agent-browser record stop                # Save recording
 agent-browser trace start                # Start recording trace
 agent-browser trace stop trace.zip       # Stop and save trace
 ```

@@ -34,15 +34,14 @@ After editing `flow.d2` or `flow-legend.d2`:
 cd skills/e2e/
 d2 flow.d2 flow.svg          # regenerate main SVG
 d2 flow-legend.d2 flow-legend.svg
-# Then rebuild the self-contained flow.html (inlines flow.svg + svg-pan-zoom):
-python3 ../../scripts/build-flow-html.py   # if/when the build script lands
+# Rebuild the self-contained flow.html (inlines flow.svg + vendored svg-pan-zoom):
+python3 ../../scripts/build-flow-html.py
 ```
 
-> If the build script isn't present yet, `flow.html` was hand-built
-> from `flow.svg` + the inlined `svg-pan-zoom@3.6.1` library. To
-> rebuild manually, see the inline `<script>` block in `flow.html`
-> for the structure and use `python3` + a CDN download of
-> svg-pan-zoom.
+`build-flow-html.py` is stdlib-only and network-free — it inlines the
+current `flow.svg` plus the vendored `svg-pan-zoom@3.6.1`
+(`.flow-assets/`, MIT) into a single `flow.html`. Always re-run it after
+regenerating `flow.svg`; never hand-edit `flow.html`.
 
 ## What's in the diagram
 

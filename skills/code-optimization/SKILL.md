@@ -1,6 +1,7 @@
 ---
 name: code-optimization
-description: "Use when optimizing code for measured performance, memory, or efficiency problems with a concrete target (latency budget, memory ceiling, throughput floor). Do NOT use for general cleanup (use /code-cleanup or /simplify), structural refactoring (use /service-refactoring), or speculative optimization without a profile."
+description: "Use when optimizing code for measured performance, memory, or efficiency problems with a concrete target (latency budget, memory ceiling, throughput floor). Do NOT use for general cleanup (use /code-cleanup or /code-simplification), structural refactoring (handle as a separate refactoring task), or speculative optimization without a profile."
+last-reviewed: 2026-05-20
 ---
 
 # Code Optimization
@@ -16,8 +17,8 @@ Optimize code for measured performance, memory usage, or algorithmic efficiency.
 
 **SKIP WHEN** any of:
 - General cleanup → use `/code-cleanup`
-- Reuse / DRY / clarity → use `/simplify`
-- Structural refactoring (move code between modules/services) → use `/service-refactoring`
+- Reuse / DRY / clarity → use `/code-simplification` (auto-applies fixes; CC's built-in `/code-review` — formerly `/simplify` — now only reports correctness bugs)
+- Structural refactoring (move code between modules/services) → handle as a separate refactoring task
 - "I think this might be slow" without measurement → run `/benchmark` first to establish baseline; come back here only if the number is bad
 
 ## Anti-patterns (refuse these)

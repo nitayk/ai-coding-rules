@@ -1,12 +1,23 @@
 ---
 name: setup-local-dev
 description: "Use when starting development session, needing persistent dev server, doing long-running development work, or requiring server that survives terminal closes. Do NOT use for quick one-off tasks, when not running a dev server, when using Docker Compose or Kubernetes, or when server is already running."
+last-reviewed: 2026-06-02
 ---
 # Setup Local Development Server
 
 Setup persistent local development server using pm2 process management.
 
 **CRITICAL**: Use pm2 for dev servers that must survive terminal closes and IDE restarts. Provides auto-restart, logging, and process management.
+
+## Fit Check (read first)
+
+| | |
+|---|---|
+| **USE WHEN** | Node.js dev server (`npm run dev`, Next.js, Vite, Nuxt, Remix, Astro) — anything spawned from `npm`/`pnpm`/`yarn` that you want to keep alive across terminal closes |
+| **DO NOT USE FOR** | Go services (`go run`, compiled binaries) · Scala/sbt (`sbt run`, `sbt ~reStart`) · Python (`uvicorn`, `gunicorn`, `flask run`) · Docker Compose / Kubernetes stacks · anything already managed by `make dev`, `tilt`, `skaffold`, or a repo-specific launcher |
+| **INSTEAD** | Go/Scala/Python services typically run via `sbt`, `go run`, `docker compose`, or k8s — see `/docker-patterns` or run the service's documented command directly. pm2 adds no value (and may mask) for those stacks. |
+
+Skip the rest of this skill if your stack isn't Node.js.
 
 ## When to Use This Skill
 
@@ -205,29 +216,9 @@ pm2 save
 pm2 startup
 ```
 
-## Efficient Log Searching
+**For AI agents:** always pass `--nostream` so logs return a bounded snapshot instead of streaming — keeps context windows clean. Pipe to `grep`/`tail` to find errors or patterns, e.g. `pm2 logs dev-server --lines 200 --nostream | grep -i error`.
 
-**For AI agents - use non-streaming logs:**
-
-```bash
-# Quick status check (last 50 lines)
-pm2 logs dev-server --lines 50 --nostream
-
-# Find errors
-pm2 logs dev-server --lines 200 --nostream | grep -i "error"
-
-# Find specific patterns
-pm2 logs dev-server --lines 200 --nostream | grep "database"
-
-# Check recent activity
-pm2 logs dev-server --lines 100 --nostream | tail -20
-```
-
-**Why non-streaming:** Keeps context windows clean, provides full log access without streaming
-
-## Language-Specific Examples
-
-### Node.js/TypeScript
+## Node.js Start Example
 
 ```bash
 # Start
@@ -237,25 +228,7 @@ pm2 start "npm run dev" --name "dev-server"
 pm2 start ecosystem.config.cjs
 ```
 
-### Python (using pm2 with uvicorn/gunicorn)
-
-```bash
-# Start
-pm2 start "uvicorn main:app --reload" --name "api-server"
-
-# Or with ecosystem file
-pm2 start ecosystem.config.cjs
-```
-
-### Scala (sbt)
-
-```bash
-# Start
-pm2 start "sbt ~run" --name "scala-server"
-
-# Or with ecosystem file
-pm2 start ecosystem.config.cjs
-```
+> This skill is Node.js-only (see the Fit Check at the top). pm2 adds no value for Go/Scala/Python servers — run those via their native command, `/docker-patterns`, or a repo launcher instead.
 
 ## Ecosystem File Best Practices
 
@@ -312,53 +285,6 @@ module.exports = {
 - `/tdd-workflow` - Server running for integration tests
 - `/pr-workflow` - Verify server works before PR
 
-## Common Scenarios
-
-### Scenario 1: Starting Fresh Session
-
-**Morning routine:**
-
-```bash
-# 1. Check status
-pm2 list
-
-# 2. If not running, start
-pm2 start ecosystem.config.cjs
-
-# 3. Verify
-pm2 logs dev-server --lines 10 --nostream
-```
-
-### Scenario 2: Server Crashed
-
-**Auto-restart handles it:**
-
-```bash
-# pm2 automatically restarts
-# Check logs to see what happened
-pm2 logs dev-server --err --lines 50 --nostream
-```
-
-### Scenario 3: Need to Restart
-
-**Quick restart:**
-
-```bash
-pm2 restart dev-server
-```
-
-### Scenario 4: Checking Logs
-
-**For AI context:**
-
-```bash
-# Get recent logs (non-streaming)
-pm2 logs dev-server --lines 100 --nostream
-
-# Search for errors
-pm2 logs dev-server --lines 200 --nostream | grep -i error
-```
-
 ## Troubleshooting
 
 ### Server Won't Start
@@ -401,21 +327,9 @@ pm2 flush dev-server
 pm2 install pm2-logrotate
 ```
 
-## Success Criteria
+## Success Criteria / Output
 
-- **pm2 installed** and verified
-- **Server started** with pm2
-- **Server responding** to requests
-- **Logs accessible** via pm2 commands
-- **Server persists** across terminal closes
-
-## Output
-
-**This skill produces:**
-- Dev server running via pm2
-- Process managed and monitored
-- Logs accessible via pm2 commands
-- Server survives terminal closes
+A pm2-managed dev server that is installed/verified, started, responding to requests, monitored, and persists across terminal closes — with logs accessible via pm2 commands.
 
 ## Remember
 

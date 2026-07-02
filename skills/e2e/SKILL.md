@@ -12,6 +12,7 @@ description: >-
   multi-step work spanning multiple files or requiring design decisions.
   Do NOT use for single-file fixes, config changes, or tasks where the
   user names a specific skill.
+last-reviewed: 2026-06-02
 ---
 
 # E2E — End-to-End Development Workflow
@@ -22,6 +23,11 @@ the driver's seat.
 
 **Announce at start:** "Starting E2E development workflow. Let me refine your
 idea, plan the work, execute it, and deliver a PR."
+
+> Scoped to delivering **one change** (idea→PR). For a whole-repo tech-debt /
+> codebase-health audit — ranked, file-cited, standalone `TECH_DEBT_AUDIT.md` —
+> use `/tech-debt-audit` instead. It's a separate user-invoked mode, not an e2e
+> phase (Phase 6 gates the *diff*; the audit assesses the *whole repo*).
 
 ## How It Works
 
@@ -35,9 +41,9 @@ Roles + model per phase: see Roles table below.
 
 ## Roles
 
-Each role maps to a configured `subagent_type` when running on Claude
-Code. On Cursor / Copilot fall back to a generic agent with the role's
-responsibility brief in the prompt.
+Each role maps to a configured `subagent_type` on Claude Code. On
+harnesses without typed subagents, fall back to a generic agent with the
+role's responsibility brief in the prompt.
 
 | Role | Subagent type | Model | Responsibility |
 |------|---------------|-------|----------------|
@@ -51,7 +57,7 @@ responsibility brief in the prompt.
 | **Code Reviewer** | `code-reviewer` | sonnet → override to opus | Requirements coverage, readability, edge cases. Never writes code |
 | **QA / Sentinel** | `verifier` | sonnet (haiku-only for nested test-runner) | Skeptical validator: acceptance criteria, empirical-not-static checks, restore-semantics, smoke-test substitution decisions. Sonnet because every Phase 8 rule requires judgment haiku will fumble (PR #106 burned the team on exactly this). |
 | **Test Runner** | `test-runner` | haiku | Execute test suites, parse failures. Pure mechanical — dispatched *inside* QA/Sentinel's flow when iterating |
-| **Code Explorer** | `code-explorer` | sonnet → opus on cross-service stack | Trace execution paths, map dependencies (Phase 1 / Phase 3). Tier up when scan invokes /memgraph-analysis / /atlas-analysis / /full-network-analysis — sonnet routinely misses transitive call paths there. |
+| **Code Explorer** | `code-explorer` | sonnet → opus on cross-service stack | Trace execution paths, map dependencies (Phase 1 / Phase 3). Tier up when the scan spans a cross-service call graph — sonnet routinely misses transitive call paths there. |
 | **Git Workflow** | `git-workflow-specialist` | haiku for Phase 4 (mechanical setup); sonnet for Phase 9 (delivery decisions) | Phase 4 = `git worktree add` + file moves + tracker write (zero design judgment). Phase 9 = commit-message hard rule + delivery-hook decisions (judgment work — haiku will write `Co-Authored-By` lines) |
 | **Skeptic** | `general-purpose` | opus | Challenge premises, find failure modes. Only when ambiguity detected |
 
@@ -62,6 +68,16 @@ responsibility brief in the prompt.
   `security-reviewer`), instruct it explicitly to report findings only.
 - Engineers get focused context per task — not the full session history
 - Escalate when stuck, don't guess
+- **Never invent a `subagent_type` from a skill name.** Skills (e.g.
+  `/deep-research`, `/security-review`, `/tech-debt-audit`) are
+  invoked with the Skill tool / slash command in the current session —
+  they are NOT sub-agents. Do not construct a namespaced agent type like
+  `<plugin>:some-skill` (plugin name + skill name) and dispatch
+  it via the Task (Agent) tool: no agent is registered under that name, so
+  it fails with `Agent type '<plugin>:some-skill' not found`.
+  When a phase needs a skill's capability inside an isolated sub-agent,
+  dispatch a generic agent (`general-purpose`) and instruct it to invoke
+  the skill.
 
 ## Classification & Skip-Logic
 
@@ -76,7 +92,7 @@ the user's choice before proceeding.
 | **spike** | Research, Design, Quality Gates, Review. Delivery simplified (keep/discard only) | Exploratory — no PR expected, code is throwaway |
 | **hotfix** | Research, Design | Emergency — minimal pre-work, but quality gates + review still run (hotfix code SHIPS to prod under pressure — the gates matter MORE not less). Use the Hard Gate Contract override only for true seconds-count emergencies. |
 | **docs-only** | Research, Design, Quality Gates, Security | No code — Verification checks docs build/links |
-| **migration** | Research (use `/codebase-onboarding` instead), Design (replaced by `/service-breakdown` + `/code-migration`) | Repo-to-repo or service-to-service moves where preserving behavior + minimal diff matter more than design exploration |
+| **migration** | Research (use `/codebase-onboarding` instead), Design (replaced by a codebase-onboarding + migration-planning pass) | Repo-to-repo or service-to-service moves where preserving behavior + minimal diff matter more than design exploration |
 
 User confirms or overrides. Choice saved as default for future runs.
 
@@ -153,7 +169,7 @@ cost of bad architecture compounds and Phase 1 research often surfaces
 critical pivots (e.g. competing-tool launches that reframe the work).
 <!-- Maintainer note: rule originated from operator memories `e2e/default_classification.md`, `e2e/default_skip_research_design_when_context_provided.md`, `e2e/feedback_full_pipeline_on_raw_idea.md`. -->
 
-**Stack sub-classification (NEW):** After picking the primary
+**Stack sub-classification:** After picking the primary
 classification (feature / bugfix / etc.), pick a stack tag that gates
 the conditional skills downstream:
 
@@ -162,22 +178,18 @@ the conditional skills downstream:
 | `langchain` | `langchain` import, `LangChain` in plan | `/framework-selection`, `/langchain-fundamentals`, `/langchain-middleware`, `/langchain-rag`, `/langchain-dependencies` |
 | `langgraph` | `langgraph` import, `StateGraph`/`Send`/`interrupt()` in plan | `/framework-selection`, `/langgraph-fundamentals`, `/langgraph-persistence`, `/langgraph-human-in-the-loop` |
 | `deep-agents` | `deepagents` import, `create_deep_agent()` in plan | `/framework-selection`, `/deep-agents-core`, `/deep-agents-memory`, `/deep-agents-orchestration` |
-| `code-graph` | `code-graph/` path, Memgraph/Neo4j edits | `/code-graph-architect`, `/code-graph-fix-cycle`, `/code-graph-qa` |
 | `web-frontend` | `*.tsx`, `package.json` with React/Vite, `chat-ui/` path | `/frontend-design`, `/web-artifacts-builder`, `/webapp-testing` |
-| `infra` | `Dockerfile`, K8s manifests, ArgoCD, GitHub Actions | `/docker-patterns`, `/argocd-onboarding`, `/github-actions-workflows-helper`, `/kronus-onboarding` |
-| `data` | Trino, BigQuery, Aerospike paths | `/trino-validation`, `/aerospike-best-practices` |
+| `infra` | `Dockerfile`, K8s manifests, CI pipelines | `/docker-patterns` |
 | `backend-go` | `go.mod`, `*.go` files | `/golang-testing` |
 | `backend-scala` | `build.sbt`, `*.scala` files | `/scala-testing`, `/scala-dependency-hell`, `/scala-upgrade-agent` |
 | `claude-api` | `import anthropic`, `@anthropic-ai/sdk`, Claude Messages API patterns | `/claude-api` |
 | `rest-api` | new HTTP endpoints, `*Controller.scala`, `routes.go`, OpenAPI specs | `/api-design` |
-| `service-architecture` | cross-service tracing, Memgraph/Atlas analysis, dependency mapping | `/code-structure-analysis`, `/memgraph-analysis`, `/atlas-analysis`, `/full-network-analysis` |
 | `generic` | None of the above | (no extra skills enabled) |
 
 > **Skill availability footnote:** Stack-conditional skills are invoked
 > *when available*. Some (e.g. `framework-selection`, `langchain-*`,
-> `langgraph-*`, `deep-agents-*`, `code-graph-fix-cycle`,
-> `code-graph-qa`) live in **consumer project repos** (e.g.
-> `agentic-evolution/.claude/skills/`) rather than this submodule. If
+> `langgraph-*`, `deep-agents-*`) may live in **consumer project repos**
+> (`.claude/skills/`) rather than this submodule. If
 > the stack tag matches but the skill isn't installed in the active
 > environment, follow the existing **Missing sub-skills** rule
 > (announce, run intent inline, log in Phase 10) — do NOT block.
@@ -197,8 +209,8 @@ Status markers: `[ ] pending | [>] in_progress | [x] complete | [-] skipped`
 
 Invoke the Claude Code built-in `/rename` command with format
 `e2e-<classification>-<topic-slug>` (e.g. `e2e-feature-rtb-bid-cache`).
-Makes the session findable in history. `/rename` is a built-in command,
-not a skill — outside Claude Code (Cursor, Copilot) skip this step
+Makes the session findable in history. `/rename` is a built-in Claude
+Code command, not a skill — on harnesses without it, skip this step
 silently; do not log as a missing skill in Phase 10.
 
 ## Phase 1: RESEARCH
@@ -215,6 +227,13 @@ For broader multi-source synthesis (firecrawl + exa MCPs), invoke
 `/deep-research` — appropriate for novel domains, library surveys, or
 industry pattern scans. Skip for narrow tasks where docs lookup
 suffices.
+
+> Name collision: Claude Code now also ships a built-in `/deep-research`
+> workflow alongside this toolkit's `/deep-research` skill. They are
+> different surfaces — confirm which one resolves on your harness before
+> relying on a specific behavior (the built-in may shadow the skill). On a
+> large research fan-out, the built-in workflow gets the same
+> context-budget benefit described for Dynamic Workflows in Phase 5.
 
 Before writing custom code, invoke `/gh-search` to check for prior
 PRs/issues on the same problem (this repo + across the org) — catches
@@ -238,6 +257,16 @@ transition to `/writing-plans`); the orchestrator handles planning in
 Phase 3. **Blocking gate:** do not advance to Phase 3 until step 8
 (user spec review) is complete and approved.
 
+Run brainstorming's clarifying-questions step (item 3) with the
+`/grilling` discipline: walk the design tree in **dependency order**
+(resolve the decision other decisions hinge on first, not an arbitrary
+list), give your **recommended answer with every question**, and when a
+question can be answered by reading the code or a code-graph tool, **explore
+instead of asking** (use the Phase 1 `code-explorer` findings and your
+code-search / code-graph tools — spend the user's
+attention only on genuine unknowns). This is what makes the gate catch
+under-specification rather than just collect preferences.
+
 Invoke `/council` when the user expresses uncertainty between approaches,
 or when approaches have fundamentally different trade-off profiles with no
 dominant option. Council voices: Architect, Skeptic, Pragmatist, Critic.
@@ -247,7 +276,7 @@ patterns, data-model shape), invoke `/architecture-decision-records` to
 capture the chosen approach and rejected alternatives as ADRs alongside
 the design doc. Skip when there was a single viable approach.
 
-**Stack-gated skills (NEW):** If the Phase 0 stack tag is `langchain` /
+**Stack-gated skills:** If the Phase 0 stack tag is `langchain` /
 `langgraph` / `deep-agents`, invoke `/framework-selection` BEFORE
 brainstorming to confirm the right framework layer. Skipping this often
 leads to wrong-layer choices (e.g. raw LangChain agents when LangGraph
@@ -259,6 +288,27 @@ gating is via Phase 5 conditional skills, not Phase 2.
 
 Output: design document with acceptance criteria saved to
 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`.
+
+When ≥2 approaches compete across ≥3 trade-off dimensions, you may offer
+an ephemeral HTML compare-grid (Cross-Phase Rules § Optional HTML
+decision surfaces) — the Markdown design doc above remains the committed
+artifact.
+
+**Divergent visual exploration (opt-in — UI-surface work where the visual
+*direction* is load-bearing, not just its logic).** Before committing to
+one design, when the aesthetic direction is a real open question, generate
+**N (3–4) divergent full directions** as **standalone static-HTML mockups
+of the key screens** — written to an ephemeral, non-tracked scratch path —
+for the human to compare *perceptually* side-by-side, then pick a direction
+to carry into `/frontend-design` (which then commits to that one
+direction). This is distinct from the analytical compare-grid above (and
+Cross-Phase Rules § Optional HTML decision surfaces): the grid scores
+*approaches on criteria*; this shows *fully-rendered alternatives* so the
+choice is made by looking, not by reading a matrix. Keep the mockups
+vanilla HTML/CSS (no build step; do **not** invoke `/web-artifacts-builder`);
+they are throwaway decision aids — the committed artifact stays the
+Markdown design doc. Skip for bugfix / refactor / non-visual work.
+<!-- Maintainer note: divergent-visual-exploration step harvested from Anthropic's "How We Claude Code" workshop (anthropics/cwc-workshops, how-we-claude-code/phase-2-planning, Apache-2.0) via AQ-76. Distinct from the analytical compare-grid: N fully-rendered directions for a perceptual pick, not an options×criteria matrix. -->
 
 **Skip when:** bugfix, refactor, hotfix, docs-only.
 
@@ -285,14 +335,13 @@ patterns related to the task:
   `/codebase-onboarding` instead of the grep/glob scan — generates a
   structured architecture map + conventions guide.
 - For cross-service work (touching ≥2 services or service boundaries),
-  default to `/memgraph-analysis` (callers, dead-code, execution paths
-  via Cypher); escalate to `/atlas-analysis` (Kafka/Aerospike topology),
-  `/code-structure-analysis` (deeper structural mapping), or
-  `/full-network-analysis` (multi-repo end-to-end flows) only when
-  Memgraph alone doesn't answer.
+  use a code-graph tool if the repo has one indexed — for callers, blast
+  radius, cross-repo calls, Kafka/HTTP/gRPC/data-store flows, and semantic
+  search. If no code graph is available, fall back to grep + reading across
+  the affected services to map callers and boundaries by hand.
 - **Read canonical sources for submodule-backed assets first.** If the
   change targets an asset that lives in a git submodule (e.g. skills
-  from `mobile-cursor-rules` synced into consumer repos), the FIRST
+  from `mobile-agent-toolkit` synced into consumer repos), the FIRST
   read MUST be the canonical path (`<submodule-repo>/skills/<name>/`),
   NOT the synced copy under `.claude/skills/` or `.agents/skills/`.
   Synced copies lag canonical by days/weeks; planning against stale
@@ -316,12 +365,28 @@ skip `/task-breakdown` and go straight to `/writing-plans`.
 
 Output: plan saved to `docs/superpowers/plans/YYYY-MM-DD-[topic]-plan.md`.
 
+Before handing the plan to Phase 5, you may offer an ephemeral HTML
+plan-tuning UI (reorder / toggle scope / tune params → Export JSON;
+Cross-Phase Rules § Optional HTML decision surfaces). The Markdown plan
+above stays canonical.
+
 ## Phase 4: SETUP
 
 **Role:** `git-workflow-specialist` subagent (haiku — pure mechanics)
 **Announce:** "Phase 4: Setup — creating isolated workspace."
 
 Invoke `/using-git-worktrees`. Non-skippable — even spikes get a worktree.
+
+**Permissions prerequisite (one-time, user-scope).** Phase 5 dispatches
+engineer subagents in parallel inside the worktree. Subagents inherit
+the orchestrator session's *original* project permission scope — not
+its updated worktree scope — so writes to `.claude/worktrees/**` are
+denied unless the user has pre-authorized them in
+`~/.claude/settings.json`. Without these rules, Phase 5 silently
+degrades from N parallel subagents to sequential inline writes by the
+orchestrator (no error surfaced; just lost parallelism and lost
+fresh-context benefit). See [`targets/claude/settings.example.json`](../../targets/claude/settings.example.json)
+and its [permissions README](../../targets/claude/settings.example.README.md) for the floor permissions to merge.
 
 Once the worktree exists, **carry the planning artifacts into it** —
 they were written to the parent repo's untracked `docs/superpowers/`
@@ -384,15 +449,14 @@ markdown files, single domain)").
   when the refactor includes folder restructuring — it handles path-safe
   moves, CI/doc updates, and avoids import regressions.
 - `migration` — Run the existing test suite before + after each file move;
-  behavioral diff must be zero. Invoke `/service-migration` for
+  behavioral diff must be zero. Follow a migrate-then-verify loop for
   repo-to-repo or service-to-service moves where minimal diff matters.
 - `hotfix`, `spike` — Skip TDD (speed and exploration first).
 
 **Stack-conditional skills (wired at Phase 5):**
 - `infra` stack — invoke `/mcp-builder` when the plan includes an MCP
-  server scaffold; invoke `/argocd-onboarding` or
-  `/github-actions-workflows-helper` when the plan touches deployment
-  manifests or CI pipeline files.
+  server scaffold; reach for your deployment / CI helper when the plan
+  touches deployment manifests or CI pipeline files.
 
 **Optional cost gate (post-P5, before P6):**
 Invoke `/cost-audit` when the change includes: DB writes in loops, per-request
@@ -406,6 +470,37 @@ out patterns, result aggregation, and failure isolation). Before any
 parallel dispatch, invoke `/multi-agent-branching` to verify branch
 hygiene — each worktree on its own branch, no commits leaking to base.
 Parallel engineers run with `isolation: worktree`.
+
+**Large fan-out — prefer a Dynamic Workflow (advisory):** When the work
+is a *large* fan-out — a codebase-wide sweep, a many-file migration, or N
+independent parallel edits (the shape `/subagent-driven-development` would
+otherwise dispatch turn-by-turn) — consider kicking it off as a Claude
+Code **Dynamic Workflow** instead of turn-by-turn subagent dispatch.
+Claude writes a JS orchestration script that runs in the background; the
+plan and intermediate results live in *the script*, not the orchestrator's
+context window, and the run is resumable within the session. This keeps
+the orchestrator lean (no per-task results accumulating in context) and
+survivable across interruptions — the same reason our canon keeps the
+orchestration plan out of the context window (context engineering +
+isolation: `investigation_toolkit/knowledge/agentic-dev/canon.md`,
+principles #1 "prefer simple composable patterns / workflows over agents
+for predictable tasks" and #3 "curate exactly the high-signal tokens each
+step sees"). Trigger it with the `ultracode` keyword (or `/effort
+ultracode`).
+
+This is **guidance, not a MUST**: turn-by-turn subagents
+(`/subagent-driven-development`) remain the default for small/medium
+fan-out, where the dispatch overhead is negligible and live review of each
+task is worth more than context savings. Reach for the Dynamic Workflow
+when the fan-out is big enough that accumulated per-task results would
+crowd the orchestrator's budget, or when resumability matters.
+
+> Dynamic Workflows are a Claude Code **research-preview** feature
+> (introduced v2.1.154). The trigger keyword is `ultracode` (renamed from
+> `workflow` in v2.1.157) — verify the current keyword and availability
+> against the docs (code.claude.com/docs/en/workflows) before relying on
+> it, since preview surfaces shift. On harnesses without it, fall back to
+> the turn-by-turn executor above.
 
 **When an Engineer gets stuck:** dispatch a subagent with
 `/systematic-debugging` (root-cause investigation) and/or
@@ -429,7 +524,7 @@ from the other gates.
 
 **Subagent prompt requirement** — see Cross-Phase Rules § Subagent
 prompt requirement. Substitute the per-gate skill name
-(`/code-cleanup`, `/simplify`, `/security-review`,
+(`/code-cleanup`, `/code-simplification`, `/security-review`,
 `/best-practices-enforcement`).
 
 1. **Code Cleanup** — `code-cleanup` subagent (haiku — mechanical), skill:
@@ -438,20 +533,22 @@ prompt requirement. Substitute the per-gate skill name
    `docs-only`.
 
 2. **Simplifier** — `code-simplifier` subagent (sonnet — behavior-
-   preserving refactor needs judgment). **Default (cross-platform):**
-   invoke `/code-simplification` (works on Claude Code, Cursor, Copilot
-   — covers reuse, quality, efficiency, fixes). **Claude Code upgrade:**
-   when running on Claude Code, prefer the built-in `/simplify` command
-   — it dispatches three parallel review subagents which is broader than
-   the single-agent skill. If neither is available, note in Phase 10
-   and skip this single gate (the other gates still run).
+   preserving refactor needs judgment). Invoke `/code-simplification`
+   (covers reuse, quality, efficiency, applies fixes). The historical Claude Code
+   built-in `/simplify` (which auto-applied fixes via three parallel
+   review subagents) was renamed to `/code-review` in CC 2.1.147 (May
+   2026) AND had its auto-fix behavior removed — `/code-review` now only
+   reports correctness bugs at chosen effort levels (`/code-review high`,
+   `--comment` for inline GitHub PR comments), making it a complement to
+   this Simplifier gate, not a replacement. Run `/code-review` separately
+   if you also want a correctness-bug pass. If neither is available, note
+   in Phase 10 and skip this single gate (the other gates still run).
 
 3. **Security Reviewer** — `security-reviewer` subagent (sonnet default,
-   **opus override** when changed files include cryptography, networking
-   /URL/header parsing, payload construction, allowlists/denylists, or
-   authentication code; see Phase 8 empirical-check categories for the
-   canonical list. Instruct read-only despite its Write/Edit tools),
-   skill: `/security-review`. Scan changed files for vulnerabilities.
+   **opus override** when changed files fall in the Phase 8
+   empirical-check categories — see that canonical list. Instruct
+   read-only despite its Write/Edit tools), skill: `/security-review`.
+   Scan changed files for vulnerabilities.
 
    **Belt-and-suspenders happy-path check (mandatory).** When security
    review proposes hardening that mutates argument structure
@@ -473,7 +570,7 @@ prompt requirement. Substitute the per-gate skill name
 
 > Optional 5th gate (not parallel — runs after the four above):
 > `/code-optimization` when the change has measurable performance,
-> memory, or efficiency goals beyond what `/simplify` covers
+> memory, or efficiency goals beyond what `/code-simplification` covers
 > (algorithmic improvements, hot-path refactors). Skip when the
 > change has no perf-shaped requirement.
 
@@ -490,10 +587,7 @@ a structured question with these option ordering:
 
 Tracking-as-mitigation is NOT resolution. Re-run Phase 6/7/8 after
 fixes (~5–10 min); the cost is worth the clean ship.
-<!-- Maintainer note: rule originated from operator memory `e2e/decision_fix_findings_inline_not_followup.md` (PR #106 dogfood — user picked "Fix all" for 4 findings). -->
-
-> Note: `/security-review` is the per-PR scan (used here);
-> `/security-audit` is a deeper periodic check for release boundaries.
+<!-- Maintainer note: from operator memory `e2e/decision_fix_findings_inline_not_followup.md` (PR #106). -->
 
 **Skip when:** spike, docs-only — only these classifications. Hotfix
 runs all four gates by default; for true seconds-count emergencies the
@@ -532,7 +626,7 @@ non-actionable (out-of-scope nitpicks, disagreement on style), explicitly
 acknowledge and document the decision in the PR description rather than
 silently ignoring.
 
-**Author-side loop (NEW):** Once the reviewer returns findings, the
+**Author-side loop:** Once the reviewer returns findings, the
 fix-up step invokes `/receiving-code-review` for methodology — how to
 classify findings (must-fix vs nice-to-have vs disagreement), how to
 respond to non-actionable feedback without being defensive, when to
@@ -605,6 +699,35 @@ compare bit-for-bit:
 PR #106 grep+actionlint missed two real bugs (openssl flag-injection
 and allowlist port-stripping) caught only by running the actual code.
 
+**Cross-service seams — exercise the REAL boundary, not a hand-mocked
+one (mandatory when a change spans ≥2 services / processes).** Unit
+tests whose mocks are hand-written on BOTH sides of a seam validate your
+*assumption* about the other component, not its behavior — they pass in
+lockstep with a fully-broken integration. For any change crossing a
+service / process / protocol boundary (HTTP, gRPC, MCP, DB, queue),
+Phase 8 MUST do at least one of:
+
+- **Record a golden fixture from the real producer** — call the actual
+  dependency once (e.g. a raw MCP `tools/call`, the real API/DB
+  response), save its EXACT shape, and assert the consumer/parser
+  against THAT — never an invented shape. A mock may not define both
+  ends of a contract.
+- **Run a docker-compose integration test of the seam** when the repo
+  can stand the dependency up locally (`docker compose up -d`) —
+  exercise the real round-trip (write→read, request→response) end-to-end,
+  not just each side in isolation.
+- For any `things.find(x => x.name === Y)` against an external registry
+  (tool list, plugin set, route table), assert `Y` is actually PRESENT
+  in `things` from the real source — don’t assume reachability.
+
+<!-- Maintainer note: rule originated from operator memory
+`e2e/feedback_mock_seams_hide_integration_bugs.md`. An investigation-cache
+feature passed 28 unit tests + tsc + full /e2e yet was 100% broken across
+THREE seams (MCP content-block envelope shape; an admin tool absent from
+the architect’s LLM tool list; a `z.datetime()` validator rejecting the
+producer’s real `+00:00`/microsecond format) — each caught only by live
+verification because every mock encoded the wrong contract on both sides. -->
+
 **Restore-semantics check (mandatory for `restore` / `apply-pin` /
 `reset-to-snapshot` style commands).** When the change adds a command
 that is supposed to restore a recorded state (lockfile, snapshot, pin,
@@ -641,6 +764,34 @@ when changes touch logic, schemas, or wire contracts — those still
 need the full suite locally.
 <!-- Maintainer note: rule originated from operator memory `e2e/default_phase8_docker_build_smoke_test.md` (PR #123 Python 3.14 upgrade — validated smoke-only path in ~3 min). -->
 
+**Read-after-write readiness gate (mandatory for e2e / browser smoke
+tests that create-then-navigate).** When a smoke flow creates a resource
+via the API and then immediately drives the UI to it (e.g. `POST
+/api/<resource>` → `goto /<resource>/<id>`), the create call routinely
+returns before the resource is queryable. The destination page's
+mount-time fetches then race ahead of that write and 404, surfacing as
+`console.error` / `pageerror` events that flake a "no unexpected console
+errors" assertion. The fix is to **gate the navigation on resource
+readiness** — poll the resource endpoint to a success status before
+navigating:
+
+```ts
+await expect
+  .poll(async () => (await request.get(`${API}/api/<resource>/${id}`)).status(), { timeout: 10_000 })
+  .toBe(200);
+```
+
+**Do NOT silence the symptom by adding the 404 (or its console message)
+to a noise allowlist** — that masks real read-after-write and missing-
+resource regressions the test exists to catch. Allowlists are reserved
+for genuinely-expected third-party noise (HMR, CDN egress flake), never
+for a first-party resource the flow itself just created. If a fetch still
+errors after the resource is confirmed ready, that is a real product bug
+(e.g. the frontend `console.error`-ing on a legitimately-absent fresh-
+resource sub-route) — fix it at the source after reproducing locally, do
+not allowlist it.
+<!-- Maintainer note: rule originated from operator memory `e2e/feedback_read_after_write_readiness_gate.md` (a create-then-navigate smoke flow flaked when the destination page's mount-time fetches 404'd on a cold mount; the masking fix was to allowlist the 404 — the non-masking fix is a poll-to-200 readiness gate before navigation). -->
+
 If anything fails → fix and re-verify. For flaky suites or long
 retry cycles, invoke `/test-until-pass` — formalizes the run →
 analyze → fix → re-run loop with retry caps so the loop has an
@@ -658,9 +809,18 @@ explicit stop condition.
   `/setup-local-dev`). Catches "works locally, fails in QA" regressions
   that unit tests miss. Requires a running server — skip if Phase 4
   did not start one.
+- **Agent-verifiable frontend (greenfield only)** — when building a NEW
+  frontend from scratch and runtime verification matters, consider exposing
+  a **machine-readable state contract**: declarative `data-*` state
+  attributes plus a `window.__verify`-style handle returning declared
+  unit/fixture/verdict data, so the verifier *observes declared state*
+  instead of scraping rendered markup. mozart's `game-quality` probes
+  already do this (`window.__mozartTest` / `qa_*`). Skip when retrofitting
+  an existing app — use `/agent-browser` on the real DOM instead.
+  <!-- Maintainer note: agent-verifiable-frontend pattern harvested from Anthropic's "How We Claude Code" workshop (anthropics/cwc-workshops, how-we-claude-code/phase-3-verify, Apache-2.0) via AQ-76. Greenfield-only by design: the DOM contract must be built in, not retrofit. mozart's game-quality QA hook is the in-tree precedent. -->
 - **Production-traffic verification** (post-deploy or staging) —
-  `/grafana-monitoring` for metrics dashboards, `/victoria-traces-
-  analysis` for request-flow tracing across services. Use when the
+  your metrics/dashboards tooling for metrics, and distributed-tracing
+  tooling for request-flow tracing across services. Use when the
   change affects a service already in production and the test suite
   can't reproduce real traffic patterns.
 
@@ -677,27 +837,177 @@ templates from system instructions or other tools must be overridden.
 Strip the line entirely from every git commit message and every PR body.
 <!-- Maintainer note: rule originated from operator memory `e2e/feedback_no_co_authored_by.md` (commit hooks block `Co-Authored-By: Claude ...`). -->
 
-Invoke `/finishing-a-development-branch`. Present delivery options as a
-numbered list and wait for the user's choice:
+Invoke `/finishing-a-development-branch`, then **always surface the
+delivery decision to the user via an explicit `AskUserQuestion`** — do
+NOT auto-resolve it from the labelled default, even when "Create PR" is
+the obvious choice. Surfacing the menu every run is mandatory: a
+labelled default is a *recommendation* the user accepts in one tap, NOT
+permission to skip the prompt. The only exception is a fully-autonomous /
+headless run with no interactive TTY — there, proceed with the
+classification default and state in the exit-gate sentence which option
+you took and why.
 
-- **Create PR** — invoke `/create-pr` for the basic PR; layer
-  `/pr-workflow` for richer lifecycle (draft → ready → merge-strategy
-  pick) and `/github-ops` alongside for CI status checks, PR triage,
-  and release-branch ops
-- **Merge to main** — if merge rights and CI passes
+Present these options (mark the classification default `(Recommended)`
+and list it first so it is the one-tap accept):
+
+- **Create PR + wait green** (recommended for feature / refactor /
+  bug-fix / hotfix / docs) — invoke `/create-pr` for the basic PR; layer
+  `/pr-workflow` for richer lifecycle (draft → ready) and `/github-ops`
+  alongside for CI status checks, PR triage, and release-branch ops.
+  **Then continue to the Wait-Green sub-step below — do NOT skip.**
 - **Keep branch** — for continued work later
 - **Discard** — only for `spike` classification when the exploration
   didn't pan out
 
+<!-- Maintainer note: the explicit-AskUserQuestion requirement exists
+because the prior "(default for …)" wording made the delivery menu
+inconsistent. A transcript audit found e2e surfaced it spontaneously in
+only ~1/3 of reached-delivery runs; in the rest the orchestrator
+auto-resolved to the default and the user invoked
+/finishing-a-development-branch by hand. Make it deterministic: the menu
+is a real prompt every run; the default is pre-selected, not silently
+taken. -->
+
+**Merge gate (hard rule).** /e2e MUST NEVER merge **autonomously**: never
+run `gh pr merge` unprompted, never pass `--auto`, and never treat a
+"merge" from a previous session — or a follow-up aside after the user
+chose another option — as authorization. That authorization does NOT
+carry across /e2e runs. The default end-state remains a GREEN MERGEABLE
+PR with the exact merge command printed for the user.
+
+**The one permitted merge path is an explicit in-prompt selection.** When
+the branch is confirmed GREEN MERGEABLE, the end-of-Phase-9 compound gate
+(below) offers a "Merge now — I'll run it" choice via `AskUserQuestion`.
+If — and only if — the user selects it in that live prompt, /e2e runs the
+exact `gh pr merge {NUM} --{STRATEGY}` command for THAT PR, on THIS run.
+Selecting the option *is* the authorization; it is single-use, never
+implies `--auto`, and never persists to the next run. Every other option
+(Keep PR open / Show command only / Discard) leaves the merge to the
+human.
+<!-- Maintainer note: rule originated from operator memory `e2e/feedback_never_auto_merge.md` and `e2e/feedback_never_auto_merge_even_when_nudged.md` (user wants to review PRs before merge; the merge step belongs to the human). The explicit in-prompt "Merge now" exception was added per operator request 2026-06-11: an AskUserQuestion selection made live IS valid authorization for that one merge — it is NOT autonomous and NOT a carried-over nudge. `--auto` and follow-up-message authorization remain forbidden. -->
+
 **Release boundary (optional).** When the PR closes a release
 milestone, invoke `/generate-changelog` to produce release notes,
 `/generate-docs` to update any API/module docs that changed, and
-pair with `/security-audit` (the deeper periodic check referenced
-earlier).
+pair with `/security-audit` (the deeper periodic security check for
+release boundaries; `/security-review` is the per-PR scan used in Phase 6).
 
 For **spike** classification: only show "Keep branch" and "Discard"
 options. For **hotfix** that fails to deliver a working fix, use the
 Error handling path in Cross-Phase Rules — not Discard.
+
+### Prose finishing pass — stop-slop (PR description narrative only)
+
+Before opening the PR, apply the bundled **stop-slop** prose rules to the
+PR-description **narrative prose only** (the summary / "what & why"
+paragraphs). Read the rules from the toolkit:
+
+- `${CLAUDE_PLUGIN_ROOT}/assets/stop-slop/SKILL.md`
+
+If that path doesn't resolve, **skip this pass silently** (do not block delivery).
+
+**Scope — apply ONLY to free-prose narrative. Do NOT apply to:** code or
+fenced code blocks, commit messages, file/path lists, test output,
+checklists, rollback commands, version-controlled docs under `docs/`,
+plans, or specs. stop-slop's absolutes (remove all adverbs, no em-dashes,
+no three-item lists) degrade technical precision, so this pass is scoped to
+human-facing prose by design and never rewrites technical content.
+<!-- Maintainer note: stop-slop is vendored unmodified at assets/stop-slop/ (NOT under skills/, so it never auto-registers as a live skill). It is invoked explicitly here as a finishing pass. See SOURCES.md "hardikpandya/stop-slop". -->
+
+### Wait-Green sub-step (mandatory after Create PR)
+
+After the PR exists, poll until it's confirmed GREEN MERGEABLE before
+exiting Phase 9. Hard gate — Phase 10 (Learn) does NOT run until this
+completes (or until the user explicitly says "review later — proceed
+to learn").
+
+1. **Poll CI** — `gh pr checks {NUM} --watch` (or loop `gh pr checks
+   {NUM}` until all required checks report SUCCESS). Default timeout:
+   10 minutes for feature/refactor/bug-fix; 15 minutes for hotfix (CI
+   under emergency pressure is often slower). If a check fails, return
+   to the corresponding upstream phase (test failure → Phase 8;
+   security/policy gate → Phase 6) — do NOT proceed.
+
+2. **Verify mergeability** — `gh pr view {NUM} --json mergeable,mergeStateStatus,statusCheckRollup`:
+   - `mergeable == "MERGEABLE"` AND `mergeStateStatus == "CLEAN"` → GREEN MERGEABLE, proceed.
+   - `mergeStateStatus == "BLOCKED"` while all visible checks passed →
+     **zombie check-suite** (per operator memory
+     `e2e/feedback_zombie_check_suites.md`; 4 zombie suites blocked
+     auto-merge on mobile-agent-toolkit and `--admin` force-merge was
+     the workaround). Surface the blocking check names and offer the
+     user a `gh pr merge {NUM} --admin --squash` force-merge command in
+     the exit-gate sentence. Do NOT execute it.
+   - `mergeStateStatus == "DIRTY"` → branch has conflicts. Resolve in
+     a follow-up; do NOT auto-rebase in /e2e.
+   - `mergeStateStatus == "BEHIND"` → branch needs updating from base.
+     Print the `gh pr update-branch {NUM}` command for the user; do NOT
+     auto-execute (it can trigger unwanted CI re-runs).
+
+3. **Print the merge command** — the Phase 9 exit-gate sentence MUST
+   contain the EXACT `gh pr merge {NUM} --{STRATEGY}` command the user
+   should run when ready, selected from the repo's merge-strategy
+   convention (squash is the default; check `gh repo view --json
+   mergeCommitAllowed,squashMergeAllowed,rebaseMergeAllowed` if
+   uncertain). Include `--delete-branch` when auto-delete-on-merge is
+   NOT enabled at the repo level (per
+   `e2e/convention_auto_delete_branches.md`).
+
+### Compound status + merge gate (mandatory, once GREEN MERGEABLE)
+
+Do NOT print verification and delivery status as two scattered phase
+sentences and then go quiet. Emit ONE **compound status block** that pulls
+the Phase 8 verification result forward next to the gh-verified PR state,
+so the user sees in a single message that *both* the work was verified
+*and* the branch is mergeable — they should never have to ask "did
+verification run?" or "is it actually green?" again.
+
+**Compound status block format (mandatory):**
+
+```
+✅ Ready to merge — verified end-to-end.
+  Verification (Phase 8): {tests N passed / build OK / lint OK}  ← already ran
+  PR {URL} (#{NUM}):
+    CI: {N} checks passed, {0_or_N} failed   (gh pr checks)
+    mergeable: {MERGEABLE} · mergeStateStatus: {CLEAN | BLOCKED-zombie | DIRTY | BEHIND}   (gh pr view)
+  Merge command: gh pr merge {NUM} --squash[ --delete-branch][ --admin if zombie]
+  Delivery hooks: {accepted: [list]; declined: [list]}
+```
+
+Then surface the merge decision via an explicit `AskUserQuestion` (the one
+permitted merge path per the Merge gate hard rule above). Present these
+options, "Keep PR open" pre-selected `(Recommended)` and listed first so
+the safe choice is the one-tap default:
+
+- **Keep PR open for review (Recommended)** — stop here. The merge is
+  yours to run when ready. Phase 9.5/10 wait until you signal you merged.
+- **Merge now — I'll run `gh pr merge {NUM} --{STRATEGY}`** — selecting
+  this IS your authorization for THIS merge. /e2e runs the exact command
+  (never `--auto`), confirms the merge landed, then proceeds to Phase 9.5
+  (post-deploy follow) if the PR targets a deployed service.
+- **Show me the command only** — print it and stop (same as Keep open, no
+  watcher).
+- **Discard** — `spike` classification only.
+
+If the user picks **Merge now**: run the printed command, verify with
+`gh pr view {NUM} --json state,mergedAt` that `state == "MERGED"`, report
+the result, and continue to Phase 9.5. If the merge command errors
+(e.g. zombie BLOCKED needing `--admin`, or BEHIND), surface the failure
+and the corrected command — do NOT silently retry with escalated flags.
+
+**Exit-gate sentence format (mandatory):**
+
+```
+Phase 9 complete. PR {URL} is GREEN MERGEABLE.
+  CI: {N} checks passed, {0_or_N} failed
+  mergeStateStatus: {CLEAN | BLOCKED-zombie | DIRTY | BEHIND}
+  Decision: {Merged now via gh pr merge | Kept open — merge when ready: gh pr merge {NUM} --squash[…] | Command shown | Discarded}
+  Delivery hooks: {accepted: [list]; declined: [list]}
+```
+
+If the decision was Keep open / Show command, stop here per the merge-gate
+hard rule; Phase 9.5 / Phase 10 follow once the user signals merge or
+explicitly skips. If the decision was Merge now, proceed directly to
+Phase 9.5.
 
 **Delivery hooks (post-PR, REQUIRED ASK).** After the PR is opened
 (or merged), ask the user via structured questions about each of these
@@ -723,37 +1033,78 @@ time. A prior canvas-update attempt was denied because the orchestrator
 wrote without asking. The Phase 9 exit-gate sentence MUST list which
 hooks the user accepted vs declined.
 
-## Phase 9.5: POST-DEPLOY VALIDATION (optional)
+## Phase 9.5: POST-DEPLOY — FOLLOW THE ROLLOUT & OBSERVE
 
-**Role:** QA / Sentinel — `verifier` subagent (sonnet)
-**Announce:** "Phase 9.5: Post-deploy — watching production signals."
+**Role:** QA / Sentinel — `verifier` subagent (sonnet) orchestrating a
+deploy-watching pass and a monitoring pass against whatever deploy /
+observability stack the repo uses. **Announce:** "Phase 9.5: Post-deploy —
+following the rollout and watching production signals."
 
-**Skip when:** spike, docs-only, or the PR targets a non-deployed artifact
-(docs, skill files, config without a deployed service).
+**Runs only after an actual merge** — the in-prompt "Merge now" path, or
+the user signaling they merged. A still-open PR has not deployed, so this
+phase waits.
 
-1. **Tag the deployment** — create a lightweight git tag linking the PR to
-   the deployed commit:
+**Skip when:** spike, docs-only, the PR targets a non-deployed artifact
+(docs, skill/toolkit files, config without a deployed service), or no
+deploy mechanism is discoverable for the repo.
+
+**Generic by delegation — the repo knows its own specifics; this phase is
+a spine that reads them rather than hard-coding them.** Stay observe-and-
+report: it follows the rollout and reports health, but **every prod-
+touching action (environment promotion, rollback) is an explicit
+`AskUserQuestion` — never automatic.**
+
+1. **Discover deploy context (silent).** Read the repo's `CLAUDE.md` /
+   `AGENTS.md` for: deploy mechanism (ArgoCD app name, GitHub Actions,
+   Helm), environment order (e.g. `stg → prod`), Grafana dashboard(s) or
+   UID, log store + selector (Loki labels, or Kibana/Elasticsearch
+   index), and any documented "post-deploy check" steps. If none are
+   documented, ask the user **once** for the deploy target/dashboards (or
+   skip the phase). This is how the phase stays generic — the repo's own
+   agent context supplies what varies.
+
+2. **Tag the deployment** — lightweight git tag linking PR → deployed commit:
    ```bash
    git tag "e2e/<session-slug>/deploy-$(git rev-parse --short HEAD)"
    git push origin "e2e/<session-slug>/deploy-$(git rev-parse --short HEAD)"
    ```
 
-2. **Watch SLO panels** — invoke `/grafana-monitoring` to open the service's
-   golden signals (request rate, error rate, latency P99, saturation). Watch
-   for **5 minutes** (hotfix: 10 minutes). Alert threshold: any counter that
-   was stable before the PR drops >5% within the watch window.
+3. **Follow the rollout.** Dispatch a deploy-watching subagent to watch the
+   rollout (e.g. an ArgoCD app, a GitHub Actions run, or a Helm release)
+   reach a healthy state on the **first**
+   environment (typically stg). For multi-env pipelines, report each
+   environment's status as it progresses. **Prod promotion is never
+   automatic** — surface `AskUserQuestion` `[Promote to prod] [Hold]`
+   before any prod-targeting action; otherwise observe and report.
+   (GitHub Actions / Helm pipelines: follow the run / release instead,
+   same gating.)
 
-3. **Document rollback command** in the PR description under a "Rollback"
-   section — the exact command to revert (e.g. `git revert <sha> && git push`,
-   or the ArgoCD/Helm rollback command for deployed services).
+4. **Post-deploy checks** (first env; repeat for prod once promoted):
+   - **Logs** — query your log store (Loki / Kibana / Elasticsearch)
+     for error-rate spikes, panics, and new
+     `ERROR`/`FATAL` patterns in the deployed service since the deploy
+     timestamp.
+   - **Signals** — open the service's golden signals via your
+     metrics/dashboards tooling (request rate, error rate, latency P99,
+     saturation). Watch **5 minutes** (hotfix: 10). Threshold: any
+     counter that was stable before the deploy spikes/drops >5% within
+     the window.
 
-4. **If anomaly detected**, surface a structured question before advancing:
-   - [1] Rollback now — execute the rollback command documented in step 3
+5. **Document rollback command** in the PR description under a "Rollback"
+   section — the exact revert (`git revert <sha> && git push`, or the
+   ArgoCD/Helm rollback command for the deployed service).
+
+6. **If anomaly detected** (bad logs OR signal breach), surface a
+   structured `AskUserQuestion` before advancing — **rollback is never
+   auto-executed**:
+   - [1] Rollback now — run the documented rollback command
    - [2] Watch another 5 minutes — extend the window
    - [3] Expected — document as known regression and proceed
 
-**Exit gate sentence:** "Phase 9.5 complete. SLO status: [stable/anomaly].
-Watch duration: N min. Rollback documented: yes/no."
+**Exit gate sentence:** "Phase 9.5 complete. Env(s): {stg: Healthy/…}.
+Logs: {clean / N errors}. SLO status: [stable/anomaly]. Watch: N min.
+Rollback documented: yes/no. Prod: {not promoted / promoted+healthy /
+held}."
 
 ## Phase 10: LEARN
 
@@ -787,6 +1138,39 @@ Deduplicate: overwrite existing memories on the same topic, don't append.
 
 Tell the user: "Saved learnings from this run. Future /e2e invocations
 will be faster."
+
+**Optional — team-visible compound note (opt-in, additive):** the memory
+write above lands in the operator-PRIVATE `{MEMORY_DIR}/` and is invisible
+to teammates and to other agents in a multi-agent workspace. When a
+learning from this run is **team-relevant** (a decision, gotcha, or
+convention the next person — human or agent — touching this repo should
+know), ALSO offer to append a concise entry to a durable, repo-local,
+**committed** compound note. This is the EveryInc compound-engineering
+mechanism (the note, not the plugin), borrowed to make cross-agent
+learnings durable and team-visible.
+
+Hard constraints (all required):
+- **Opt-in, default-off.** Offer via one structured question
+  ("Append a team-visible learning to the repo's compound note? [1] Yes
+  [2] No"). On decline or no team-relevant learning, do nothing extra —
+  the private memory write above is unchanged. NEVER block on it.
+- **Additive, never a replacement.** The compound note is written
+  ALONGSIDE the `{MEMORY_DIR}/` write, not instead of it. Operator-private
+  memory still captures everything; the compound note captures only the
+  subset worth sharing.
+- **Where it lives (repo-local, committed, team-visible).** Use the
+  repo's existing decisions/learnings home if one exists (in priority
+  order: `docs/decisions/`, `docs/superpowers/`, an existing
+  `docs/compound-notes/`); otherwise create `docs/compound-notes/`. One
+  file per repo (`COMPOUND_NOTES.md`) or one file per concept — match the
+  surrounding convention. It is a normal tracked file, committed on the
+  PR branch (NOT gitignored, NOT a scratch path).
+- **Format.** Append (don't overwrite) a dated, sourced bullet:
+  `- YYYY-MM-DD — <one-line learning> (from /e2e, PR #<n> / branch <name>)`.
+  Keep it concise — one to three lines. Group under a `## Learnings`
+  heading if the file is new.
+- **Tool-agnostic.** Plain Markdown + git; no plugin, no MCP, no
+  harness-specific path.
 
 **Optional companion:** invoke `/skill-stocktake` in Quick Scan mode to
 detect any sub-skills that were referenced but missing in this run —
@@ -875,15 +1259,45 @@ caught.
 
 ### Memory paths
 
-`{MEMORY_DIR}/e2e/` resolves via `/session-memory`:
-`.claude/memory/e2e/` on Claude Code, `.cursor/memory/e2e/` on Cursor.
-Phases 0 and 10 reference this location.
+`{MEMORY_DIR}/e2e/` resolves via `/session-memory` (`.claude/memory/e2e/`
+on Claude Code). Phases 0 and 10 reference this location.
 
 ### Structured questions everywhere
 
 All clarification uses structured numbered options — never dump multiple
 questions as plain text. Present one question at a time, wait for answer
 before next question.
+
+### Optional HTML decision surfaces (opt-in, ephemeral)
+
+Two decision points may *augment* — never replace — the Markdown /
+AskUserQuestion default with a throwaway single-file HTML surface when it
+genuinely helps the human:
+
+- **Phase 2 design compare-grid** — when ≥2 approaches compete across
+  ≥3 trade-off dimensions (a matrix AskUserQuestion's flat option
+  previews can't render), an HTML grid (options × criteria) the human
+  scans side-by-side.
+- **Phase 3 plan-tuning UI** — when the human wants to reorder tasks,
+  toggle scope, or tune params before execution, a throwaway HTML editor
+  with an **Export JSON** button; ingest the exported JSON to re-prompt
+  the plan.
+
+Hard constraints (all required):
+- **Opt-in, default-off.** Offer via one structured question only when
+  the trigger above holds. If the user declines or doesn't engage, the
+  existing Markdown + AskUserQuestion flow runs unchanged — never block
+  on the HTML surface.
+- **Ephemeral only.** Write to a non-tracked scratch path (a temp dir or
+  a gitignored `*-workspace/`). NEVER commit it or `git add` it. The
+  committed artifact stays Markdown — the Phase 2 design doc and Phase 3
+  plan under `docs/superpowers/` remain the single source of truth
+  because they're diffable / greppable / PR-reviewable and HTML isn't.
+- **Lightweight, self-contained.** One inline-written HTML file (vanilla
+  HTML/CSS/JS, no build step). Do NOT invoke `/web-artifacts-builder` —
+  it owns elaborate multi-component React artifacts and is overkill here.
+  If the surface needs more than a single throwaway file, that's the
+  signal to stop and stay in Markdown.
 
 ### Phase announcements
 
@@ -951,7 +1365,7 @@ presents a structured choice before dispatching more.
 | 7 REVIEW | 2 (review + re-review) | 3 rounds | Surface unresolved to user |
 | 8 VERIFICATION | 2 (verifier + test-runner) | 3 | Substitute smoke-test |
 | 9 DELIVERY | 1 subagent | 2 | Run inline |
-| 9.5 POST-DEPLOY | 1 subagent | 2 | Skip post-deploy watch |
+| 9.5 POST-DEPLOY | 2 subagents (deployment-investigator + monitoring-analyst) | 3 | Skip rollout-follow; report-only |
 | 10 LEARN | 1 subagent | 1 | Run inline |
 
 ### Blast-radius gate (Phase 3 Step 0 addition)
@@ -960,9 +1374,8 @@ When changed files touch **≥2 modules** OR modify a **public API**
 (HTTP endpoint, gRPC service definition, Kafka message schema, exported
 function signature), run a callers scan before writing the plan:
 
-- Code Graph MCP available → `/code-graph-architect` — find all callers
-  of the changed symbol
-- No Code Graph → `grep -r "<changed-symbol>" --include="*.go" .` (or
+- Code-graph tool available → use it to find all callers of the changed symbol
+- No code graph → `grep -r "<changed-symbol>" --include="*.go" .` (or
   language equivalent) across the repo
 
 Document the caller count in the plan. If callers > 10, flag affected

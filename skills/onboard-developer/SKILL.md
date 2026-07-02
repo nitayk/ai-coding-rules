@@ -1,133 +1,97 @@
 ---
 name: onboard-developer
-description: "Use when onboarding a new developer to the codebase. Generates comprehensive guide, checklist, key files, first issues. Make sure to use when user says: onboard developer, /onboard, new developer guide, or help someone get started with this project."
+description: "Use when ramping up a NEW developer (human, not agent) on an existing codebase — produces a personalized day-1/week-1 checklist and picks 2-5 concrete 'good first issues' from the repo. Triggers on: onboard developer, /onboard, new hire ramp-up, first-week plan, good first issue picks. Defer to codebase-onboarding when the goal is generating the onboarding GUIDE / CLAUDE.md itself."
 disable-model-invocation: true
+last-reviewed: 2026-05-27
 ---
 # Onboard New Developer
 
-Help a new developer understand the codebase.
+Produce a personalized ramp-up plan for a human joining the codebase: a sequenced checklist and 2-5 concrete first issues. The unique value is human-facing — accounts, access, pairing, first PR — not generating the architectural doc itself.
 
-## When to Use This Skill
+## When to Use
 
 **APPLY WHEN:**
-- User wants onboarding guide for new developers
-- User says "onboard", "/onboard", "new developer guide"
-- Creating materials for team onboarding
+- A new human developer is joining and needs a day-1 / week-1 checklist
+- You need to pick 2-5 "good first issues" from the actual backlog
+- Tailoring an existing onboarding guide to a specific person / focus area
 
-**SKIP WHEN:**
-- User is already familiar with the codebase
-- User wants architecture deep-dive (use `/council`)
+**DO NOT USE — defer instead:**
+| Goal | Use this instead |
+|------|------------------|
+| Generate the onboarding GUIDE or starter `CLAUDE.md` | `codebase-onboarding` (auto-analyzes repo, emits structured guide) |
+| Architecture deep-dive / system design questions | `/council` |
+| Map service dependencies before a refactor | code search / your code-graph tool |
+| Set up dev server / local environment | `setup-local-dev` |
 
-## Core Directive
+If the user wants both a generated guide AND a personalized checklist, run `codebase-onboarding` first, then this skill consumes its output.
 
-**Generate comprehensive guide: overview, setup, structure, workflow, common tasks, resources.** Include checklist and suggested first issues.
+## Inputs to Gather
 
-## Usage
-
-```
-/onboard [focus-area]
-```
+Before producing the checklist, ask (or infer):
+1. **Role / focus area** — backend, frontend, data, SRE, full-stack
+2. **Experience level** — senior with stack / senior new to stack / junior
+3. **Existing onboarding doc?** — link or path; if missing, run `codebase-onboarding` first
+4. **Team contacts** — buddy/mentor, EM, on-call rotation
+5. **Access systems** — which need tickets (VPN, prod read, datastore, Slack channels)
 
 ## Process
 
-1. Generates a comprehensive onboarding guide covering:
-   - **Project Overview**: Purpose, architecture, tech stack
-   - **Development Setup**: Prerequisites, installation, running locally
-   - **Code Structure**: Directory layout, key modules, conventions
-   - **Development Workflow**: Git workflow, testing, deployment
-   - **Common Tasks**: How to add features, fix bugs, run tests
-   - **Resources**: Documentation, wiki, team contacts
-2. Creates an onboarding checklist
-3. Identifies key files to review first
-4. Suggests good "first issues" for new contributors
+1. **Confirm guide exists** — if no onboarding guide / `CLAUDE.md`, stop and recommend `codebase-onboarding` first. Don't duplicate that work.
+2. **Build the checklist** — sequenced day-1 → week-1 → week-2+, grouped: Access, Environment, Reading, People, First PR.
+3. **Pick first issues** — query the issue tracker (GitHub `gh issue list --label "good first issue"`, Jira via MCP) for 2-5 candidates that match the role/focus. For each, note: scope (LOC estimate), files touched, who can review, why it's a good starter.
+4. **Identify pairing opportunities** — name the buddy and 1-2 concrete pairing sessions (e.g. "pair on first deploy", "shadow on-call rotation Wed").
+5. **Define the first-PR target** — a specific, small, mergeable change with a named reviewer and rough timeline (typically end of week 1).
 
-## Examples
+## Checklist Template
 
-```
-/onboard
-```
+```markdown
+## Week 0 (pre-start)
+- [ ] Hardware + IDE access provisioned
+- [ ] Accounts: GitHub org, Slack, Jira, SSO, VPN
+- [ ] Buddy assigned: <name>
 
-Generate full onboarding guide.
+## Day 1
+- [ ] Clone repo, run setup per <link to guide>
+- [ ] Tour: 1:1 with buddy walking the architecture diagram
+- [ ] Join channels: #<team>, #<oncall>, #<eng-help>
 
-```
-/onboard frontend
-```
+## Week 1
+- [ ] Read: <CLAUDE.md / onboarding guide>, top 3 ADRs
+- [ ] Run the test suite locally — green
+- [ ] Shadow code review on 2 PRs
+- [ ] Pick a first issue from the list below
+- [ ] Open first PR (target: <Fri date>)
 
-Focus on frontend development onboarding.
-
-```
-/onboard api
-```
-
-Focus on API development onboarding.
-
-## Onboarding Guide Structure
-
-### 1. Project Overview
-- What does this project do?
-- Who are the users?
-- What's the tech stack?
-
-### 2. Getting Started
-```bash
-# Prerequisites
-node >= 18.0.0
-npm >= 9.0.0
-
-# Installation
-git clone <repo>
-npm install
-cp .env.example .env
-
-# Run locally
-npm run dev
+## Week 2+
+- [ ] Carry pager (shadow first, then primary)
+- [ ] Present learnings in team standup
+- [ ] Update onboarding doc with anything that was wrong/missing
 ```
 
-### 3. Code Structure
-```
-src/
-├── api/          # REST API endpoints
-├── components/   # React components
-├── utils/        # Helper functions
-└── tests/        # Test suites
-```
+## First-Issue Selection Heuristics
 
-### 4. Development Workflow
-- Create feature branch from `main`
-- Make changes and add tests
-- Run `npm test` and `npm run lint`
-- Create PR with clear description
-- Address review comments
-- Merge when approved
+A good first issue:
+- **Scoped**: < 200 LOC, < 5 files
+- **Clear acceptance criteria** already in the ticket
+- **Not on the critical path** — failure to land doesn't block the team
+- **Has a willing reviewer** named up-front
+- **Teaches the workflow** — touches at least one core module + tests + CI
 
-### 5. Common Tasks
-- **Add new API endpoint**: See `src/api/README.md`
-- **Add React component**: Follow patterns in `src/components/`
-- **Run tests**: `npm test` or `npm run test:watch`
-- **Debug**: Use VS Code debugger (see `.vscode/launch.json`)
+Avoid: open-ended research tickets, anything blocked on external teams, anything tagged `flaky` / `intermittent`.
 
-### 6. Resources
-- [Main documentation](link)
-- [API documentation](link)
-- [Team wiki](link)
-- [Slack channel](link)
+## Output Format
 
-## New Developer Checklist
-
-- [ ] Clone repository and run locally
-- [ ] Read architecture overview
-- [ ] Review code style guide
-- [ ] Understand git workflow
-- [ ] Complete first "good first issue"
-- [ ] Set up development tools
-- [ ] Join team communication channels
+Return:
+1. The personalized checklist (markdown)
+2. A table of 2-5 first issues: `id | title | files | reviewer | why good`
+3. Named pairing sessions with proposed times
+4. First-PR target with date
 
 ## Best Practices
 
-- Tailor guide to actual project structure
-- Include working code examples
-- Link to external resources
-- Update regularly as project evolves
-- Get feedback from new team members
+- The new hire should update the onboarding guide as they go — make this an explicit checklist item.
+- Don't regenerate the guide if one exists; tailor instead.
+- Check first-issue candidates aren't stale (last comment > 90 days = likely landmine).
+- If using Jira/GitHub MCP, prefer one query over multiple — surface the raw list, then filter.
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

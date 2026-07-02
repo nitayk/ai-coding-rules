@@ -1,6 +1,7 @@
 ---
 name: scala-dependency-hell
 description: "Use when library upgrades have group ID changes (e.g., Play JSON 2.x to 3.x), NoClassDefFoundError at runtime, binary incompatibility warnings, duplicate class errors in sbt assembly, or test failures with class loading exceptions. Do NOT use for simple version bumps without group ID changes or when conflicts are already resolved. Prefer `/scala-upgrade-agent` when the primary goal is bumping the Scala compiler/stdlib version itself (then use this skill if dependency graph conflicts remain)."
+last-reviewed: 2026-05-20
 ---
 # Scala Dependency Hell Resolution
 

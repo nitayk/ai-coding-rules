@@ -1,0 +1,40 @@
+# Silent Failure Check
+
+**Purpose**: Detect and prevent swallowed errors, empty catch blocks, and suppressed exceptions.
+
+## Anti-Patterns to Detect
+
+1. **Empty Catch Blocks**
+   ```java
+   try { ... } catch (Exception e) {} // BAD
+   ```
+   ```python
+   try: ... except: pass # BAD
+   ```
+
+2. **Swallowed InterruptedExceptions (Java/Scala)**
+   ```scala
+   catch { case e: InterruptedException => } // BAD - must re-interrupt or throw
+   ```
+
+3. **Logging without Re-throwing (in critical paths)**
+   ```javascript
+   catch (e) { console.log(e); } // BAD if it leaves app in inconsistent state
+   ```
+
+4. **Return Null on Error (without Option/Either)**
+   ```java
+   catch (e) { return null; } // BAD - caller won't know it failed
+   ```
+
+## Verification
+- **Grep**: `grep -r "catch.*{}" .`
+- **Grep**: `grep -r "except.*pass" .`
+- **Grep**: `grep -r "catch.*ignore" .`
+
+## Remediation
+- Always log the stack trace.
+- Always increment a metric.
+- Re-throw if the state cannot be recovered.
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

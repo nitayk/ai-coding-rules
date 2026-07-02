@@ -1,6 +1,7 @@
 ---
 name: gh-search
 description: "Search for code, repositories, issues, PRs, commits, and users across GitHub using the gh CLI. Use when the user asks to find code, search GitHub, look up a repository, find issues or PRs, search commits by author, or locate files across the organization. Also use when the user says 'search GitHub for', 'find code that', 'who contributed to', or 'what repos have'. Do NOT use for local file search or grep — this is for GitHub's remote search API only."
+last-reviewed: 2026-05-20
 ---
 
 # Search GitHub Code & Resources
@@ -55,13 +56,13 @@ gh search code "QUERY" --owner ORG --limit 10
 **Examples:**
 ```bash
 # Find all uses of a function
-gh search code "RowLevelComplianceProcessor" --owner Unity-Technologies --limit 10
+gh search code "MyProcessor" --owner your-org --limit 10
 
 # Find YAML configs with a specific key
-gh search code "enableGreatExpectationsDataQualityChecks" --owner Unity-Technologies --limit 10
+gh search code "enableDataQualityChecks" --owner your-org --limit 10
 
 # Find Java files implementing an interface
-gh search code "implements FluentMetrics language:java" --owner Unity-Technologies --limit 10
+gh search code "implements MetricsReporter language:java" --owner your-org --limit 10
 ```
 
 ### Repository Search
@@ -81,10 +82,10 @@ gh search repos "QUERY" --owner ORG --limit 10
 **Examples:**
 ```bash
 # Find repos related to a project
-gh search repos "flair" --owner Unity-Technologies --limit 10
+gh search repos "myproject" --owner your-org --limit 10
 
 # Find repos by topic
-gh search repos "topic:data-platform" --owner Unity-Technologies --limit 10
+gh search repos "topic:data-platform" --owner your-org --limit 10
 ```
 
 ### Issue Search
@@ -173,3 +174,5 @@ Then switch to local tools (Read, Grep, Glob) for all subsequent file reads and 
 - `/fix-issue` — Fetch a GitHub issue and implement a fix
 - `/create-pr` — Create a pull request for your changes
 - `/gh-manage-project` — Manage GitHub Projects V2 boards and sprints
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

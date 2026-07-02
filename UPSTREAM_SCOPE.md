@@ -36,6 +36,7 @@ So for "good stuff without org glue", you are **largely covered** on shared comm
 
 - `agent-browser`, `agent-token-optimization`, `code-migration`, `code-optimization`, `code-review-excellence`, `continuous-learning-v2`, `council`, `create-pr`, `deep-research`, `fix-issue`, `gdoc`, `generate-changelog`, `generate-docs`, `mass-repo-orchestration`, `onboard-developer`, `prompt-optimizer`, `repository-organization`, `search-first`, `security-audit`, `strategic-compact`, `test-until-pass`
 - From Unity: `address-pr-feedback`, `doc-coauthoring`
+- Added in the 2026-07-02 full-overwrite refresh: `a11y-audit`, `design-ops`, `grilling`, `handoff`, `harness-bench`, `interaction-design`, `localization-design`, `markitdown`, `polyglot`, `tech-debt-audit`, `ui-uplift`, `ux-writing-skill`, `verify-branch-health`, `visual-critique` (see `SOURCES.md` for the full refresh log).
 
 **Remaining mcr skills intentionally NOT shipped** (Scala-specific or org-coupled):
 
@@ -75,4 +76,4 @@ If `.claude/settings.json` **denies** `Read` on `./.claude/rules/shared/tools/**
 | "All the good stuff" without work? | **Community + generic workflows: yes.** **Org tooling: intentionally no.** |
 | To add more generic skills | Pull selected folders from **mcr** `skills/` into **nitayk/ai-coding-rules** (or submodule path), **not** from Unity `ads/` / `infra/`. |
 
-Last compared: 2026-04-05 (against `main` on both upstreams via shallow clone).
+Last compared: 2026-04-05 (against `main` on both upstreams via shallow clone). Last synced from the toolkit: 2026-07-02 (full-overwrite refresh from `~/Repos/manage/mobile-agent-toolkit`, formerly `mobile-cursor-rules`).

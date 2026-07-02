@@ -1,6 +1,7 @@
 ---
 name: scala-testing
 description: "Use when writing Scala tests (*Test.scala, *Spec.scala), reviewing test code, or code review involves test files. Covers ScalaTest (FlatSpec / AsyncFlatSpec), ScalaCheck property tests, async patterns, and common pitfalls. Do NOT use for non-Scala tests, quick syntax fixes, or when user explicitly requests a different testing approach."
+last-reviewed: 2026-05-20
 ---
 
 # Scala Testing

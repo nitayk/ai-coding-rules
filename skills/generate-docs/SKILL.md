@@ -2,6 +2,7 @@
 name: generate-docs
 description: "Use when generating or updating documentation for code changes. Creates JSDoc, README, API docs. Make sure to use when user says: generate docs, /docs, document my changes, add documentation, or update README."
 disable-model-invocation: true
+last-reviewed: 2026-06-08
 ---
 # Generate Documentation
 
@@ -20,7 +21,7 @@ Generate or update documentation for recent changes.
 
 ## Core Directive
 
-**Analyze changes → Identify what needs docs → Generate following project conventions (JSDoc, README, API).**
+**Analyze changes → Identify what needs docs → Generate following the project's language conventions (godoc, Scaladoc, JSDoc/TSDoc, Python docstrings, OpenAPI/proto, README).**
 
 ## Usage
 
@@ -37,9 +38,9 @@ Generate or update documentation for recent changes.
    - Configuration updates
    - Breaking changes
 3. Generates documentation following project conventions:
-   - JSDoc/TSDoc for code
+   - Doc comments in the project's language (godoc, Scaladoc, JSDoc/TSDoc, Python docstrings)
    - README updates
-   - API documentation
+   - API documentation (OpenAPI/Swagger, `.proto` comments, endpoint reference)
    - Migration guides for breaking changes
 4. Updates existing docs or creates new files as needed
 
@@ -65,9 +66,9 @@ Update README based on recent changes.
 
 ## Documentation Types
 
-- **Code Comments**: JSDoc, TSDoc, docstrings
+- **Code Comments**: match the language — godoc (Go), Scaladoc (Scala), JSDoc/TSDoc (JS/TS), docstrings (Python)
 - **README**: Usage examples, installation, getting started
-- **API Docs**: Endpoints, parameters, responses
+- **API Docs**: OpenAPI/Swagger specs, `.proto` service/message comments, endpoints, parameters, responses
 - **Migration Guides**: Breaking changes, upgrade paths
 - **Architecture Docs**: High-level design decisions
 

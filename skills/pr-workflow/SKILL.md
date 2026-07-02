@@ -1,437 +1,163 @@
 ---
 name: pr-workflow
-description: "Use when creating pull requests, monitoring PR status, addressing bot feedback, or merging PRs. Do NOT use for simple single-file changes (use /create-pr command) or when not using GitHub."
+description: "Use when managing the full PR lifecycle autonomously — pre-PR validation, status polling, bot-feedback handling, and merge gating on mergeable_state. Do NOT use for single-file PRs (use /create-pr), responding to specific review comments (use /address-pr-feedback), or general gh-CLI operations like triage/releases (use /github-ops). Requires GitHub."
 disable-model-invocation: true
+last-reviewed: 2026-05-27
 ---
 # PR Workflow Management
 
-Comprehensive pull request lifecycle management from creation to merge.
+End-to-end PR lifecycle: pre-PR checks, create, monitor, address bot feedback, merge only when `mergeable_state: "clean"`.
 
-**CRITICAL**: Use `mergeable_state: "clean"` (not `mergeable: true`) to determine if PR is ready to merge.
+**CRITICAL:** `mergeable: true` only means "no git conflicts". Merge gating must use `mergeable_state == "clean"`. See [references/pr-workflow.md](references/pr-workflow.md#mergeable-vs-mergeable_state).
 
-## What is PR Workflow Management?
+## When to Use
 
-PR workflow management is a comprehensive process that handles the complete pull request lifecycle from creation through merge. It includes pre-PR validation, continuous status monitoring, automated bot feedback handling, and merge coordination to ensure code quality and CI/CD compliance.
+| Use this skill | Use instead |
+|----------------|-------------|
+| Multi-file PR with CI + bot loop | `/create-pr` for single-file trivial PRs |
+| Autonomous monitor-and-fix until clean | `/address-pr-feedback` for one-shot reply to specific review comments |
+| Full lifecycle (create through merge) | `/github-ops` for triage, releases, issue ops |
+| GitHub | — (skip if not GitHub) |
 
-**Core Concept**: A PR should be:
-- **Validated** - Pre-PR checks pass (tests, linting, build)
-- **Monitored** - Status checked continuously
-- **Addressed** - Bot feedback handled automatically
-- **Clean** - All checks pass before merge
-- **Coordinated** - Merged only when ready
-
-## Why This Matters
-
-### The Problem: Manual PR Management
-
-**Without automated workflow:**
-- PRs created with failing tests
-- CI failures go unnoticed
-- Bot feedback ignored
-- PRs merged prematurely
-- Code quality issues slip through
-
-**Example of problems:**
-```
-# PR created without checks
-gh pr create --title "feat: new feature"
-# Tests failing, but PR created anyway
-# CI fails, but no one notices
-# PR sits for days with failures
-# Eventually merged with broken code
-```
-
-### The Solution: Automated Lifecycle Management
-
-**With PR workflow:**
-- Pre-PR checks ensure quality
-- Continuous monitoring catches issues
-- Bot feedback addressed automatically
-- Merge only when all checks pass
-- Consistent quality standards
-
-**Example of success:**
-```
-# Pre-PR checks run first
-sbt test && sbt scalafmtCheck
-# All checks pass
-# PR created
-# Status monitored continuously
-# Bot feedback addressed automatically
-# Merged only when mergeable_state: "clean"
-```
-
-## When to Use This Skill
-
-**APPLY WHEN:**
-- Creating pull requests
-- Monitoring PR status and CI checks
-- Addressing bot comments and feedback
-- Preparing PR for merge
-- Managing PR lifecycle autonomously
-
-**DO NOT USE WHEN:**
-- Simple single-file changes (use `/create-pr` command instead)
-- Not using GitHub
-- PR already merged
+**Do NOT use when:** PR already merged, you only need to push a commit, or the task is a single targeted comment reply.
 
 ## Core Directive
 
-**Pre-PR checks → Create PR → Monitor → Address feedback → Merge when clean.**
+**Pre-PR checks → Create PR → Monitor every 30–60s → Address bot/CI feedback → Merge only when `mergeable_state: "clean"`.**
 
-## Phase 1: Pre-PR Checks
+## Phase 1 — Pre-PR Checks
 
-**Before creating PR, verify:**
+Run locally before `gh pr create`. All must pass:
 
-### 1. Code Quality Checks
+1. **Compile / typecheck** — `sbt compile` / `npm run typecheck` / `mypy .` / `go build ./...`
+2. **Lint / format** — `sbt scalafmtCheck` / `npm run lint` / `ruff check .` / `golangci-lint run`
+3. **Tests** — `sbt test` / `npm test` / `pytest` / `go test ./...`
+4. **Secrets scan** — `git secrets --scan` (or trufflehog / `npm audit` / `safety check`)
+5. **Branch sanity** — `git branch --show-current` is not `main`/`master`
 
-```bash
-# Type checking
-sbt compile
-# or
-npm run typecheck
-# or
-mypy .
+Full command matrix and template lookup: [references/pr-workflow.md § Pre-PR checks](references/pr-workflow.md#pre-pr-checks-multi-stack).
 
-# Linting
-sbt scalafmtCheck
-# or
-npm run lint
-# or
-ruff check .
-```
-
-**Required:** All checks must pass
-
-### 2. Run Tests
+## Phase 2 — Create PR
 
 ```bash
-# Run full test suite
-sbt test
-# or
-npm test
-# or
-pytest
-```
-
-**Required:** All tests must pass
-
-### 3. Security Scan
-
-**Check for:**
-- Hardcoded secrets (API keys, passwords)
-- Hardcoded paths (use environment variables)
-- Insecure dependencies
-- SQL injection risks
-- XSS vulnerabilities
-
-**Tools:**
-```bash
-# GitGuardian, TruffleHog, or similar
-git secrets --scan
-# or
-npm audit
-# or
-safety check
-```
-
-**Required:** No critical security issues
-
-### 4. Find PR Template
-
-**Check for PR template:**
-
-```bash
-# Common locations
-.github/pull_request_template.md
-docs/pull_request_template.md
-PULL_REQUEST_TEMPLATE.md
-```
-
-**Use template** if available, fill all required sections
-
-### 5. Verify Branch Status
-
-```bash
-# Check current branch
-git branch --show-current
-
-# Ensure not on main/master
-# If on main/master, create feature branch first
-```
-
-## Phase 2: Create PR
-
-### Using GitHub CLI
-
-```bash
-# Create PR with title and body
 gh pr create \
-  --title "feat: add price calculator with tax" \
-  --body "Implements price calculation with configurable tax rate.
-
-- Added PriceCalculator class
-- Added unit tests (100% coverage)
-- Updated documentation
-
-Closes #123"
-```
-
-### PR Description Template
-
-**Include:**
-- **What changed**: Brief summary
-- **Why**: Motivation/context
-- **How**: Implementation approach
-- **Testing**: How tested
-- **Checklist**: Pre-PR checks completed
-
-**Example:**
-```markdown
-## What Changed
-Added PriceCalculator class with tax calculation support.
+  --title "feat: <short summary>" \
+  --body "$(cat <<'EOF'
+## What
+<one-line>
 
 ## Why
-Needed to standardize price calculations across services.
+<motivation, links>
 
 ## How
-- Created PriceCalculator class
-- Added calculateTotal method
-- Implemented tax calculation logic
+<implementation notes>
 
 ## Testing
-- Unit tests added (100% coverage)
-- Integration tests pass
-- Manual testing completed
+<verification>
 
-## Checklist
-- [x] Code compiles
-- [x] Tests pass
-- [x] No security issues
-- [x] Documentation updated
+Closes #<issue>
+EOF
+)"
 ```
 
-## Phase 3: Autonomous Monitoring
+Use repo's `.github/pull_request_template.md` if present. Full template: [references/pr-workflow.md § PR description template](references/pr-workflow.md#pr-description-template).
 
-**After PR creation, monitor continuously:**
+## Phase 3 — Monitor (Autonomous Loop)
 
-### Check PR Status
-
-**Use GitHub API (via `gh` CLI or API):**
+Poll every 30–60 seconds:
 
 ```bash
-# Get PR details
-gh pr view <pr-number> --json mergeableState,statusCheckRollup,comments
+# State (the only field that gates merge)
+gh pr view <pr> --json mergeableState -q .mergeableState
 
-# Key fields:
-# - mergeableState: "clean" | "dirty" | "unstable" | "blocked"
-# - statusCheckRollup: Array of CI check results
-# - comments: Array of comments (including bot comments)
+# Bot comments
+gh pr view <pr> --json comments \
+  -q '.comments[] | select(.author.type == "Bot")'
+
+# CI checks
+gh pr checks <pr>
 ```
 
-### Critical Insight: mergeable vs mergeableState
+For each iteration:
+1. If `mergeable_state == "clean"` → go to Phase 5.
+2. If new bot comments → fix → commit → push.
+3. If CI failed → diagnose (flaky vs real) → fix or `gh pr checks <pr> --rerun-failed`.
+4. Wait 30–60s, repeat.
 
-**These are DIFFERENT:**
+State-field semantics and bot-signal taxonomy: [references/pr-workflow.md § mergeable vs mergeable_state](references/pr-workflow.md#mergeable-vs-mergeable_state) and [§ Bot feedback handling](references/pr-workflow.md#bot-feedback-handling).
 
-- `mergeable: true` → Only means "no git conflicts"
-- `mergeable_state: "clean"` → Means "all checks passed, ready to merge"
+## Phase 4 — Address Feedback
 
-**Only merge when `mergeable_state: "clean"`**
+| Source | Action |
+|--------|--------|
+| **Bot comment** | Fix the flagged issue; push; let CI re-validate. Address every one — they encode org policy. |
+| **Review comment** | Reply, fix, mark thread resolved. Use `/address-pr-feedback` if it's a structured review pass. |
+| **CI failure (real)** | Reproduce locally, fix, push. |
+| **CI failure (flaky)** | `gh pr checks <pr> --rerun-failed` — only after confirming flakiness. |
 
-### Monitoring Loop
+## Phase 5 — Merge
 
-**Poll every 30-60 seconds:**
+Merge **only** when all of:
 
-1. **Check mergeable_state:**
-   ```bash
-   gh pr view <pr-number> --json mergeableState -q .mergeableState
-   ```
-
-2. **Read all comments:**
-   ```bash
-   gh pr view <pr-number> --json comments -q '.comments[] | select(.author.type == "Bot")'
-   ```
-
-3. **Check CI status:**
-   ```bash
-   gh pr checks <pr-number>
-   ```
-
-4. **Address feedback:**
-   - Fix issues mentioned in bot comments
-   - Respond to review comments
-   - Rerun failed checks if flaky
-
-5. **Push fixes:**
-   ```bash
-   git add .
-   git commit -m "fix: address PR feedback"
-   git push
-   ```
-
-6. **Wait for re-validation:**
-   - Wait 30-60 seconds
-   - Check status again
-   - Repeat until `mergeable_state: "clean"`
-
-## Phase 4: Addressing Feedback
-
-### Bot Comments
-
-**Common bot feedback:**
-- Code coverage too low
-- Linting errors
-- Security vulnerabilities
-- Missing tests
-- Documentation issues
-
-**Action:** Fix issues, push, wait for re-check
-
-### Review Comments
-
-**Human reviewer feedback:**
-- Code style suggestions
-- Logic questions
-- Performance concerns
-- Architecture suggestions
-
-**Action:** 
-- Address each comment
-- Reply to reviewer
-- Push changes
-- Mark threads as resolved
-
-### CI Failures
-
-**If CI fails:**
-
-1. **Check failure reason:**
-   ```bash
-   gh pr checks <pr-number> --watch
-   ```
-
-2. **Fix issues:**
-   - Update code
-   - Fix tests
-   - Update configuration
-
-3. **Rerun flaky tests:**
-   ```bash
-   gh pr checks <pr-number> --rerun-failed
-   ```
-
-4. **Push and wait:**
-   - Push fixes
-   - Wait for CI to complete
-   - Verify all checks pass
-
-## Phase 5: Merge (Only When Clean)
-
-**Merge ONLY when:**
-
-- `mergeable_state: "clean"` (not just `mergeable: true`)
-- All CI checks passed
-- Zero unaddressed comments
-- All review threads resolved
+- `mergeable_state: "clean"`
+- All required checks green
+- Zero unresolved review threads
 - Required approvals obtained
 
-### Merge Command
-
 ```bash
-# Merge PR
-gh pr merge <pr-number> --squash --delete-branch
-
-# Or merge via GitHub UI if preferred
-gh pr view <pr-number> --web
+gh pr merge <pr> --squash --delete-branch
 ```
 
-### Merge Strategies
+Strategy table (squash vs merge vs rebase): [references/pr-workflow.md § Merge strategies](references/pr-workflow.md#merge-strategies).
 
-**Choose based on project:**
-- **Squash**: Single commit (clean history)
-- **Merge**: Preserve commit history
-- **Rebase**: Linear history (if allowed)
-
-## Workflow Summary
+## Workflow Diagram
 
 ```
-1. Pre-PR Checks
-   ├─ Type check ✓
-   ├─ Tests pass ✓
-   ├─ Security scan ✓
-   └─ PR template filled ✓
-
-2. Create PR
-   └─ gh pr create
-
-3. Monitor Loop (every 30-60s)
-   ├─ Check mergeable_state
-   ├─ Read bot comments
-   ├─ Check CI status
-   ├─ Address feedback
-   ├─ Push fixes
-   └─ Wait for re-validation
-
-4. Merge (when mergeable_state: "clean")
-   └─ gh pr merge
+Pre-PR checks  →  gh pr create  →  ┌─ Monitor (30–60s) ─┐
+                                   │  mergeable_state?  │
+                                   │  bot comments?     │
+                                   │  CI checks?        │
+                                   └──┬─────────────┬───┘
+                                      │ not clean   │ clean
+                                      ▼             ▼
+                                   Fix + push    gh pr merge
+                                      │
+                                      └─→ loop
 ```
 
-## Integration with Other Skills
+## Integration
 
-**Use with:**
-- `/git-workflow` - Clean commit history
-- `/tdd-workflow` - Tests written first
-- `/best-practices-enforcement` - Code quality
+- `/git-workflow` — clean commit history feeding into the PR
+- `/tdd-workflow` — tests written before code (Phase 1 will then pass)
+- `/best-practices-enforcement` — language-rule gate before push
+- `/create-pr` — single-file trivial PRs (use that, not this)
+- `/address-pr-feedback` — focused review-comment reply (use that for that subtask)
+- `/github-ops` — issue triage, releases, repo admin (different scope)
 
 ## Common Pitfalls
 
-### Merging Too Early
+- **Merging on `mergeable: true`** — gates on conflict, not checks. Use `mergeable_state: "clean"`.
+- **Ignoring bot comments** — they encode org policy. Fix or post a justified dismissal.
+- **No polling** — PR stalls; user has to babysit. Always loop.
+- **Skipping Phase 1** — CI catches the same issues slower and more expensively.
+- **Auto-rerunning red checks** — only rerun if you've confirmed flakiness; otherwise fix.
 
-**Problem:** Merging when `mergeable: true` but checks still running
-
-**Solution:** Wait for `mergeable_state: "clean"`
-
-### Ignoring Bot Comments
-
-**Problem:** Not addressing automated feedback
-
-**Solution:** Read all comments, fix issues, push
-
-### Not Monitoring Continuously
-
-**Problem:** PR stuck waiting for fixes
-
-**Solution:** Poll every 30-60 seconds, address immediately
-
-### Skipping Pre-PR Checks
-
-**Problem:** PR fails CI immediately
-
-**Solution:** Run all checks locally before creating PR
+Full pitfalls + handling table: [references/pr-workflow.md § Common pitfalls](references/pr-workflow.md#common-pitfalls).
 
 ## Success Criteria
 
-- **All pre-PR checks pass** before creating PR
-- **PR created** with complete description
-- **All bot comments addressed** and resolved
-- **All CI checks pass** (mergeable_state: "clean")
-- **All review comments** addressed
-- **PR merged** successfully
-
-## Output
-
-**This skill produces:**
-- PR created with proper description
-- All feedback addressed
-- PR merged when ready
-- Clean git history
+- Phase 1 checks pass locally before `gh pr create`
+- PR opens with complete description
+- Loop drives `mergeable_state` to `clean` without human prodding
+- Every bot comment addressed or justified
+- PR merged with `--squash --delete-branch` (or repo-policy strategy)
 
 ## Remember
 
-> "mergeable_state: 'clean' means ready to merge, not mergeable: true"
+> `mergeable_state: "clean"` is the only merge gate. `mergeable: true` is not.
 
-> "Address every bot comment - they're usually right"
+> Bot comments are usually right. Address every one.
 
-> "Monitor continuously - don't let PRs sit waiting"
+> Poll continuously — don't let the PR wait on you.
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

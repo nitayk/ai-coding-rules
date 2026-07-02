@@ -1,6 +1,7 @@
 ---
 name: agent-token-optimization
 description: "Use when optimizing LLM/agent token cost and context usage—model tiering (Haiku/Sonnet/Opus), subagent model choice, avoiding huge shell/MCP output in context, MCP vs CLI tradeoffs, modular files, eval harness vocabulary (pass@k, checkpoint vs continuous). Do NOT use for runtime CPU/memory of your app—use /code-optimization for that."
+last-reviewed: 2026-05-20
 ---
 
 # Agent Token Optimization
@@ -80,7 +81,6 @@ This is **not** a substitute for `/verification-before-completion` (honesty gate
 | Runtime app performance | `/code-optimization` |
 | Session scratchpad file | `/session-memory` |
 | Phase-aware compaction | `/strategic-compact` |
-| Hook-based learning (instincts) | `/continuous-learning-v2` |
 | Parallel worktrees / agents | `/using-git-worktrees`, `/dispatching-parallel-agents` |
 | Same change across many repos | `/mass-repo-orchestration` |
 | Subagent workflow discipline | `/subagent-driven-development` |
@@ -90,7 +90,7 @@ This is **not** a substitute for `/verification-before-completion` (honesty gate
 | Surface | What you get |
 |---------|----------------|
 | **Cursor** | Rules + skills + optional **Cursor hooks** (`hooks-cursor.json` pattern in this repo). File memory via **`/session-memory`** and `.cursor/memory/active_context.md` (created by install). |
-| **Claude Code** | Same skills + **Claude `hooks.json`** hooks (e.g. `SessionStart`, lifecycle hooks). **Continuous learning** automation is **most** aligned with Claude Code hook paths—see `/continuous-learning-v2`; full ECC-style automation is **opt-in**, not guaranteed by submodule install alone. |
+| **Claude Code** | Same skills + **Claude `hooks.json`** hooks (e.g. `SessionStart`, lifecycle hooks). ECC-style automation is **opt-in**, not guaranteed by submodule install alone. (The `/continuous-learning-v2` skill was removed per AppSec review — see SOURCES.md.) |
 
 Do **not** assume Cursor and Claude expose identical hook events or paths—see [hooks/README.md](../../hooks/README.md).
 

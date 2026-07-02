@@ -1,6 +1,7 @@
 ---
 name: terminal-chart
 description: Render colored ASCII charts in the terminal. MUST use when the user asks to visualize, chart, graph, or plot data — including compound requests like "query and visualize X" or "show me spend by country". Trigger on any mention of visualize, chart, graph, plot, or "show me ... by".
+last-reviewed: 2026-05-20
 ---
 
 # Terminal Chart
@@ -196,7 +197,7 @@ echo '{
 
 When the user asks for a terminal visualization:
 
-1. **Get the data** — if an upstream skill (e.g., `bigquery-skill`) has already produced a JSON array of row objects, use that directly as the `data` field. Otherwise, run whatever query is needed to get the data.
+1. **Get the data** — if an upstream skill (e.g., a data-query skill) has already produced a JSON array of row objects, use that directly as the `data` field. Otherwise, run whatever query is needed to get the data.
 2. **Build the chart JSON spec:**
    - Set `data` to the JSON array from the upstream skill.
    - Choose a chart `type` based on the data shape:

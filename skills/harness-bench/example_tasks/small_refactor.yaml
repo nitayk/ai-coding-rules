@@ -1,0 +1,15 @@
+# Task spec: a small refactor extracting a helper. Judged by BOTH the build passing
+# AND the new helper name appearing in the source (build + grep, ANDed).
+name: small_refactor
+repo: https://github.com/your-org/your-repo
+base_commit: "2222222222222222222222222222222222222222"
+prompt: >
+  Extract the duplicated token-redaction logic in observability/otel-genai.ts into a
+  single `redactSecrets` helper and call it from both spots. Keep behavior identical.
+judges:
+  - type: build
+    command: "npm --prefix ai-architect run build"
+  - type: grep
+    pattern: "function redactSecrets"
+    files:
+      - ai-architect/src/observability/otel-genai.ts

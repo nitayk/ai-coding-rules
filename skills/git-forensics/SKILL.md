@@ -1,6 +1,7 @@
 ---
 name: git-forensics
 description: Use when asked to understand, explore, or assess an unfamiliar repository, evaluate codebase health before reading code, identify the riskiest files, understand team dynamics, analyze commit history, or assess bus factor. Also use when the user says "what does this repo do", "analyze repo health", "show me riskiest files", "understand this codebase", or /git-forensics.
+last-reviewed: 2026-05-20
 ---
 
 # Git Forensics

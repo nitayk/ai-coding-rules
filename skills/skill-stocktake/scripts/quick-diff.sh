@@ -37,11 +37,8 @@ if [[ ! "$evaluated_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2
   exit 1
 fi
 
-# Pre-extract known paths from results.json once. Wrap in newlines so we can
-# check membership in-process via a bash glob match (`*$'\n'KEY$'\n'*`) — no
-# `grep` subprocess per file. Uses Bash 3.2-compatible features only.
+# Pre-extract known paths from results.json once (O(1) lookup per file instead of O(n*m))
 known_paths=$(jq -r '.skills[].path' "$RESULTS_JSON" 2>/dev/null)
-known_paths_lookup=$'\n'"$known_paths"$'\n'
 
 tmpdir=$(mktemp -d)
 # Use a function to avoid embedding $tmpdir in a quoted string (prevents injection
@@ -59,10 +56,9 @@ process_dir() {
     mtime=$(date -u -r "$file" +%Y-%m-%dT%H:%M:%SZ)
     dp="${file/#$HOME/~}"
 
-    # Check if this file is known to results.json via in-process bash glob
-    # match against a newline-bounded lookup string (no subprocess per file).
-    # The leading/trailing \n in $known_paths_lookup make the match exact-line.
-    if [[ "$known_paths_lookup" == *$'\n'"$dp"$'\n'* ]]; then
+    # Check if this file is known to results.json (exact whole-line match to
+    # avoid substring false-positives, e.g. "python-patterns" matching "python-patterns-v2").
+    if echo "$known_paths" | grep -qxF "$dp"; then
       is_new="false"
       # Known file: only emit if mtime changed (ISO 8601 string comparison is safe)
       [[ "$mtime" > "$evaluated_at" ]] || continue
@@ -81,21 +77,8 @@ process_dir() {
   done < <(find "$dir" -name "*.md" -type f 2>/dev/null | sort)
 }
 
-# Canonicalize both dirs so we don't scan the same path twice when the user
-# invokes the script from $HOME (CWD_SKILLS_DIR == GLOBAL_DIR after resolution).
-_canon() {
-  # Best-effort: realpath if available, else fall back to the input.
-  command -v realpath >/dev/null 2>&1 && realpath "$1" 2>/dev/null || echo "$1"
-}
-_global_canon=""
-_cwd_canon=""
-[[ -d "$GLOBAL_DIR" ]] && _global_canon=$(_canon "$GLOBAL_DIR")
-[[ -n "$CWD_SKILLS_DIR" && -d "$CWD_SKILLS_DIR" ]] && _cwd_canon=$(_canon "$CWD_SKILLS_DIR")
-
-[[ -n "$_global_canon" ]] && process_dir "$GLOBAL_DIR"
-if [[ -n "$_cwd_canon" && "$_cwd_canon" != "$_global_canon" ]]; then
-  process_dir "$CWD_SKILLS_DIR"
-fi
+[[ -d "$GLOBAL_DIR" ]] && process_dir "$GLOBAL_DIR"
+[[ -n "$CWD_SKILLS_DIR" && -d "$CWD_SKILLS_DIR" ]] && process_dir "$CWD_SKILLS_DIR"
 
 if [[ $i -eq 0 ]]; then
   echo "[]"

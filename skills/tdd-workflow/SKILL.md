@@ -1,6 +1,7 @@
 ---
 name: tdd-workflow
 description: "Use when starting new features, adding functionality to existing code, refactoring with safety net, or ensuring test coverage. Do NOT use for quick bug fixes (fix first, test after), purely cosmetic changes, documentation-only changes, or configuration changes without logic."
+last-reviewed: 2026-05-20
 ---
 # Test-Driven Development Workflow
 
@@ -363,7 +364,6 @@ describe('PriceCalculator', () => {
 **Use with:**
 - `/git-workflow` - Commit after each green test
 - `/best-practices-enforcement` - Ensure test quality
-- `/service-refactoring` - Refactor with test safety net
 
 ## Common Pitfalls
 

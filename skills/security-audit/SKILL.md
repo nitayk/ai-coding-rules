@@ -2,6 +2,7 @@
 name: security-audit
 description: "Use for the deeper periodic security audit at release boundaries — runs language-specific scanners, secret detection, and OWASP-mapped review with concrete tool commands. Do NOT use for the per-PR security gate (use /security-review — lighter, faster, runs every PR). Triggers: 'security audit', 'audit before release', 'security review of release N'."
 disable-model-invocation: true
+last-reviewed: 2026-05-20
 ---
 
 # Security Audit

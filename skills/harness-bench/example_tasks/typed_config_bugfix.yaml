@@ -1,0 +1,12 @@
+# Task spec: fix a typed-config bug where an unset env var silently defaults to an
+# insecure value instead of failing fast. Judged by the config package's pytest suite.
+name: typed_config_bugfix
+repo: https://github.com/your-org/your-repo
+base_commit: "1111111111111111111111111111111111111111"
+prompt: >
+  In the krs service config loader, CREDENTIALS_ENCRYPTION_KEY currently falls back to
+  an empty string when unset. It must instead fail fast at boot. Fix the loader and
+  make the existing config tests green.
+judges:
+  - type: pytest
+    command: "python3.12 -m pytest krs/tests/test_config.py -q"

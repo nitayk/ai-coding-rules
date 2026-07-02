@@ -11,6 +11,7 @@ description: >
   single approach. Triggers: "organize this folder", "repo cleanup", "scripts everywhere",
   "merge duplicate plans", "single source of truth", "same thing two ways", "unify testing layout",
   "README index", "archive old docs", "untracked files", "flatten", "misc folder", "lost its way".
+last-reviewed: 2026-05-20
 ---
 
 # Repository organization
@@ -135,6 +136,6 @@ Deliverable: **target map** (bullet tree or table) + **what references must chan
 
 ## Related examples
 
-Concrete path-bootstrap patterns (adjust names): `manage/code-graph-system/scripts/_cg_repo_root.py`, `scripts/lib/bash_common.sh`.
+Concrete path-bootstrap patterns (adjust names): `scripts/_repo_root.py`, `scripts/lib/bash_common.sh`.
 
 <!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

@@ -145,7 +145,7 @@ P3: "Phase 3: PLANNING" {
 
   scan: "S0 codebase scan\n(code-explorer subagent)" { class: active; tooltip: "Always runs. Scan codebase for existing patterns related to the task." }
   forensics: "/git-forensics\nownership + churn" { class: active; tooltip: "File ownership, churn, recent incidents on affected files. Avoid re-breaking just-fixed code." }
-  canon: "canonical-source rule\nfor submodule assets" { class: active; tooltip: "If change targets submodule asset (e.g. mobile-cursor-rules skill), FIRST read canonical path, not synced copy." }
+  canon: "canonical-source rule\nfor submodule assets" { class: active; tooltip: "If change targets submodule asset (e.g. mobile-agent-toolkit skill), FIRST read canonical path, not synced copy." }
   q_5tasks: "5+ tasks\nor multi-subsystem?" { class: decision }
   break: "/task-breakdown\n(decompose first)" { class: active; tooltip: "Decompose 5+ task plans before /writing-plans formalizes them." }
   plans: "/writing-plans" { class: active; tooltip: "Formalize task list with TDD steps + verification per task." }
@@ -227,7 +227,7 @@ P6_full: "Phase 6: QUALITY GATES (HARD)\nfeature / bugfix / refactor" {
 
   parallel_label: "ALL 4 RUN IN PARALLEL\n(read-only except cleanup)" { style.font-size: 16; style.italic: true }
   cleanup: "/code-cleanup" { class: active; tooltip: "Debug artifacts, dead imports, AI-generated noise removal. ~30s, mechanical." }
-  simp: "/simplify\n(/code-simplification on Cursor)" { class: active; tooltip: "Reuse + quality + efficiency via 3 parallel subagents. Built-in command on Claude Code." }
+  simp: "/code-simplification" { class: active; tooltip: "Reuse + quality + efficiency refactor; auto-applies fixes. Cross-platform (Claude/Cursor/Copilot). CC's built-in /code-review (formerly /simplify, renamed CC 2.1.147) only reports correctness bugs now — complement, not replacement." }
   sec: "/security-review" { class: active; tooltip: "OWASP-style per-PR vulnerability scan. + belt-and-suspenders happy-path test for any defensive arg-mutation." }
   bp: "/best-practices-enforcement" { class: active; tooltip: "Coding standards, naming, immutability, structure. Read-only." }
   q_perf: "perf-shaped\nrequirement?" { class: decision }
@@ -352,10 +352,12 @@ P9: "Phase 9: DELIVERY" {
   class: groupbox
 
   no_coauthor: "HARD: no Co-Authored-By:\nin commits or PR body\n(commit hooks BLOCK)" { class: hard; tooltip: "User's commit hooks block any AI-attribution line. Strip it from default templates." }
+  merge_gate: "HARD: never auto gh pr merge\n(end on GREEN MERGEABLE,\nuser merges after review)" { class: hard; tooltip: "/e2e MUST NEVER invoke gh pr merge. Default end-state = GREEN MERGEABLE PR with merge command printed. Per-session authorization, does NOT carry across runs." }
   finish: "/finishing-a-development-branch" { class: active; tooltip: "Present integration options as a structured numbered question." }
   q_choice: "Choice?" { class: decision }
-  pr: "/create-pr\n+ /pr-workflow\n+ /github-ops" { class: active; tooltip: "Open PR + lifecycle (draft→ready→merge-strategy) + CI status checks + PR triage." }
-  merge: "merge to main\n(if CI green + rights)" { class: active }
+  pr: "/create-pr\n+ /pr-workflow\n+ /github-ops" { class: active; tooltip: "Open PR + lifecycle (draft→ready) + CI status checks + PR triage." }
+  wait_green: "Wait-Green sub-step\n(poll gh pr checks --watch +\ngh pr view --json mergeable,\nmergeStateStatus)" { class: hard; tooltip: "Hard gate. Poll until GREEN MERGEABLE or timeout (10min feature, 15min hotfix). Detect zombie check-suites (BLOCKED with all checks passing) → offer --admin force-merge command. Failed check → return to upstream phase." }
+  exit_gate: "Exit-gate sentence:\nPR url + CI status +\nmergeStateStatus +\nmerge command +\ndelivery hooks accepted/declined" { class: active; tooltip: "Mandatory format. /e2e stops here pending user merge or explicit 'review later — proceed to learn'." }
   keep: "keep branch\n(continue later)" { class: active }
   discard: "discard\n(spike only)" { class: active }
   q_release: "Release\nboundary?" { class: decision }
@@ -365,9 +367,8 @@ P9: "Phase 9: DELIVERY" {
   jira: "Jira transition\n(confirm target first)" { class: active }
   confl: "Confluence page\n(show diff before write)" { class: active }
 
-  no_coauthor -> finish -> q_choice
-  q_choice -> pr -> q_release
-  q_choice -> merge -> q_release
+  no_coauthor -> merge_gate -> finish -> q_choice
+  q_choice -> pr -> wait_green -> q_release
   q_choice -> keep
   q_choice -> discard
   q_release -> release: YES
@@ -376,6 +377,7 @@ P9: "Phase 9: DELIVERY" {
   q_hooks -> slack
   q_hooks -> jira
   q_hooks -> confl
+  q_hooks -> exit_gate
 }
 
 P8 -> P9

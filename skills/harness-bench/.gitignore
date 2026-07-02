@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# bench run artifacts (regenerable)
+results_*.json
+*.png
+# claude -p writes a project session dir here when run with this cwd
+.claude/

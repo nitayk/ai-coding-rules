@@ -1,6 +1,7 @@
 ---
 name: gh-manage-project
 description: "Manage GitHub Projects V2 boards: create issues, add them to a project board, assign sprints, set status/dates/fields, and query board items. Use when the user asks to create sprint tasks, add issues to a project board, assign work to a sprint, update project board items, check sprint status, or manage a GitHub project. Also use when the user mentions 'project board', 'sprint planning', 'iteration', 'kanban', or provides a GitHub project URL. Do NOT use for basic issue creation without a project board — use gh issue create directly for that."
+last-reviewed: 2026-05-20
 ---
 
 # Manage GitHub Projects V2
@@ -283,3 +284,5 @@ mutation {
 - `/gh-search` — Search for code, issues, PRs across GitHub
 - `/create-pr` — Create a pull request
 - `/fix-issue` — Fix a GitHub issue
+
+<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->

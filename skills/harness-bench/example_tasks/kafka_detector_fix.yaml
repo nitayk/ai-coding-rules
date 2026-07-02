@@ -1,0 +1,13 @@
+# Task spec: fix a Kafka topic detector so it resolves a package-qualified
+# const topic name. Judged by the detector's own pytest suite passing.
+name: kafka_detector_fix
+repo: https://github.com/your-org/your-repo
+base_commit: "0000000000000000000000000000000000000000"
+prompt: >
+  The Go Kafka topic detector in internal/detectors/ misses a
+  topic when the topic name is a package-qualified const (e.g. cfg.TopicName). Fix
+  the resolver so the const is resolved repo-wide and the topic edge is emitted.
+  Do not regress any existing detector test.
+judges:
+  - type: pytest
+    command: "python3.12 -m pytest tests/test_kafka_detector.py -q"
