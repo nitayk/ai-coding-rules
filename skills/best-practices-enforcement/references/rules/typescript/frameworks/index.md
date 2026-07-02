@@ -43,4 +43,4 @@
 - **Language**: See `../language/index.md` for TypeScript/JavaScript patterns
 - **Testing**: See `../testing/index.md` for testing patterns
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

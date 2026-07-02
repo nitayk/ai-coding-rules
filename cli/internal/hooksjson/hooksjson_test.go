@@ -39,21 +39,6 @@ func TestMergeReshape_KeepsExistingVersion(t *testing.T) {
 	}
 }
 
-func TestFilterForTarget_Cursor(t *testing.T) {
-	o := obj(`{"hooks":{"SessionStart":[1],"PreToolUse":[2],"keepMe":[3]}}`)
-	FilterForTarget(o, "cursor")
-	hooks := o["hooks"].(Object)
-	if _, ok := hooks["SessionStart"]; ok {
-		t.Fatalf("SessionStart should be filtered for cursor")
-	}
-	if _, ok := hooks["PreToolUse"]; ok {
-		t.Fatalf("PreToolUse should be filtered for cursor")
-	}
-	if _, ok := hooks["keepMe"]; !ok {
-		t.Fatalf("unrelated key should be preserved")
-	}
-}
-
 func TestFilterForTarget_Claude(t *testing.T) {
 	o := obj(`{"hooks":{"SessionStart":[1],"sessionStart":[2],"stop":[3]}}`)
 	FilterForTarget(o, "claude")

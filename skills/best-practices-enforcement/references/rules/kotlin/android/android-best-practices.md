@@ -43,4 +43,4 @@
 - [Jetpack Compose docs hub](https://developer.android.com/develop/ui/compose) — Replacement for the dead `/jetpack/compose/documentation` path.
 - [What's new in Kotlin 2.2](https://kotlinlang.org/docs/whatsnew22.html) — `kotlinOptions{}` removal; `kotlin-android-extensions` removal.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

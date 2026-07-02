@@ -162,4 +162,4 @@ repos:
 - [Buf Docs](https://buf.build/docs/)
 - [Buf Style Guide](https://buf.build/docs/best-practices/style-guide/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

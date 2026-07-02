@@ -146,4 +146,4 @@ Have an answer for Y. "Because that's what the template says" isn't one.
 - [Google Go Style Decisions](https://google.github.io/styleguide/go/decisions) — canonical for package layout decisions.
 - [Effective Go](https://go.dev/doc/effective_go) — older, but covers naming and package design.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

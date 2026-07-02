@@ -131,4 +131,4 @@ A voice chart contains three key elements for each brand concept:
 
 Choose characteristics that align with your brand and serve your users' needs in context.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

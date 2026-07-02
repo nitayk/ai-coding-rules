@@ -29,4 +29,4 @@ Only create files with permanent value.
 - Commented-out code blocks: forbidden.
 - Delete temporary files immediately after use.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

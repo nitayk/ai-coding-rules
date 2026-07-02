@@ -27,14 +27,14 @@ func newSyncCmd() *cobra.Command {
 		Use:   "sync",
 		Short: "Sync skills/agents/commands/hooks into a project",
 		Long: `Sync deploys skills, agents, commands, and hooks from an ai-coding-rules
-checkout into a consumer repo's Cursor and/or Claude Code directories.
+checkout into a consumer repo's Claude Code (.claude/) directories.
 
-Skills are always copied (Cursor/Claude don't index symlinked skill trees);
+Skills are always copied (Claude doesn't index symlinked skill trees);
 agents, commands, and hooks are symlinked by default (use --copy to copy).
-The submodule always lives at .cursor/rules/shared, never under .claude/rules/.`,
-		Example: `  acr sync                          # Cursor (default), from a consumer repo
-  acr sync --target claude          # Claude Code paths
-  acr sync --target cursor,claude   # Both targets
+The submodule always lives at .cursor/rules/shared — a Claude-safe location
+(Claude Code ignores .cursor/), never under .claude/rules/, which would explode
+Claude Code's context.`,
+		Example: `  acr sync                          # from a consumer repo
   acr sync --skills core,git        # Only core + git skill groups
   acr sync --no-skills scala        # All skills except the scala group
   acr sync --dry-run                # Preview changes`,
@@ -62,7 +62,7 @@ The submodule always lives at .cursor/rules/shared, never under .claude/rules/.`
 			})
 		},
 	}
-	cmd.Flags().StringVar(&target, "target", "cursor", "cursor|claude|comma-separated")
+	cmd.Flags().StringVar(&target, "target", "claude", "deploy target (only claude is supported)")
 	cmd.Flags().StringVar(&skills, "skills", "defaults", "comma-separated skill groups to sync, or 'all'")
 	cmd.Flags().StringVar(&noSkills, "no-skills", "", "comma-separated skill groups to exclude")
 	cmd.Flags().BoolVar(&useCopy, "copy", false, "copy files instead of symlinking")

@@ -181,4 +181,4 @@ Validation is the boundary check for "the request is structurally valid and the 
 - [Common Expression Language (CEL)](https://github.com/google/cel-spec)
 - [Buf Docs](https://buf.build/docs/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

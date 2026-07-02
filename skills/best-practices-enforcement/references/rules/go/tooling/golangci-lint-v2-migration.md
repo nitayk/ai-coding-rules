@@ -160,4 +160,4 @@ v2 enables some analyzers v1 didn't. Expected workflow:
 - [golangci-lint](https://golangci-lint.run/)
 - [golangci-lint releases](https://github.com/golangci/golangci-lint/releases)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -295,4 +295,4 @@ test('Arabic layout is RTL', async ({ page }) => {
 });
 ```
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

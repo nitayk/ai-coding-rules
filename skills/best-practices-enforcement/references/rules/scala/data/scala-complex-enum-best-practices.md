@@ -87,4 +87,4 @@
 - [Enumeratum Enum Best Practices](enumeratum-enum-best-practices.md) - Type-safe enum patterns with enumeratum
 - [Make Illegal States Unrepresentable](../../language/make-illegal-states-unrepresentable.md) - Comprehensive guide on sealed traits
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

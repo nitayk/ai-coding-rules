@@ -110,4 +110,4 @@ fun getItems(): MutableList<Item> = internalList  // Caller can mutate
 - [Kotlin Collections Overview](https://kotlinlang.org/docs/collections-overview.html)
 - [Kotlin Collections Guide](https://www.baeldung.com/kotlin/collection-guide)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

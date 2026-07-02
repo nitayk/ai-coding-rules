@@ -15,4 +15,4 @@ runs via the plugin's Claude hooks.
 **Takeaway:** Use **`/session-memory`** for the scratchpad and **`/agent-token-optimization`**
 for hook-driven persistence (opt-in per [hooks/README.md](../../../hooks/README.md)).
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

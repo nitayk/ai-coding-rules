@@ -407,4 +407,4 @@ public abstract class Result<T> {
 - [JEP 441: Pattern Matching for switch (Final, JDK 21)](https://openjdk.org/jeps/441)
 - [JEP 395: Records (Final, JDK 16)](https://openjdk.org/jeps/395)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

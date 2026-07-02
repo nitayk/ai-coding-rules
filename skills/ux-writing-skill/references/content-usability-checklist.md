@@ -157,4 +157,4 @@ Use this checklist to evaluate UX text quality. Rate each criterion 0-10.
 
 **Overall**: 9/10 — Excellent
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

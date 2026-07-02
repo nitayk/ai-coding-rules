@@ -73,4 +73,4 @@ last-reviewed: 2026-05-27
 - **ALWAYS** provide evidence of the fix (test output).
 - **ESCALATE to `/systematic-debugging`** if Phase 2 hypothesis fails to verify — that's the signal you need depth, not triage.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

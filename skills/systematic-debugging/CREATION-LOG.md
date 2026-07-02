@@ -118,4 +118,4 @@ When encountering a bug:
 *Created: 2025-10-03*
 *Purpose: Reference example for skill extraction and bulletproofing*
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -242,4 +242,4 @@ When debugging an issue:
 
 **Remember**: Debugging is a skill that improves with practice. Don't give up too early, but also don't waste time - ask for help when stuck.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

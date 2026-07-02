@@ -264,4 +264,4 @@ Full rule: [synctest for time-dependent code](synctest-for-time-dependent-code.m
 - [Google Go Style: Test doubles](https://google.github.io/styleguide/go/best-practices#test-doubles)
 - [Peter Bourgon: Go in Production](https://peter.bourgon.org/go-in-production/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

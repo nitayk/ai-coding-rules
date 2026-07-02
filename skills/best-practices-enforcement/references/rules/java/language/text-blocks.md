@@ -153,4 +153,4 @@ This reads better than `String.format("...", a, b)` when the template itself is 
 - [Java Language Specification §3.10.6 — Text Blocks](https://docs.oracle.com/javase/specs/)
 - [dev.java/learn — Text Blocks](https://dev.java/learn/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

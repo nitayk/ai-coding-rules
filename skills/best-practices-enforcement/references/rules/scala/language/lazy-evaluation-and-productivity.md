@@ -440,4 +440,4 @@ testProductive(_.reverse)     // false - non-productive
 - [When Are Functions Lazy Enough for Lists](https://blog.daniel-beskin.com/2024-05-02-lazy-enough) - Daniel Beskin's Blog
 - [Scala LazyList Documentation](https://www.scala-lang.org/api/current/scala/collection/immutable/LazyList.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

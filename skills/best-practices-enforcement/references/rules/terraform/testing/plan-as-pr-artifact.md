@@ -214,4 +214,4 @@ The "second plan" is now what runs — the review was on a plan that no longer e
 - [Atlantis — Custom Workflows](https://www.runatlantis.io/docs/custom-workflows.html)
 - [Terraform — Saved Plans](https://developer.hashicorp.com/terraform/cli/commands/plan#_out_filename)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

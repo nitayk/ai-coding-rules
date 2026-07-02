@@ -81,4 +81,4 @@ If not installed: for plain PDFs, the built-in file reader can often read them d
 
 MarkItDown runs **locally** -- files are not uploaded anywhere. For sensitive or internal documents, prefer this over any cloud-backed document-conversion service.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

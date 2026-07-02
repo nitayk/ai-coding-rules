@@ -40,4 +40,4 @@ Repo-controlled hooks and MCP config are a **trust boundary**. Keep Claude Code 
 
 Installed as the **mobile-agent-toolkit Claude Code plugin** (the legacy `install.sh` submodule installer was removed). Update with `claude plugin update mobile-agent-toolkit@mobile-agent-toolkit`, then run `/reload-plugins` or restart the session.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

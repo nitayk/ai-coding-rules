@@ -110,4 +110,4 @@
 - [Code Quality Core Principles](../code-quality/core-principles.md) - SOLID, ISP
 - [Testing Core Principles](../testing/core-principles.md) - Test against interfaces
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

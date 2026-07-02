@@ -179,4 +179,4 @@ proposed → accepted → [deprecated | superseded by ADR-NNNN]
 - **Planner agent**: when the planner proposes architecture changes, suggest creating an ADR
 - **Code reviewer agent**: flag PRs that introduce architectural changes without a corresponding ADR
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

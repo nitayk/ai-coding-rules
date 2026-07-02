@@ -19,17 +19,16 @@ func newInstallCmd() *cobra.Command {
 		Use:   "install",
 		Short: "Set up the submodule, sync, and install the post-merge hook",
 		Long: `Install is the one-shot setup for a consumer repo. It reconciles the
-.cursor/rules/shared submodule, runs a sync, and installs a post-merge git hook
-so syncs happen automatically after 'git pull'.
+.cursor/rules/shared submodule, runs a Claude Code sync, and installs a
+post-merge git hook so syncs happen automatically after 'git pull'.
 
 Run from inside the ai-coding-rules checkout itself, it skips the submodule and
 hook steps and just runs a sync.
 
-Note: the submodule always lives at .cursor/rules/shared (never under
-.claude/rules/, which would explode Claude Code's context).`,
-		Example: `  acr install                        # Cursor (default)
-  acr install --target claude        # Claude Code paths
-  acr install --target cursor,claude # Both targets
+Note: the submodule always lives at .cursor/rules/shared — a Claude-safe
+location (Claude Code ignores .cursor/), never under .claude/rules/, which would
+explode Claude Code's context.`,
+		Example: `  acr install                        # set up + sync Claude Code
   acr install --dry-run              # Preview changes`,
 		Args: cobra.NoArgs,
 		RunE: func(c *cobra.Command, args []string) error {
@@ -44,7 +43,7 @@ Note: the submodule always lives at .cursor/rules/shared (never under
 			})
 		},
 	}
-	cmd.Flags().StringVar(&target, "target", "cursor", "cursor|claude|comma-separated")
+	cmd.Flags().StringVar(&target, "target", "claude", "deploy target (only claude is supported)")
 	cmd.Flags().StringVar(&skills, "skills", "defaults", "comma-separated skill groups to sync, or 'all'")
 	cmd.Flags().StringVar(&noSkills, "no-skills", "", "comma-separated skill groups to exclude")
 	cmd.Flags().StringVar(&profile, "profile", "", "only 'generic' is supported (default)")

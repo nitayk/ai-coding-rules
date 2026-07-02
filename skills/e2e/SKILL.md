@@ -1402,4 +1402,4 @@ report. For per-subagent model tiering decisions (Haiku/Sonnet/Opus
 picks, MCP-vs-CLI tradeoffs, modular file splits), invoke
 `/agent-token-optimization`.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

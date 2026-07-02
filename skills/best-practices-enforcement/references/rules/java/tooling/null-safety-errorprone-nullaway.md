@@ -137,4 +137,4 @@ Use Checker Framework when you need formal verification beyond nullness (e.g. un
 - [NullAway (Uber)](https://github.com/uber/NullAway) — Error Prone plugin for null safety
 - [JSpecify](https://jspecify.dev/) — cross-tool nullness annotation standard
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -102,4 +102,4 @@ You: [Fix progress indicators]
 
 See template at: [code-reviewer.md](code-reviewer.md)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

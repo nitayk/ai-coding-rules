@@ -205,4 +205,4 @@ node_pools = [
 - [GCP — GKE best practices](https://docs.cloud.google.com/kubernetes-engine/docs/best-practices)
 - [CIS Google Kubernetes Engine Benchmark](https://www.cisecurity.org/benchmark/kubernetes/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

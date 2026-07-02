@@ -145,4 +145,4 @@ Approachable-concurrency settings make sense **after** a module compiles under l
 - [Swift Migration Guide](https://www.swift.org/migration/documentation/migrationguide/)
 - [Swift Evolution proposal index](https://www.swift.org/swift-evolution/) — search SE-0466, SE-0461, SE-0470 for the underlying proposals
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

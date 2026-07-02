@@ -46,4 +46,4 @@ Read the matching reference file and apply its patterns:
   feedback-patterns copied verbatim under references/. Wrapper authored locally to expose
   the bundle as one routable skill. Promoted to mobile-agent-toolkit (AQ-3 ui-uplift suite). -->
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

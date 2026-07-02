@@ -141,4 +141,4 @@ Expect this to take weeks per major consumer, not days. Plan accordingly.
 - [Buf Docs](https://buf.build/docs/)
 - [Buf Schema Registry](https://buf.build/) — landing page; pricing / hosted-vs-self-hosted
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

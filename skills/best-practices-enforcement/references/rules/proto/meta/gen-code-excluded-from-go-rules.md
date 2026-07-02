@@ -134,4 +134,4 @@ None of these involve editing the `.pb.go`. Editing the generated file means you
 - [`golangci-lint` configuration](https://golangci-lint.run/)
 - [google.golang.org/protobuf](https://pkg.go.dev/google.golang.org/protobuf)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -102,4 +102,4 @@ fi
 - git-workflow - Clean commit history on feature branch
 - pr-workflow - Merge feature branch via PR
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

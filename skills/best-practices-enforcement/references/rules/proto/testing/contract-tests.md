@@ -133,4 +133,4 @@ If your "test" doesn't fall into one of these buckets, you probably don't need i
 - [Buf Breaking Change Rules](https://buf.build/docs/breaking/rules/)
 - [google.golang.org/protobuf — proto package](https://pkg.go.dev/google.golang.org/protobuf/proto)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -337,4 +337,4 @@ def validateUserConsistent(email: String, age: Int): Either[String, User] = {
 - [Core Structural Guidelines](../architecture/core-structural-guidelines.md) - For validation in structured applications
 - [Scala Testing Best Practices](../testing/scala-testing-best-practices.md) - For testing validation logic
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -205,4 +205,4 @@ The Operation message already tells you everything: `done`, `error`, `response`.
 - [google/longrunning/operations.proto](https://github.com/googleapis/googleapis/blob/master/google/longrunning/operations.proto)
 - [Google API Improvement Proposals](https://google.aip.dev/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

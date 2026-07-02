@@ -93,4 +93,4 @@ After each repo (or every N repos):
 
 - [Anthropic: Claude Code auto mode](https://www.anthropic.com/engineering/claude-code-auto-mode) — may reduce approval fatigue for safe read-only exploration; still gate destructive actions manually.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

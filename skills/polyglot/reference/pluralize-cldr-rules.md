@@ -180,4 +180,4 @@ describe.each([
 - `#TODO(agent): add CLDR category coverage gate` when a locale ships without full category support.
 - `#TODO(agent): migrate plural string to MF2` when MF1 nesting becomes unreadable.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

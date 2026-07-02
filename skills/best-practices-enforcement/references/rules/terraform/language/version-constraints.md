@@ -144,4 +144,4 @@ The `terraform_required_version` and `terraform_required_providers` rules fail o
 - [Terraform — Dependency Lock File](https://developer.hashicorp.com/terraform/language/files/dependency-lock)
 - [HashiCorp Style Guide — versions.tf](https://developer.hashicorp.com/terraform/language/style#versions-tf)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

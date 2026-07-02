@@ -43,7 +43,7 @@ So for "good stuff without org glue", you are **largely covered** on shared comm
 - `scala-dependency-hell`, `scala-testing`, `scala-upgrade-agent` -- Scala stack-specific; add if using Scala personally
 - `ecc-harness-playbook` -- Longform/org harness; optional for personal ECC
 
-**Rules layout:** mcr uses `rules/{go,scala,typescript,...}`; nitayk uses `backend/`, `frontend/`, `generic/`, `tools/`, etc. Same idea (ROUTER -> indexes -> `.mdc` files), different directory naming. Language rules for Python (21), TypeScript (19), and Go (17) are included.
+**Rules layout:** the upstream ships Cursor `.mdc` rule trees (`rules/{go,scala,typescript,...}`, ROUTER/index). This pack **dropped the entire `.mdc` Cursor rule layer** (2026-07-02) — it targets Claude Code, which doesn't load `.mdc`. Language coding-standards now live only in the `best-practices-enforcement` skill; a few core standards remain as prose in `rules/*.md` (referenced from `CLAUDE.md`).
 
 ---
 
@@ -59,11 +59,6 @@ Unity's repo is **optimized for Unity Ads** (see their README: BigQuery, DSP ano
 
 **Keep taking from Unity only via shared upstreams** (same as nitayk): anthropics + superpowers vendor paths under `skills/vendor/*` -- you already consume those families through **ai-coding-rules** / `update-community.sh`.
 
----
-
-## Claude `settings.json` vs "reading rules"
-
-If `.claude/settings.json` **denies** `Read` on `./.claude/rules/shared/tools/**`, the **CLI `.mdc` guides** (curl, jq, git, etc.) are blocked even though `ROUTER.mdc` routes to them. Consider removing or narrowing those denies so tool guides remain readable.
 
 ---
 

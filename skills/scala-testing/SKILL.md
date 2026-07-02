@@ -147,4 +147,4 @@ Before completing:
 - Tests pass both alone and in the full suite
 - Property tests added where invariants exist
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

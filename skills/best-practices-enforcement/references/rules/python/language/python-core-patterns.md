@@ -59,4 +59,4 @@ Use `/` and `*` in signatures to future-proof APIs and enforce intended usage: `
 - Do not load entire files into memory when streaming; use generators
 - Use `enumerate` and `zip` instead of `range(len())`
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

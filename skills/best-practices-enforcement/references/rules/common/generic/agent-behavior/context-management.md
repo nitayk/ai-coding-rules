@@ -50,4 +50,4 @@ When handing off to a new session, include:
 - `/writing-plans` - Creates phase-ready plans
 - `/executing-plans` - Batch execution with checkpoints
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

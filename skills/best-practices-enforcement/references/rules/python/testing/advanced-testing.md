@@ -114,4 +114,4 @@ def test_query(db_connection):
 - This file provides Python-specific advanced testing patterns (mocking, property-based testing with hypothesis, fixtures)
 - [Python Testing Best Practices](../python-testing-best-practices.md) - General Python testing practices
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -133,4 +133,4 @@ it('login works', () => { /* ... */ });
 - **Playwright**: See `playwright-best-practices.md` for Playwright patterns
 - **Skill**: `/webapp-testing` - Playwright-based testing workflow
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

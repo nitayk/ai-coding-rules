@@ -135,4 +135,4 @@ Skill: Current overhead 33% → adding 5 servers (~50 tools) would add ~25,000 t
 - **Verbose mode for debugging**: use when you need to pinpoint the exact files driving overhead, not for regular audits
 - **Audit after changes**: run after adding any agent, skill, or MCP server to catch creep early
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

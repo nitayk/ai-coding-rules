@@ -148,4 +148,4 @@ Use `# noqa: <RULE>` sparingly and always with a rule code — never bare `# noq
 - [Ruff rules](https://docs.astral.sh/ruff/rules/) — full rule catalog with replacement mapping
 - [Ruff formatter](https://docs.astral.sh/ruff/formatter/) — Black-compatibility details
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

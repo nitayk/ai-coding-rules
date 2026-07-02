@@ -37,4 +37,4 @@
 - **Language**: See `../language/index.md` for language patterns
 - **Performance**: See `../performance/index.md` for performance optimization
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

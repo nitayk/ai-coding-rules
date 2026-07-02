@@ -118,4 +118,4 @@ For HIGH findings: don't accept a fix as resolved without exercising it. See `/e
 - `/security-review` — per-PR gate (lighter, faster, runs every PR — *not* a substitute for this skill at release boundaries)
 - `/generate-changelog` — pair with security-audit at release boundaries to capture remediated CVEs in release notes
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

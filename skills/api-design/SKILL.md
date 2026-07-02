@@ -523,4 +523,4 @@ Before shipping a new endpoint:
 - [ ] Consistent naming with existing endpoints (camelCase vs snake_case)
 - [ ] Documented (OpenAPI/Swagger spec updated)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -20,7 +20,7 @@ Hooks are grouped by role. **Claude Code and Cursor only care that `hooks.json` 
 | **`observability/`** | `audit.sh` |
 | **`ecc-hooks/`** | Vendored upstream ECC reference (git subtree); **excluded** from the `acr sync` copy to consumer repos |
 
-**At repo root of `hooks/`:** `hooks.json`, `hooks-cursor.json`, `run-hook.cmd`, extensionless **`session-start`** (invoked via `run-hook.cmd` on some setups), `cursor-adapter.js`, and this README.
+**At repo root of `hooks/`:** `hooks.json`, `run-hook.cmd`, extensionless **`session-start`** (invoked via `run-hook.cmd` on some setups), and this README.
 
 ### Claude vs Cursor (tool observation)
 
@@ -344,11 +344,7 @@ Community guides (e.g. Longform “Everything Claude Code”) describe **PreComp
 
 - Consumer repos: shared hooks are **merged** with repo-specific hooks by `acr sync` (the merge logic lives in `cli/internal/hooksjson`).
 
-**Why `hooks-cursor.json` but no `hooks-claude.json`?** The **only** shared source `acr sync` reads is [`hooks.json`](hooks.json). It lists **both** harnesses; after merge, `acr sync` writes **`.claude/hooks.json`** or **`.cursor/hooks.json`** (the normal on-disk names) and **filters** keys per target (native JSON, no `jq`). **[`hooks-cursor.json`](hooks-cursor.json)** is an extra **Cursor-only sample** so the camelCase / simpler schema is easy to see without reading the full union file. Claude’s entries (`SessionStart`, `PreToolUse`, `PreCompact`, …) already live in **`hooks.json`**, so a separate `hooks-claude.json` would mostly duplicate **`hooks.json`** and go stale.
-
-### Cursor
-
-- **Cursor** hooks use a **different** schema and event names—see [`hooks-cursor.json`](hooks-cursor.json) in this repo. Do **not** assume Claude `Stop` / `PreCompact` match 1:1.
+The shared source `acr sync` reads is [`hooks.json`](hooks.json); after merge it writes **`.claude/hooks.json`** with the Claude events (`SessionStart`, `PreToolUse`, `PreCompact`, …).
 
 ### Expectations
 

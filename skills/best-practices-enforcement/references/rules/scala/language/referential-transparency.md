@@ -52,4 +52,4 @@ def logAndAdd(a: Int, b: Int): Int = {
 - [Validation and Safe Operations](validation-and-safe-operations.md) - Safe validation patterns
 - [Pure Testing Patterns](../testing/pure-testing-patterns.md) - Making tests pure and side-effect-free
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

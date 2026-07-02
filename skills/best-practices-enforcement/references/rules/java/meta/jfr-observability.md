@@ -129,4 +129,4 @@ Custom events show up alongside JVM events in JMC, so you can correlate a slow `
 - [dev.java/learn — JVM monitoring](https://dev.java/learn/) — JFR introduction
 - [JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html) — official analyzer
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

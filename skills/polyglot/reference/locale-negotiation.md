@@ -181,4 +181,4 @@ Always expose a visible locale picker so the inference is correctable. Never use
 - `#TODO(agent): expose locale picker on every page` when inference is the only signal.
 - `#TODO(agent): canonicalize BCP 47 tags` when matching is case-sensitive and misses cases.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

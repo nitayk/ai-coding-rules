@@ -74,4 +74,4 @@ To test/visualize the artifact, use available tools (including other Skills or b
 
 - **shadcn/ui components**: https://ui.shadcn.com/docs/components
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -425,4 +425,4 @@ Acts as instruction for one task
 
 All three maintain the core UX principles: purposeful, concise, conversational (within voice), and clear.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

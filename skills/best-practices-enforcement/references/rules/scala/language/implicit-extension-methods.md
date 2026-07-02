@@ -64,4 +64,4 @@
 - [Avoid Overloading](avoid-overloading.md) - Prefer explicit naming and type classes over method overloading
 - [Compiler-Friendly Types](compiler-friendly-types.md) - Type safety principles
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

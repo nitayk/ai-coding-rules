@@ -231,4 +231,4 @@ warnings.filterwarnings("error", category=PydanticDeprecatedSince20)
 - [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) — separated settings package
 - [bump-pydantic codemod](https://github.com/pydantic/bump-pydantic) — automated v1→v2 rewrite
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

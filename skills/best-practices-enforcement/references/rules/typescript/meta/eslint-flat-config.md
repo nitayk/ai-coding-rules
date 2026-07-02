@@ -217,4 +217,4 @@ See `meta/toolchain-roadmap.md`. Short version: **stay on ESLint + typescript-es
 - [typescript-eslint Getting Started](https://typescript-eslint.io/getting-started/)
 - [typescript-eslint v8 release notes](https://typescript-eslint.io/blog/announcing-typescript-eslint-v8/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -122,4 +122,4 @@ JDBC/HTTP connection pools are still the real bottleneck. With virtual threads, 
 - [JEP 444: Virtual Threads (Final, JDK 21)](https://openjdk.org/jeps/444) — normative spec, pinning section
 - [dev.java/learn — Virtual Threads](https://dev.java/learn/) — Oracle tutorial
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

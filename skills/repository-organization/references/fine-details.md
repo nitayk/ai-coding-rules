@@ -120,4 +120,4 @@ Benchmarks and `generate_review.py` output for this skill live in a **sibling di
 
 That path is **gitignored** by `skills/*-workspace/` in the repo root `.gitignore`—regenerable local artifacts only. Agents and humans should use this location when running the skill-creator eval loop for **repository-organization**, not a random folder under `manage/`.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

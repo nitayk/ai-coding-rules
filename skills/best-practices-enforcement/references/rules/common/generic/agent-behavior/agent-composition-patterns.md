@@ -128,4 +128,4 @@ Build observability in before agents go to production — retrofitting is expens
 - `/dispatching-parallel-agents` skill — Coordinating concurrent agents
 - `/agent-system-design` skill — Full lifecycle workflow for designing agentic systems
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

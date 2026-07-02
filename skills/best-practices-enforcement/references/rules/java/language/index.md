@@ -46,4 +46,4 @@
 - **Generic**: See `references/rules/common/generic/index.md` for universal principles
 - **Backend Index**: See `../index.md` for all backend languages
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

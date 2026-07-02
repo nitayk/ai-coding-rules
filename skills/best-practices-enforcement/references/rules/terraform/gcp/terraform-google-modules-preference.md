@@ -165,4 +165,4 @@ For a primitive you're about to build:
 - [terraform-example-foundation](https://github.com/terraform-google-modules/terraform-example-foundation)
 - [GCP Terraform — Reusable Modules](https://docs.cloud.google.com/docs/terraform/best-practices/reusable-modules)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

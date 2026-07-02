@@ -105,4 +105,4 @@ Once you're on Kotlin 2.4 stable, the flag becomes unnecessary.
 - [What's new in Kotlin (EAP)](https://kotlinlang.org/docs/whatsnew-eap.html) — Context parameters stable in 2.4.0-RC
 - [What's new in Kotlin 2.2](https://kotlinlang.org/docs/whatsnew22.html) — Surrounding language-level changes
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

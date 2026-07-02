@@ -357,4 +357,4 @@ class DataProcessingFacade(
 - [Error Handling Patterns](../language/error-handling-patterns.md)
 - [Scala Code Style](../meta/scala-code-style.md)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

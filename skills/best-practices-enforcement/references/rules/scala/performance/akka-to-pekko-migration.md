@@ -169,4 +169,4 @@ For long-lived, actively-maintained subsystems, plan the Pekko migration proacti
 - [Pekko Connectors](https://pekko.apache.org/docs/pekko-connectors/current/) — replaces Alpakka
 - [Pekko HTTP](https://pekko.apache.org/docs/pekko-http/current/) — replaces Akka HTTP
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

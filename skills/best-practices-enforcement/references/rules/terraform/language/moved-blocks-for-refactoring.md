@@ -159,4 +159,4 @@ The state-mv form works, but the change is invisible in `git log` and unreviewab
 - [Terraform — Refactoring with `moved` blocks](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring)
 - [Terraform Pilot — `moved` block explained](https://www.terraformpilot.com/articles/terraform-moved-block-explained/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

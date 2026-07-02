@@ -98,4 +98,4 @@ difficulty before the full N-session burn.
 `judges.py` `tokens.py` `aggregate.py` `plot.py` `runners.py` · `tests/` (run
 `python3.12 -m pytest -q`) · `fixtures/` (seeded demo data).
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

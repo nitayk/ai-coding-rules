@@ -326,4 +326,4 @@ class ImageCache {
 - [Apple: Optimize CPU Performance with Instruments](https://developer.apple.com/videos/play/wwdc2025/308/)
 - [Instruments Documentation](https://developer.apple.com/documentation/instruments)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

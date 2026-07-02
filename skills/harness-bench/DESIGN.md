@@ -49,4 +49,4 @@ own-tool under `research/tools/`, same pattern as `skillopt-mini`.
   grading discipline).
 - Growing the task set beyond the 3 illustrative specs.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

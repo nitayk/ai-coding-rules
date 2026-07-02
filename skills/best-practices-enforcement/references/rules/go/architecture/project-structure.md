@@ -454,4 +454,4 @@ import "myproject/internal/user"   // Order depends on User
 - [Organizing Go Code (Go Blog)](https://go.dev/blog/organizing-go-code)
 - [Go Modules Reference](https://go.dev/ref/mod)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

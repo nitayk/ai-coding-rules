@@ -18,4 +18,4 @@
 - **Action**: Enforce root cause investigation before fixes. NEVER fix blindly.
 - **Rule**: Use `/systematic-debugging` skill (if available) or read `references/rules/common/generic/debugging/strategies.md`.
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

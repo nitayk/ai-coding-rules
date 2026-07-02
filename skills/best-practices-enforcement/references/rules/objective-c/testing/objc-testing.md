@@ -138,4 +138,4 @@ OCMVerify([self.mockAPIClient fetchUserWithId:[OCMArg any] completion:[OCMArg an
 - [Apple: XCTest](https://developer.apple.com/documentation/xctest)
 - [OCMock Reference](https://ocmock.org/reference)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -119,43 +119,12 @@ print(issues)
   if [ "$issue_count" = "0" ] || [ -z "$issue_count" ]; then
     green "  PASS: All skill descriptions under 500 chars"
   else
-    yellow "  WARN: $issue_count skill(s) with long descriptions (Cursor may skip them)"
+    yellow "  WARN: $issue_count skill(s) with long descriptions (may be skipped)"
     WARNINGS=$((WARNINGS + issue_count))
   fi
 fi
 
-# ─── 3. Rules validation (.mdc frontmatter) ───
-echo ""
-echo "--- Rules (.mdc files) ---"
-rule_count=0
-rule_errors=0
-
-while IFS= read -r mdc; do
-  [ -f "$mdc" ] || continue
-  rule_count=$((rule_count + 1))
-
-  # Check for frontmatter
-  first_line=$(head -1 "$mdc")
-  if [ "$first_line" != "---" ]; then
-    # Rules without frontmatter are OK (they're "always apply" by default)
-    continue
-  fi
-
-  # If has frontmatter, check it closes properly
-  markers=$(grep -c "^---$" "$mdc" || true)
-  if [ "$markers" -lt 2 ]; then
-    red "  FAIL: $(echo "$mdc" | sed "s|$REPO_DIR/||") has unclosed frontmatter"
-    rule_errors=$((rule_errors + 1))
-  fi
-done < <(find "$REPO_DIR" -path "*/skills" -prune -o -name "*.mdc" -print)
-
-if [ "$rule_errors" -eq 0 ]; then
-  green "  PASS: $rule_count rules checked"
-else
-  ERRORS=$((ERRORS + rule_errors))
-fi
-
-# ─── 4. Agents validation ───
+# ─── 3. Agents validation ───
 echo ""
 echo "--- Agents ---"
 agent_errors=0
@@ -173,7 +142,7 @@ else
   ERRORS=$((ERRORS + agent_errors))
 fi
 
-# ─── 5. Commands validation ───
+# ─── 4. Commands validation ───
 echo ""
 echo "--- Commands ---"
 cmd_count=0

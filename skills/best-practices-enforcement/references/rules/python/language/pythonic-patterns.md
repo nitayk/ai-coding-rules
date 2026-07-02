@@ -333,4 +333,4 @@ def validate_user(user: User) -> bool:
 - [The Zen of Python](https://www.python.org/dev/peps/pep-0020/)
 - [Python Documentation](https://docs.python.org/3/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

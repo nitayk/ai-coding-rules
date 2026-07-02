@@ -178,4 +178,4 @@ Running tfsec + Trivy + Checkov + Snyk + Aqua + Wiz produces overlapping finding
 - [Checkov](https://github.com/bridgecrewio/checkov)
 - [Trivy IaC scanning](https://trivy.dev/latest/docs/coverage/iac/terraform/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

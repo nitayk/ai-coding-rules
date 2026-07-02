@@ -48,4 +48,4 @@ Copilot CLI supports persistent async shell sessions:
 | `fetch_copilot_cli_documentation` | Look up Copilot CLI documentation |
 | GitHub MCP tools (`github-mcp-server-*`) | Native GitHub API access (issues, PRs, code search) |
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

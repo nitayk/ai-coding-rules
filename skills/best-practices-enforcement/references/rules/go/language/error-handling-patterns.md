@@ -362,4 +362,4 @@ func ProcessRequest(ctx context.Context, req *Request) error {
 - [Go Blog: Working with Errors in Go 1.13](https://go.dev/blog/go1.13-errors)
 - [errors package](https://pkg.go.dev/errors)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

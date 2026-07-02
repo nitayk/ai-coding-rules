@@ -155,4 +155,4 @@ Buckets — one per environment (`tf-state-...-dev`, `-stg`, `-prd`). Bucket-lev
 - [GCP Terraform — Root Modules](https://docs.cloud.google.com/docs/terraform/best-practices/root-modules)
 - [GCP Terraform — Operations](https://docs.cloud.google.com/docs/terraform/best-practices/operations)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

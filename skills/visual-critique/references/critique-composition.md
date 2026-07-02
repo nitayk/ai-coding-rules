@@ -45,4 +45,4 @@ Rate each dimension: `pass` / `minor issue` / `major issue`.
 - Overcrowded sections adjacent to empty ones, creating unintentional visual cliffs
 - Competing horizontal rules and dividers that multiply without adding structure
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

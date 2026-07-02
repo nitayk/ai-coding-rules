@@ -368,4 +368,4 @@ processUser(user)
 
 - [Whiteboxish Macro Powers with Named Tuples](https://blog.daniel-beskin.com/2025-04-14-whiteboxish-named-tuples) - Daniel Beskin's Blog - Advanced Scala 3 named tuple techniques
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

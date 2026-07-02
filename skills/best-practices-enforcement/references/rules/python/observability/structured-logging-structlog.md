@@ -209,4 +209,4 @@ log.error("download_failed", url=url, exc_info=err)
 - [structlog: contextvars](https://www.structlog.org/en/stable/contextvars.html) — async-safe binding
 - [structlog: standard library integration](https://www.structlog.org/en/stable/standard-library.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

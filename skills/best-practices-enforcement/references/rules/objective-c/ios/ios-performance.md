@@ -128,4 +128,4 @@ Profile before optimizing. Use Instruments to find bottlenecks. Never block the 
 - [Apple: Instruments User Guide](https://developer.apple.com/documentation/xcode/instruments)
 - [Apple: Performance Overview](https://developer.apple.com/documentation/xcode/improving-your-app-s-performance)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

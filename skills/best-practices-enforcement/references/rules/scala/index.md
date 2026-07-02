@@ -195,4 +195,4 @@
 - [Scala with Cats](https://www.scalawithcats.com/) — Underscore Press (free book)
 - [Daniel Beskin's blog (ncreep)](https://blog.daniel-beskin.com/) — most cited source across our existing rules; post archive updated through Dec 2025
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

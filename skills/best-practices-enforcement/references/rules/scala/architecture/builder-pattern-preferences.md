@@ -103,4 +103,4 @@
 **Scala-Specific:**
 - This file provides Scala-specific functional construction patterns (companion object apply, case class copy, smart constructors)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

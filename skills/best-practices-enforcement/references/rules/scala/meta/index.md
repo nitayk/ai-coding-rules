@@ -57,4 +57,4 @@
 - **Architecture**: See `../architecture/index.md` for architectural patterns
 - **Generic**: See `references/rules/common/generic/code-quality/core-principles.md` for universal principles
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

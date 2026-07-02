@@ -166,4 +166,4 @@ There is no wrong answer for most teams. There **is** a wrong answer: not decidi
 - [OpenTofu Documentation](https://opentofu.org/docs/)
 - [Terraform — Stacks](https://developer.hashicorp.com/terraform/language/stacks)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

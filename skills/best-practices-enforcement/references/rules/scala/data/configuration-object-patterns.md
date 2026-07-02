@@ -87,4 +87,4 @@
 **Scala-Specific:**
 - This file provides Scala-specific configuration object patterns (case classes, Option types, factory methods, JSON formatters)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

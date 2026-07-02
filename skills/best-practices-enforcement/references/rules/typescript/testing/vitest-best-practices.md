@@ -23,4 +23,4 @@
 - Mount components using `mount` (full) or `shallowMount` (stubbing children).
 - Test user interactions (clicks, inputs) using `await trigger()`.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -91,4 +91,4 @@ The end-of-life signal is concrete: KSP1 stops supporting **Kotlin 2.3 / AGP 9**
 - [google/ksp](https://github.com/google/ksp) — KSP2 GA; KSP1 EoLs at Kotlin 2.3 / AGP 9
 - [Migrate from kapt to KSP](https://kotlinlang.org/docs/ksp-kapt-migration.html) — Step-by-step migration guide
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -229,4 +229,4 @@ Never call your own API from middleware — it adds a hop on every request. Vali
 - [Server Actions and Mutations](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
 - [Caching](https://nextjs.org/docs/app/building-your-application/caching)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -32,7 +32,7 @@ func TestRunRejectsShellMetacharactersInFilters(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			err := Run(Options{
-				Target:         "cursor",
+				Target:         "claude",
 				SkillsFilter:   tc.skills,
 				NoSkillsFilter: tc.noSkip,
 				Log:            quietLogger(),
@@ -55,7 +55,7 @@ func TestRunRejectsInvalidTarget(t *testing.T) {
 }
 
 func TestRunRejectsUnknownProfile(t *testing.T) {
-	err := Run(Options{Target: "cursor", Profile: "weird", SkillsFilter: "defaults", Log: quietLogger()})
+	err := Run(Options{Target: "claude", Profile: "weird", SkillsFilter: "defaults", Log: quietLogger()})
 	if err == nil || !strings.Contains(err.Error(), "profile") {
 		t.Fatalf("expected unknown-profile error, got: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestRunDryRunFreshConsumer(t *testing.T) {
 	}
 	err := Run(Options{
 		StartDir:     repo,
-		Target:       "cursor",
+		Target:       "claude",
 		SkillsFilter: "defaults",
 		DryRun:       true,
 		Log:          quietLogger(),
@@ -90,7 +90,7 @@ func TestRunDryRunFreshConsumer(t *testing.T) {
 
 func TestHookBlockUsesValidatedFilters(t *testing.T) {
 	// With validated inputs, the generated hook references acr sync and the marker.
-	o := Options{Target: "cursor,claude", SkillsFilter: "core,git"}
+	o := Options{Target: "claude", SkillsFilter: "core,git"}
 	block := o.hookBlock()
 	if !strings.Contains(block, hookMarker) {
 		t.Fatalf("hook block missing marker")

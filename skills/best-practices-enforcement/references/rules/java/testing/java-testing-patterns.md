@@ -250,4 +250,4 @@ assertThrows(UserNotFoundException.class, () -> service.findUser("missing"));
 - [Testcontainers for Java](https://java.testcontainers.org/) — integration-test standard
 - [Design for Testability (Jenkov)](https://jenkov.com/tutorials/java-unit-testing/design-for-testability.html)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -215,4 +215,4 @@ output "db_password" {
 - [Terraform — Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)
 - [OpenTofu — State Encryption](https://opentofu.org/docs/language/state/encryption/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

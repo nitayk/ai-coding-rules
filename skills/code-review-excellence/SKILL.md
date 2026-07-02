@@ -173,4 +173,4 @@ Traditional Praise + Criticism + Praise feels fake. Use
 - `references/CODE_REVIEW_EXTENDED.md` — extended methodology notes
 - `references/pr-review-comment-template-inline.md` — copy-paste PR comment structure
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

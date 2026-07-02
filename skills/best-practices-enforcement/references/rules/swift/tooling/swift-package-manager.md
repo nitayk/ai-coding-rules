@@ -192,4 +192,4 @@ In Xcode: **File → Add Package Dependencies…** for remote URLs; drag a local
 - [Apple — Swift Packages in Xcode](https://developer.apple.com/documentation/xcode/swift-packages)
 - [PackageDescription API](https://developer.apple.com/documentation/packagedescription)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

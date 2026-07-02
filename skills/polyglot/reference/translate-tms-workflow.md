@@ -188,4 +188,4 @@ Rules:
 - `#TODO(agent): wire TMS webhook` when source changes are not pushed on PR merge.
 - `#TODO(agent): backfill translator briefs` when keys lack description/screenshot metadata.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

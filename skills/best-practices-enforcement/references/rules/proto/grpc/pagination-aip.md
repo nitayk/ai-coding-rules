@@ -181,4 +181,4 @@ Cursor pagination requires the underlying ordering to be stable for the duration
 - [AIP-158 — Pagination](https://google.aip.dev/158)
 - [AIP-132 — Standard methods: List](https://google.aip.dev/132)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -161,4 +161,4 @@ if
 - [Trust Boundaries](../defensive-programming/trust-boundaries.md) - Validate at boundaries
 - [Code Quality Core Principles](../code-quality/core-principles.md) - KISS, readability
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

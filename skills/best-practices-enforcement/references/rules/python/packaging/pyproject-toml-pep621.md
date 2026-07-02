@@ -200,4 +200,4 @@ requires-python = ">=3.12"   # not >=3.8 unless you really test on 3.8
 - [PEP 660 — Editable installs](https://peps.python.org/pep-0660/) — replaces `setup.py develop`
 - [uv project structure](https://docs.astral.sh/uv/concepts/projects/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

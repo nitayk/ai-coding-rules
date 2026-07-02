@@ -265,4 +265,4 @@ if text[0:6] == "prefix":
 - [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/)
 - [PEP 257 – Docstring Conventions](https://peps.python.org/pep-0257/)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -24,4 +24,4 @@ Validation report with row counts, date ranges, quality metrics, and status. Inc
 - Verify date ranges match expected
 - Report findings with queries used
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

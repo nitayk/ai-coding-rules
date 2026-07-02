@@ -358,4 +358,4 @@ func createTestOrder(status string) *Order {
 - [Go Blog: Subtests and Sub-benchmarks](https://go.dev/blog/subtests)
 - [Google Go Style Guide: Table-Driven Tests](https://google.github.io/styleguide/go/decisions#table-driven-tests)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

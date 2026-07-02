@@ -212,4 +212,4 @@ Pin to an exact version and update via a normal dependency-bump PR.
 - [Scalafix Configuration](https://scalacenter.github.io/scalafix/docs/users/configuration.html) — HOCON schema
 - [Official Scala Style Guide](https://docs.scala-lang.org/style/) — the spec Scalafmt implements
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

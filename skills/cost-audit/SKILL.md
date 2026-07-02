@@ -122,4 +122,4 @@ Per audit, produce a short report:
 
 CodeBurn auto-detects which agents you use; press `p` in the dashboard TUI to toggle providers, or use `--provider <name>` to scope.
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -153,4 +153,4 @@ Always provide:
 - the recovery action
 - the evidence that the situation is now better or still blocked
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

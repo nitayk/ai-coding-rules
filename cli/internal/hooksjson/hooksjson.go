@@ -65,21 +65,17 @@ func MergeReshape(shared, repo Object) Object {
 }
 
 // FilterForTarget deletes the hook keys that do not apply to the given target,
-// mirroring filter_hooks_json_for_target. Unknown targets are left untouched.
+// mirroring filter_hooks_json_for_target. Claude Code is the only supported
+// target; unknown targets are left untouched.
 func FilterForTarget(obj Object, target string) {
 	hooks := asObject(obj["hooks"])
 	if hooks == nil {
 		return
 	}
-	var drop []string
-	switch target {
-	case "cursor":
-		drop = []string{"SessionStart", "PreToolUse", "PostToolUse", "PreCompact", "Stop"}
-	case "claude":
-		drop = []string{"postToolUse", "sessionStart", "stop"}
-	default:
+	if target != "claude" {
 		return
 	}
+	drop := []string{"postToolUse", "sessionStart", "stop"}
 	for _, k := range drop {
 		delete(hooks, k)
 	}

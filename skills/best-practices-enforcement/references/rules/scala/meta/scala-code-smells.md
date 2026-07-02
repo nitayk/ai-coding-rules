@@ -563,4 +563,4 @@ find . -name "*.scala" -exec wc -l {} \; | sort -rn
 - **[Clean Code](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882)** - Robert C. Martin
 - **[Scala Code Style](../scala-code-style.md)** - Scala coding standards
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

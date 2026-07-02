@@ -39,4 +39,4 @@ Rate each dimension: `pass` / `minor issue` / `major issue`.
 - False emphasis — decorative elements outweigh functional ones
 - Buried CTA — the action is visually quieter than surrounding content
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

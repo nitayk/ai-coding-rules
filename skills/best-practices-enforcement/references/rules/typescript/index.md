@@ -229,7 +229,7 @@ For Vue / React / Next plugin wiring, see `meta/eslint-flat-config.md` § "Frame
 **Last Updated**: 2026-05-27
 **Maintainers**: DevOps/Platform Team
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->
 
 ---
 
@@ -266,4 +266,4 @@ For Vue / React / Next plugin wiring, see `meta/eslint-flat-config.md` § "Frame
 - [Biome v2](https://biomejs.dev/) — single-binary lint+format, ~80% ESLint rule parity; reconsider when type-aware rules land
 - [Oxlint v1](https://oxc.rs/docs/guide/usage/linter.html) — Rust linter, 650+ rules, used by Shopify/Preact; safe as ESLint coexistence
 
-<!-- Cross-platform: see AGENTS.md in this repository for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

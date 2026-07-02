@@ -401,4 +401,4 @@ func ProcessMany(ctx context.Context, items []Item) error {
 - [Package sync](https://pkg.go.dev/sync)
 - [golang.org/x/sync/errgroup](https://pkg.go.dev/golang.org/x/sync/errgroup)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

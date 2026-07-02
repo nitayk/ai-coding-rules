@@ -273,4 +273,4 @@ Save notes to `{output_path}` as a JSON array of strings:
 - Speculate about causes without evidence
 - Repeat information already in the run_summary aggregates
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

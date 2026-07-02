@@ -259,4 +259,4 @@ func (s *UserService) GetUser(id int) (*User, error) {
 - [Dave Cheney: SOLID Go Design](https://dave.cheney.net/2016/08/20/solid-go-design)
 - [Effective Go: Interfaces](https://go.dev/doc/effective_go#interfaces)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

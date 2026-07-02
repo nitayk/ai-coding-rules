@@ -154,4 +154,4 @@ If you genuinely need to iterate over another resource's output, structure the c
 - [Terraform Pilot — moved-block explained](https://www.terraformpilot.com/articles/terraform-moved-block-explained/)
 - [Spacelift — `for_each` vs `count`](https://spacelift.io/blog/terraform-foreach)
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

@@ -78,4 +78,4 @@ The shape is now `Property<T>` everywhere — assign with `.set(...)` or use the
 - [What's new in Kotlin 2.2 — Breaking changes and deprecations](https://kotlinlang.org/docs/whatsnew22.html) — `kotlinOptions{}` removal; `kotlin-android-extensions` removal
 - [Kotlin Gradle plugin DSL reference](https://kotlinlang.org/docs/gradle-compiler-options.html) — Full `compilerOptions {}` API
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->

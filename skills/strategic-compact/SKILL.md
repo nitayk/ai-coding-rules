@@ -135,4 +135,4 @@ Common sources of duplicate context:
 - Memory persistence hooks — For state that survives compaction
 - `continuous-learning` skill — Extracts patterns before session ends
 
-<!-- Cross-platform: see AGENTS.md in the repository root for Cursor, Claude Code, and Copilot paths. -->
+<!-- Cross-platform: see AGENTS.md in the repository root for deployment details. -->
